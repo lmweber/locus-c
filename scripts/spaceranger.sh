@@ -10,10 +10,11 @@
 # using local installation of spaceranger in home directory
 
 # run on JHPCE cluster
-# qsub -V -cwd -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G spaceranger.sh
+# qsub -V -cwd -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G scripts/spaceranger.sh
 
 
 # run in output directory (note spaceranger can only run in current working directory)
+cwd=$(pwd)
 cd ..
 
 # run spaceranger count
@@ -26,4 +27,7 @@ spaceranger count --id=LC_1 \
 --localcores=6 \
 --localmem=40 \
 --localvmem=80
+
+# restore working directory
+cd $cwd
 
