@@ -24,6 +24,7 @@ spaceranger count --id=LC_1 \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/Lieber-Institute_OTS-20-7043_Pt1.jpg \
 --slide=V19B23-076 --area=B1 \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/V19B23-076-B1.json \
+--nosecondary \
 --localcores=6 \
 --localmem=40 \
 --localvmem=80
