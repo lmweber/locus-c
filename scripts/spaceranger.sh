@@ -13,6 +13,9 @@
 # using local installation of spaceranger in home directory
 
 
+# run in output directory (note spaceranger can only run in current working directory)
+cd ..
+
 # run spaceranger count
 spaceranger count --id=LC_1 \
 --transcriptome=../spaceranger/refdata-gex-GRCh38-2020-A \
