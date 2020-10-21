@@ -8,7 +8,7 @@
 # adapted from Andrew Jaffe's script 'pilot_align.sh'
 
 # run on JHPCE cluster
-# qrsh -pe local 8 -l mem_free=3G,h_vmem=6G,h_fsize=100G -now n
+# qrsh -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G -now n
 
 # using local installation of spaceranger in home directory
 
@@ -20,6 +20,7 @@ spaceranger count --id=LC_1 \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/Lieber-Institute_OTS-20-7043_Pt1.jpg \
 --slide=V19B23-076 --area=B1 \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/V19B23-076-B1.json \
---localcores=8 \
---localmem=20
+--localcores=6 \
+--localmem=40 \
+--localvmem=80
 
