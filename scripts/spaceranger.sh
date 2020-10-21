@@ -7,10 +7,10 @@
 # example code to run Space Ranger
 # adapted from Andrew Jaffe's script 'pilot_align.sh'
 
-# run on JHPCE cluster
-# qrsh -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G -now n
-
 # using local installation of spaceranger in home directory
+
+# run on JHPCE cluster
+# qsub -V -cwd -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G spaceranger.sh
 
 
 # run in output directory (note spaceranger can only run in current working directory)
