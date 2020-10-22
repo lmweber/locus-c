@@ -4,14 +4,14 @@
 # Script to run Space Ranger
 ############################
 
-# example code to run Space Ranger
 # adapted from Andrew Jaffe's script 'pilot_align.sh'
-
-# using local installation of spaceranger in home directory
 
 # run on JHPCE cluster
 # qsub -V -cwd -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G scripts/spaceranger.sh
 
+# load spaceranger module
+module use /jhpce/shared/jhpce/modulefiles/libd
+module load spaceranger
 
 # run in output directory (note spaceranger can only run in current working directory)
 cwd=$(pwd)
