@@ -6,7 +6,7 @@
 
 # locations of files:
 # -------------------
-# spaceranger reference: ../spaceranger/refdata-gex-GRCh38-2020-A
+# spaceranger reference: /dcl02/leased/shicks/spaceranger/refdata-gex-GRCh38-2020-A
 # fastq: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ
 # images (screenshots): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe
 # - image files and Loupe manual alignment json files
@@ -34,7 +34,7 @@ mkdir -p LC_1
 cd LC_1
 spaceranger count \
 --id=LC_1 \
---transcriptome=../../../spaceranger/refdata-gex-GRCh38-2020-A \
+--transcriptome=/dcl02/leased/shicks/spaceranger/refdata-gex-GRCh38-2020-A \
 --fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ/LC_1 \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_2.tif \
 --slide=V19B23-076 \
