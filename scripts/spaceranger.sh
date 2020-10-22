@@ -4,10 +4,22 @@
 # Script to run Space Ranger
 ############################
 
-# adapted from Andrew Jaffe's script 'pilot_align.sh'
+# locations of files:
+# -------------------
+# spaceranger reference: ../spaceranger/refdata-gex-GRCh38-2020-A
+# fastq: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ
+# images (screenshots): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe
+# - image files and Loupe manual alignment json files
+# - add argument --loupe-alignment to use manual alignment files (see Andrew Jaffe's script 'pilot_align.sh')
+# - see 'pilot_align.sh' for which screenshot matches to which sample
+# images (raw): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw
+# - no manual alignment files (use automatic alignment instead)
+# summary spreadsheet: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Visium LC pilot_072120 Master.xlsx
+# - contains sample ID, sample name, slide serial number, capture area ID
+
 
 # run on JHPCE cluster
-# qsub -V -cwd -pe local 6 -l mem_free=7G,h_vmem=14G,h_fsize=100G scripts/spaceranger.sh
+# qsub -V -cwd -pe local 8 -l mem_free=9G,h_vmem=18G,h_fsize=200G scripts/spaceranger.sh
 
 # load spaceranger module
 module use /jhpce/shared/jhpce/modulefiles/libd
@@ -18,16 +30,17 @@ cwd=$(pwd)
 cd ..
 
 # run spaceranger count
-spaceranger count --id=LC_1 \
+spaceranger count \
+--id=LC_1 \
 --transcriptome=../spaceranger/refdata-gex-GRCh38-2020-A \
 --fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ/LC_1 \
---image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/Lieber-Institute_OTS-20-7043_Pt1.jpg \
---slide=V19B23-076 --area=B1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/V19B23-076-B1.json \
+--image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_2.tif \
+--slide=V19B23-076 \
+--area=B1 \
 --nosecondary \
---localcores=6 \
---localmem=40 \
---localvmem=80
+--localcores=8 \
+--localmem=64 \
+--localvmem=128
 
 # restore working directory
 cd $cwd
