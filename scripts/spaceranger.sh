@@ -25,11 +25,13 @@
 module use /jhpce/shared/jhpce/modulefiles/libd
 module load spaceranger
 
-# run in output directory (note spaceranger can only run in current working directory)
+# run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
-cd ..
+cd ../outputs
 
 # run spaceranger count
+mkdir -p LC_1
+cd LC_1
 spaceranger count \
 --id=LC_1 \
 --transcriptome=../spaceranger/refdata-gex-GRCh38-2020-A \
