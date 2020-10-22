@@ -30,8 +30,6 @@ cwd=$(pwd)
 cd ../outputs
 
 # run spaceranger count
-mkdir -p LC_1
-cd LC_1
 spaceranger count \
 --id=LC_1 \
 --transcriptome=/dcl02/leased/shicks/spaceranger/refdata-gex-GRCh38-2020-A \
