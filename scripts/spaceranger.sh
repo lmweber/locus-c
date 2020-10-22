@@ -19,7 +19,7 @@
 
 
 # run on JHPCE cluster
-# qsub -V -cwd -pe local 8 -l mem_free=9G,h_vmem=18G,h_fsize=200G scripts/spaceranger.sh
+# qsub -V -cwd -pe local 8 -l mem_free=30G,h_vmem=40G,h_fsize=300G scripts/spaceranger.sh
 
 # load spaceranger module
 module use /jhpce/shared/jhpce/modulefiles/libd
@@ -41,8 +41,8 @@ spaceranger count \
 --area=B1 \
 --nosecondary \
 --localcores=8 \
---localmem=64 \
---localvmem=128
+--localmem=200 \
+--localvmem=400
 
 # restore working directory
 cd $cwd
