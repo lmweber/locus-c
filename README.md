@@ -24,11 +24,13 @@ location of LIBD files: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_
 
 - Raw image files (`.tif`): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw`
 - Screen shots of image files (`.jpeg`) and Loupe manual alignment json files (run by Andrew Jaffe): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe`
+- Manually aligned files (`.json`) by Lukas Weber: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/json_after_manual_loupe`
 
 
 ### Scripts 
 
-- initial script with code to run `Space Ranger`: `pilot_align.sh`
+- Initial script by Andrew with code to run `spaceranger count`: `dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/pilot_align.sh`
+- Updated script by Lukas and Stephanie to run `spaceranger count` with manually aligned json files from images (this directory): `scripts/spaceranger.sh`
 
 
 ## Authors
