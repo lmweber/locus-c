@@ -1,11 +1,11 @@
 #!/bin/bash
 #$ -pe local 8
-#$ -l mem_free=9G,h_vmem=18G,h_fsize=200G
+#$ -l mem_free=52G,h_vmem=53G,h_fsize=200G
 #$ -V
 #$ -cwd
 
 # run on JHPCE cluster
-# qsub spaceranger.sh
+# qsub scripts/spaceranger.sh
 
 ############################
 # Script to run Space Ranger
@@ -43,7 +43,7 @@ spaceranger count \
 --area=A1 \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/manual_align_json/V19B23-076-A1.json \
 --localcores=8 \
---localmem=64
+--localmem=400
 
 spaceranger count \
 --id=LC_1 \
@@ -54,7 +54,7 @@ spaceranger count \
 --area=B1 \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/manual_align_json/V19B23-076-B1.json \
 --localcores=8 \
---localmem=64
+--localmem=400
 
 spaceranger count \
 --id=LC_2 \
@@ -65,7 +65,7 @@ spaceranger count \
 --area=C1 \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/manual_align_json/V19B23-076-C1.json \
 --localcores=8 \
---localmem=64
+--localmem=400
 
 spaceranger count \
 --id=LC_3 \
@@ -76,7 +76,7 @@ spaceranger count \
 --area=D1 \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/manual_align_json/V19B23-076-D1.json \
 --localcores=8 \
---localmem=64
+--localmem=400
 
 
 # restore working directory
