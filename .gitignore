@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 spaceranger.sh.*
+sample_info/*
+images/raw/*.tif
