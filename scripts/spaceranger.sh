@@ -4,6 +4,9 @@
 #$ -V
 #$ -cwd
 
+# run on JHPCE cluster
+# qsub spaceranger.sh
+
 ############################
 # Script to run Space Ranger
 ############################
@@ -18,7 +21,6 @@
 # summary spreadsheet: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Visium LC pilot_072120 Master.xlsx
 # - contains sample ID, sample name, slide serial number, capture area ID
 
-# run on JHPCE cluster
 
 # load spaceranger module
 module use /jhpce/shared/jhpce/modulefiles/libd
@@ -29,6 +31,7 @@ cwd=$(pwd)
 cd ..
 mkdir -p outputs
 cd outputs
+
 
 # run spaceranger count
 spaceranger count \
@@ -74,6 +77,7 @@ spaceranger count \
 --loupe-alignment=/dcl02/leased/shicks/locus_c/manual_align_json/V19B23-076-D1.json \
 --localcores=8 \
 --localmem=64
+
 
 # restore working directory
 cd $cwd
