@@ -23,8 +23,8 @@
 
 
 # load spaceranger module
-#module use /jhpce/shared/jhpce/modulefiles/libd
-#module load spaceranger
+module use /jhpce/shared/jhpce/modulefiles/libd
+module load spaceranger
 
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
