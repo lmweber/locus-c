@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l mem_free=11G,h_vmem=11G,h_fsize=100G
+#$ -l mem_free=12G,h_vmem=12G,h_fsize=100G
 #$ -cwd
 
 # run on JHPCE cluster
