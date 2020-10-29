@@ -5,7 +5,7 @@
 #$ -cwd
 
 # run on JHPCE cluster
-# qsub scripts/spaceranger.sh
+# qsub scripts/run_spaceranger/spaceranger.sh
 
 ############################
 # Script to run Space Ranger
