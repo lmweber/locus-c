@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
 spaceranger.sh.*
 sample_info/*
 images/raw/*.tif
