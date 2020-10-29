@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l mem_free=45G,h_vmem=100G,h_fsize=100G
+#$ -l mem_free=11G,h_vmem=22G,h_fsize=100G
 #$ -cwd
 
 # run on JHPCE cluster
@@ -36,5 +36,5 @@ spaceranger count \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-A1.json \
 --jobmode=local \
 --localcores=1 \
---localmem=40
+--localmem=10
 
