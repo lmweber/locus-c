@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -pe local 8
-#$ -l mem_free=9G,h_vmem=18G,h_fsize=100G
+#$ -l mem_free=10G,h_vmem=12G,h_fsize=100G
 #$ -V
 #$ -cwd
 
@@ -14,9 +14,10 @@
 # locations of files:
 # -------------------
 # spaceranger reference: /dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A
-# fastq: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ
+# fastq (MiSeq): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ
+# fastq (NextSeq): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ_NextSeq/
 # images (raw): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw
-# manual alignment files from Loupe: /dcl02/leased/shicks/locus_c/raw_manual_align_json
+# manual alignment files from Loupe: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json
 
 # summary spreadsheet: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Visium LC pilot_072120 Master.xlsx
 # - contains sample ID, sample name, slide serial number, capture area ID
@@ -29,11 +30,12 @@
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
 cd ..
-mkdir -p outputs
-cd outputs
+mkdir -p outputs_MiSeq
+cd outputs_MiSeq
 
 
-# run spaceranger count
+# run spaceranger count for each sample
+
 spaceranger count \
 --id=DLPFC \
 --transcriptome=/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A \
@@ -41,7 +43,7 @@ spaceranger count \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_1.tif \
 --slide=V19B23-076 \
 --area=A1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-A1.json \
+--loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json/V19B23-076-A1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -53,7 +55,7 @@ spaceranger count \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_2.tif \
 --slide=V19B23-076 \
 --area=B1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-B1.json \
+--loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json/V19B23-076-B1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -65,7 +67,7 @@ spaceranger count \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_3.tif \
 --slide=V19B23-076 \
 --area=C1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-C1.json \
+--loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json/V19B23-076-C1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -77,7 +79,7 @@ spaceranger count \
 --image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_4.tif \
 --slide=V19B23-076 \
 --area=D1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-D1.json \
+--loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json/V19B23-076-D1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
