@@ -1,18 +1,17 @@
 #!/bin/bash
-#$ -l mem_free=11G,h_vmem=22G,h_fsize=100G
+#$ -l mem_free=11G,h_vmem=11G,h_fsize=100G
 #$ -cwd
 
 # run on JHPCE cluster
 # qsub scripts/spaceranger_memory_error.sh
 
 
-# --------------------------------------------------------------------------
-# Minimal script to reproduce Space Ranger memory error when using module on 
-# JHPCE cluster
+# ----------------------------------------------------------------------------------------
+# Script to reproduce Space Ranger memory error when using module on JHPCE cluster
 # 
-# error OCCURS when using module
-# error DOES NOT OCCUR when NOT using module (comment out lines 18 and 19)
-# --------------------------------------------------------------------------
+# error OCCURS when using spaceranger module
+# error DOES NOT OCCUR when using local installation instead (comment out lines 17 and 18)
+# ----------------------------------------------------------------------------------------
 
 # load spaceranger module
 module use /jhpce/shared/jhpce/modulefiles/libd
