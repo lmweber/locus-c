@@ -23,8 +23,8 @@
 
 
 # load spaceranger module
-module use /jhpce/shared/jhpce/modulefiles/libd
-module load spaceranger
+#module use /jhpce/shared/jhpce/modulefiles/libd
+#module load spaceranger
 
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
@@ -44,8 +44,7 @@ spaceranger count \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-A1.json \
 --jobmode=local \
 --localcores=8 \
---localmem=64 \
---nosecondary
+--localmem=64
 
 spaceranger count \
 --id=LC_1 \
@@ -57,8 +56,7 @@ spaceranger count \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-B1.json \
 --jobmode=local \
 --localcores=8 \
---localmem=64 \
---nosecondary
+--localmem=64
 
 spaceranger count \
 --id=LC_2 \
@@ -70,8 +68,7 @@ spaceranger count \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-C1.json \
 --jobmode=local \
 --localcores=8 \
---localmem=64 \
---nosecondary
+--localmem=64
 
 spaceranger count \
 --id=LC_3 \
@@ -83,8 +80,7 @@ spaceranger count \
 --loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/raw_manual_align_json/V19B23-076-D1.json \
 --jobmode=local \
 --localcores=8 \
---localmem=64 \
---nosecondary
+--localmem=64
 
 
 # restore working directory
