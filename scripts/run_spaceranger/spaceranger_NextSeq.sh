@@ -30,8 +30,8 @@
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
 cd ..
-mkdir -p outputs_MiSeq
-cd outputs_MiSeq
+mkdir -p outputs_NextSeq
+cd outputs_NextSeq
 
 
 # run spaceranger count for each sample
