@@ -9,6 +9,13 @@ Repository for our code on locus coeruleus project
 - location of repository: `/dcl02/leased/shicks/locus_c/locus-c`
 
 
+### Scripts
+
+- scripts to run `spaceranger count` using raw images and manually aligned .json files (by Lukas Weber and Stephanie Hicks): [scripts/run_spaceranger/](scripts/run_spaceranger)
+
+- additional scripts saved in other subdirectories in [scripts/](scripts/)
+
+
 ## LIBD files
 
 - main directory: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/`
@@ -43,8 +50,6 @@ Repository for our code on locus coeruleus project
 
 
 ### Scripts
-
-- scripts to run `spaceranger count` using raw images and manually aligned .json files (by Lukas Weber and Stephanie Hicks): saved in this repository in directory [scripts/run_spaceranger](scripts/run_spaceranger)
 
 - initial script to run `spaceranger count` using screenshots and manually aligned .json files (by Andrew Jaffe): `dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/pilot_align.sh`
 
