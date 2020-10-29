@@ -5,35 +5,52 @@ Repository for our code on locus coeruleus project
 
 ## Files
 
-- location of our files: `/dcl02/leased/shicks/locus_c`
-- location of Space Ranger reference: `/dcl02/leased/shicks/spaceranger`
+- location of our files: `/dcl02/leased/shicks/locus_c/`
+- location of repository: `/dcl02/leased/shicks/locus_c/locus-c`
 
 
 ## LIBD files
 
-### Sample information 
+- main directory: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/`
 
-Summary spreadsheet: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Visium LC pilot_072120 Master.xlsx`
+
+### Sample information
+
+- summary spreadsheet: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Visium LC pilot_072120 Master.xlsx`
 
 - contains sample ID, sample name, slide serial number, capture area ID
 
 
-### Image files 
+### FASTQ files
 
-location of LIBD files: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot`
+- MiSeq FASTQ files (4 samples: DLPFC, LC_1, LC_2, LC): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ/`
 
-- Raw image files (`.tif`): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw`
-- Screen shots of image files (`.jpeg`) and Loupe manual alignment json files (run by Andrew Jaffe): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe`
-- Manually aligned files (`.json`) by Lukas Weber: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/json_after_manual_loupe`
+- NextSeq FASTQ files (2 samples: LC_1, LC_2): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ_NextSeq/`
 
 
-### Scripts 
+### Image files
 
-- Initial script by Andrew with code to run `spaceranger count`: `dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/pilot_align.sh`
-- Updated script by Lukas and Stephanie to run `spaceranger count` with manually aligned json files from images (this directory): `scripts/spaceranger.sh`
+- raw image files (`.tif` files, ~3 GB per sample): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/`
+
+- manual alignment .json files from Loupe for raw image files (run by Lukas Weber): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json/`
+
+- smaller screenshots of image files (`.jpeg`) and manual alignment .json files from Loupe (run by Andrew Jaffe): `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Snapshots_Plus_Loupe/`
+
+
+### Reference transcriptome
+
+- reference transcriptome downloaded from 10x website: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A/`
+
+
+### Scripts
+
+- scripts to run `spaceranger count` using raw images and manually aligned .json files (by Lukas Weber and Stephanie Hicks): saved in this repository in directory [scripts/run_spaceranger](scripts/run_spaceranger)
+
+- initial script to run `spaceranger count` using screenshots and manually aligned .json files (by Andrew Jaffe): `dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/pilot_align.sh`
 
 
 ## Authors
 
 - Lukas Weber
 - Stephanie Hicks
+
