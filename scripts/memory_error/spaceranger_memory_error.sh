@@ -19,9 +19,8 @@ module load spaceranger
 
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
-cd ..
-mkdir -p outputs_memory_error
-cd outputs_memory_error
+mkdir -p ../outputs/memory_error
+cd ../outputs/memory_error
 
 
 # run spaceranger count
