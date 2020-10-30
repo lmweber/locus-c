@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -pe local 8
-#$ -l mem_free=10G,h_vmem=12G,h_fsize=100G
+#$ -l mem_free=10G,h_vmem=20G,h_fsize=100G
 #$ -V
 #$ -cwd
 
