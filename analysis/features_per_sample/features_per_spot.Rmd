@@ -202,6 +202,9 @@ for (i in seq_along(sample_names)) {
   sum_counts_by_spot <- colSums(counts(ve))
   colData(ve)$sum_counts_by_spot <- sum_counts_by_spot
   
+  hist(sum_counts_by_spot, breaks = 20, 
+       main = paste0("Counts per spot: ", sample_names[i]))
+  
   length(sum_counts_by_spot)
   sum(sum_counts_by_spot > 100)
   sum(sum_counts_by_spot > 1000)
