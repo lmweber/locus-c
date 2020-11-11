@@ -41,79 +41,92 @@ library(rjson)
 ```
 
 ```{r}
-# select sample
-sample_name <- "LC_1"
+sample_names <- c("LC_1", "LC_2")
+ve_list <- vector("list", length = length(sample_names))
+names(ve_list) <- sample_names
 
-# path to Space Ranger output files
-dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
-#dir_outputs <- "../outputs/NextSeq"
-
-# note: requires raw barcodes list
-dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
-
-# barcodes
-file_barcodes <- file.path(dir_matrix, "barcodes.tsv.gz")
-df_barcodes <- read.csv(file_barcodes, sep = "\t", header = FALSE, 
-                        col.names = c("barcode_id"))
-# features
-file_features <- file.path(dir_matrix, "features.tsv.gz")
-df_features <- read.csv(file_features, sep = "\t", header = FALSE, 
-                        col.names = c("gene_id", "gene_name", "feature_type"))
-# counts
-file_counts <- file.path(dir_matrix, "matrix.mtx.gz")
-counts <- readMM(file = file_counts)
-
-# spatial coordinates
-dir_spatial <- file.path(dir_outputs, sample_name, "outs", "spatial")
-file_tisspos <- file.path(dir_spatial, "tissue_positions_list.csv")
-df_tisspos <- read.csv(file_tisspos, header = FALSE, 
-                       col.names=c("barcode_id", "in_tissue", "array_row", "array_col", 
-                                   "pxl_col_in_fullres", "pxl_row_in_fullres"))
-
-# check dimensions
-dim(df_barcodes)
-dim(df_features)
-dim(counts)
-dim(df_tisspos)
-
-# image paths
-imageFilePath <- file.path(dir_spatial, c("tissue_hires_image.png", "tissue_lores_image.png"))
-
-# spatial scale factors
-file_scale <- file.path(dir_spatial, "scalefactors_json.json")
-scalefactors <- fromJSON(file = file_scale)
-```
-
-```{r}
-# create VisiumExperiment
-
-# note: need to re-order rows of df_tisspos to match barcodes
-ord <- match(df_barcodes$barcode_id, df_tisspos$barcode_id)
-df_tisspos_ord <- df_tisspos[ord, ]
-
-head(df_barcodes)
-head(df_tisspos_ord)
-stopifnot(all(df_barcodes$barcode_id == df_tisspos_ord$barcode_id))
-
-ve <- VisiumExperiment(
-  rowData = df_features, 
-  colData = df_barcodes, 
-  assays = c(counts = counts), 
-  spatialCoords = df_tisspos_ord, 
-  scaleFactors = scalefactors
-)
-
-ve
-```
-
-```{r}
-# keep only spots overlapping with tissue
-stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
-dim(ve)
-
-ve <- ve[, spatialCoords(ve)$in_tissue == 1]
-
-dim(ve)
+for (i in seq_along(sample_names)) {
+  
+  # ---------
+  # load data
+  # ---------
+  
+  # select sample
+  sample_name <- sample_names[i]
+  
+  # path to Space Ranger output files
+  dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
+  #dir_outputs <- "../outputs/NextSeq"
+  
+  # note: requires raw barcodes list
+  dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
+  
+  # barcodes
+  file_barcodes <- file.path(dir_matrix, "barcodes.tsv.gz")
+  df_barcodes <- read.csv(file_barcodes, sep = "\t", header = FALSE, 
+                          col.names = c("barcode_id"))
+  # features
+  file_features <- file.path(dir_matrix, "features.tsv.gz")
+  df_features <- read.csv(file_features, sep = "\t", header = FALSE, 
+                          col.names = c("gene_id", "gene_name", "feature_type"))
+  # counts
+  file_counts <- file.path(dir_matrix, "matrix.mtx.gz")
+  counts <- readMM(file = file_counts)
+  
+  # spatial coordinates
+  dir_spatial <- file.path(dir_outputs, sample_name, "outs", "spatial")
+  file_tisspos <- file.path(dir_spatial, "tissue_positions_list.csv")
+  df_tisspos <- read.csv(file_tisspos, header = FALSE, 
+                         col.names=c("barcode_id", "in_tissue", "array_row", "array_col", 
+                                     "pxl_col_in_fullres", "pxl_row_in_fullres"))
+  
+  # check dimensions
+  dim(df_barcodes)
+  dim(df_features)
+  dim(counts)
+  dim(df_tisspos)
+  
+  # image paths
+  imageFilePath <- file.path(dir_spatial, c("tissue_hires_image.png", "tissue_lores_image.png"))
+  
+  # spatial scale factors
+  file_scale <- file.path(dir_spatial, "scalefactors_json.json")
+  scalefactors <- fromJSON(file = file_scale)
+  
+  
+  # -----------------------
+  # create VisiumExperiment
+  # -----------------------
+  
+  # note: need to re-order rows of df_tisspos to match barcodes
+  ord <- match(df_barcodes$barcode_id, df_tisspos$barcode_id)
+  df_tisspos_ord <- df_tisspos[ord, ]
+  
+  head(df_barcodes)
+  head(df_tisspos_ord)
+  stopifnot(all(df_barcodes$barcode_id == df_tisspos_ord$barcode_id))
+  
+  ve <- VisiumExperiment(
+    rowData = df_features, 
+    colData = df_barcodes, 
+    assays = c(counts = counts), 
+    spatialCoords = df_tisspos_ord, 
+    scaleFactors = scalefactors
+  )
+  
+  ve
+  
+  # keep only spots overlapping with tissue
+  stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+  dim(ve)
+  
+  ve <- ve[, spatialCoords(ve)$in_tissue == 1]
+  
+  dim(ve)
+  
+  # store object
+  ve_list[[i]] <- ve
+}
 ```
 
 
@@ -141,6 +154,7 @@ LC_2:
 
 These are extremely low numbers of genes and UMIs per spot, given the high number of reads per spot. Why is this?
 
+
 ```{r, message=FALSE}
 library(ggplot2)
 ```
@@ -148,60 +162,76 @@ library(ggplot2)
 ```{r}
 # investigate genes
 
-sum_counts_by_gene <- rowSums(counts(ve))
-rowData(ve)$sum_counts_by_gene <- sum_counts_by_gene
-
-length(sum_counts_by_gene)
-sum(sum_counts_by_gene > 100)
-sum(sum_counts_by_gene > 1000)
-sum(sum_counts_by_gene > 10000)
-
-as.data.frame(rowData(ve)[rowData(ve)$sum_counts_by_gene > 10000, ])  ## top genes are mitochondrial
-
-# calculate proportion reads from mitochondrial genes
-
-# identify mitochondrial genes
-is_mito <- grepl("(^MT-)|(^mt-)", rowData(ve)$gene_name)
-table(is_mito)
-rowData(ve)$gene_name[is_mito]
-
-sum(counts(ve)[is_mito, ]) / sum(counts(ve))  ## quite a lot, but not completely dominating
+for (i in seq_along(sample_names)) {
+  
+  # select sample
+  ve <- ve_list[[i]]
+  
+  sum_counts_by_gene <- rowSums(counts(ve))
+  rowData(ve)$sum_counts_by_gene <- sum_counts_by_gene
+  
+  length(sum_counts_by_gene)
+  sum(sum_counts_by_gene > 100)
+  sum(sum_counts_by_gene > 1000)
+  sum(sum_counts_by_gene > 10000)
+  
+  as.data.frame(rowData(ve)[rowData(ve)$sum_counts_by_gene > 10000, ])  ## top genes are mitochondrial
+  
+  # calculate proportion reads from mitochondrial genes
+  
+  # identify mitochondrial genes
+  is_mito <- grepl("(^MT-)|(^mt-)", rowData(ve)$gene_name)
+  table(is_mito)
+  rowData(ve)$gene_name[is_mito]
+  
+  sum(counts(ve)[is_mito, ]) / sum(counts(ve))  ## quite a lot, but not completely dominating
+}
 ```
 
-```{r, fig.width=3.75, fig.height=3.75}
+
+```{r, fig.width=4.75, fig.height=3.5}
 # investigate spots
 
-sum_counts_by_spot <- colSums(counts(ve))
-colData(ve)$sum_counts_by_spot <- sum_counts_by_spot
+huge_counts <- c(10000, 5000)
 
-length(sum_counts_by_spot)
-sum(sum_counts_by_spot > 100)
-sum(sum_counts_by_spot > 1000)
-sum(sum_counts_by_spot > 10000)
-
-colData(ve)$is_huge_counts <- sum_counts_by_spot > 10000
-
-# plot spots with enormous counts
-
-stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
-
-df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
-head(df_plot)
-
-p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_huge_counts)) + 
-  geom_point(size = 0.5) + 
-  coord_fixed() + 
-  scale_y_reverse() + 
-  scale_color_manual(values = c("gray85", "red")) + 
-  ggtitle("QC: spots with huge counts") + 
-  theme_bw() + 
-  theme(panel.grid = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(), 
-        axis.ticks = element_blank())
-
-p
-
-ggsave("../plots/QC_spots_huge_counts_LC_1.png", width = 3.75, height = 3.75)
+for (i in seq_along(sample_names)) {
+  
+  # select sample
+  ve <- ve_list[[i]]
+  
+  sum_counts_by_spot <- colSums(counts(ve))
+  colData(ve)$sum_counts_by_spot <- sum_counts_by_spot
+  
+  length(sum_counts_by_spot)
+  sum(sum_counts_by_spot > 100)
+  sum(sum_counts_by_spot > 1000)
+  sum(sum_counts_by_spot > 10000)
+  
+  colData(ve)$is_huge_counts <- sum_counts_by_spot > huge_counts[i]
+  
+  # plot spots with enormous counts
+  
+  stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+  
+  df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
+  head(df_plot)
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_huge_counts)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray85", "red")) + 
+    ggtitle("QC: spots with huge counts") + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  p
+  
+  fn <- paste0("../plots/QC_spots_huge_counts_", sample_names[i], ".png")
+  ggsave(fn, width = 4.75, height = 3.5)
+}
 ```
 
