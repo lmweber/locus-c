@@ -1,0 +1,207 @@
+---
+title: "LC analyses: features per spot"
+author: "Lukas Weber"
+date: "11/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Introduction
+
+These analyses investigate the number of features per spot for each sample.
+
+```{r}
+# to run on cluster
+# module load conda_R/4.0
+# R
+```
+
+
+## Load data
+
+Notes:
+
+- "raw" feature-barcode matrix from Space Ranger contains all spots
+- "filtered" feature-barcode matrix from Space Ranger contains only spots under tissue
+
+More details: https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/matrices
+
+Here we use the "raw" feature-barcode matrix to directly create a `VisiumExperiment`.
+
+More details: see `SpatialExperiment` vignettes at https://bioconductor.org/packages/SpatialExperiment
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(Matrix)
+library(rjson)
+```
+
+```{r}
+# select sample
+sample_name <- "LC_1"
+
+# path to Space Ranger output files
+dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
+#dir_outputs <- "../outputs/NextSeq"
+
+# note: requires raw barcodes list
+dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
+
+# barcodes
+file_barcodes <- file.path(dir_matrix, "barcodes.tsv.gz")
+df_barcodes <- read.csv(file_barcodes, sep = "\t", header = FALSE, 
+                        col.names = c("barcode_id"))
+# features
+file_features <- file.path(dir_matrix, "features.tsv.gz")
+df_features <- read.csv(file_features, sep = "\t", header = FALSE, 
+                        col.names = c("gene_id", "gene_name", "feature_type"))
+# counts
+file_counts <- file.path(dir_matrix, "matrix.mtx.gz")
+counts <- readMM(file = file_counts)
+
+# spatial coordinates
+dir_spatial <- file.path(dir_outputs, sample_name, "outs", "spatial")
+file_tisspos <- file.path(dir_spatial, "tissue_positions_list.csv")
+df_tisspos <- read.csv(file_tisspos, header = FALSE, 
+                       col.names=c("barcode_id", "in_tissue", "array_row", "array_col", 
+                                   "pxl_col_in_fullres", "pxl_row_in_fullres"))
+
+# check dimensions
+dim(df_barcodes)
+dim(df_features)
+dim(counts)
+dim(df_tisspos)
+
+# image paths
+imageFilePath <- file.path(dir_spatial, c("tissue_hires_image.png", "tissue_lores_image.png"))
+
+# spatial scale factors
+file_scale <- file.path(dir_spatial, "scalefactors_json.json")
+scalefactors <- fromJSON(file = file_scale)
+```
+
+```{r}
+# create VisiumExperiment
+
+# note: need to re-order rows of df_tisspos to match barcodes
+ord <- match(df_barcodes$barcode_id, df_tisspos$barcode_id)
+df_tisspos_ord <- df_tisspos[ord, ]
+
+head(df_barcodes)
+head(df_tisspos_ord)
+stopifnot(all(df_barcodes$barcode_id == df_tisspos_ord$barcode_id))
+
+ve <- VisiumExperiment(
+  rowData = df_features, 
+  colData = df_barcodes, 
+  assays = c(counts = counts), 
+  spatialCoords = df_tisspos_ord, 
+  scaleFactors = scalefactors
+)
+
+ve
+```
+
+```{r}
+# keep only spots overlapping with tissue
+stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+dim(ve)
+
+ve <- ve[, spatialCoords(ve)$in_tissue == 1]
+
+dim(ve)
+```
+
+
+## Number of features per spot
+
+Using NextSeq samples. Spot-level summaries from `web_summary.html` for each sample:
+
+LC_1:
+
+- Number of Spots Under Tissue: 2,979
+- Fraction Reads in Spots Under Tissue: 91.2%
+- Mean Reads per Spot: 109,805
+- Median Genes per Spot: 233
+- Total Genes Detected: 19,349
+- Median UMI Counts per Spot: 329
+
+LC_2:
+
+- Number of Spots Under Tissue: 3,056
+- Fraction Reads in Spots Under Tissue: 82.4%
+- Mean Reads per Spot: 83,717
+- Median Genes per Spot: 82
+- Total Genes Detected: 17,208
+- Median UMI Counts per Spot: 117
+
+These are extremely low numbers of genes and UMIs per spot, given the high number of reads per spot. Why is this?
+
+```{r, message=FALSE}
+library(ggplot2)
+```
+
+```{r}
+# investigate genes
+
+sum_counts_by_gene <- rowSums(counts(ve))
+rowData(ve)$sum_counts_by_gene <- sum_counts_by_gene
+
+length(sum_counts_by_gene)
+sum(sum_counts_by_gene > 100)
+sum(sum_counts_by_gene > 1000)
+sum(sum_counts_by_gene > 10000)
+
+as.data.frame(rowData(ve)[rowData(ve)$sum_counts_by_gene > 10000, ])  ## top genes are mitochondrial
+
+# calculate proportion reads from mitochondrial genes
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(ve)$gene_name)
+table(is_mito)
+rowData(ve)$gene_name[is_mito]
+
+sum(counts(ve)[is_mito, ]) / sum(counts(ve))  ## quite a lot, but not completely dominating
+```
+
+```{r, fig.width=3.75, fig.height=3.75}
+# investigate spots
+
+sum_counts_by_spot <- colSums(counts(ve))
+colData(ve)$sum_counts_by_spot <- sum_counts_by_spot
+
+length(sum_counts_by_spot)
+sum(sum_counts_by_spot > 100)
+sum(sum_counts_by_spot > 1000)
+sum(sum_counts_by_spot > 10000)
+
+colData(ve)$is_huge_counts <- sum_counts_by_spot > 10000
+
+# plot spots with enormous counts
+
+stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+
+df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
+head(df_plot)
+
+p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_huge_counts)) + 
+  geom_point(size = 0.5) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("QC: spots with huge counts") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+p
+
+ggsave("../plots/QC_spots_huge_counts_LC_1.png", width = 3.75, height = 3.75)
+```
+
