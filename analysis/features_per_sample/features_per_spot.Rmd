@@ -9,16 +9,16 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-## Introduction
-
-These analyses investigate the number of features per spot for each sample.
-
-```{r}
+```{r, include=FALSE}
 # to run on cluster
 # module load conda_R/4.0
 # R
 ```
+
+
+## Introduction
+
+These analyses investigate the number of features per spot for each sample.
 
 
 ## Load data
@@ -159,7 +159,7 @@ These are extremely low numbers of genes and UMIs per spot, given the high numbe
 library(ggplot2)
 ```
 
-```{r}
+```{r, message=FALSE}
 # investigate genes
 
 for (i in seq_along(sample_names)) {
@@ -189,7 +189,7 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-```{r, fig.width=4.75, fig.height=3.5}
+```{r, fig.width=4.75, fig.height=3.5, message=FALSE}
 # investigate spots
 
 huge_counts <- c(10000, 5000)
@@ -221,16 +221,16 @@ for (i in seq_along(sample_names)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray85", "red")) + 
-    ggtitle("QC: spots with huge counts") + 
+    ggtitle(paste0("Spots with huge counts: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  p
+  print(p)
   
-  fn <- paste0("../plots/QC_spots_huge_counts_", sample_names[i], ".png")
+  fn <- paste0("../../../plots/QC_spots_huge_counts_", sample_names[i], ".png")
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
