@@ -127,6 +127,8 @@ for (i in seq_along(sample_names)) {
   # store object
   ve_list[[i]] <- ve
 }
+
+print(ve_list)
 ```
 
 
@@ -170,21 +172,21 @@ for (i in seq_along(sample_names)) {
   sum_counts_by_gene <- rowSums(counts(ve))
   rowData(ve)$sum_counts_by_gene <- sum_counts_by_gene
   
-  length(sum_counts_by_gene)
-  sum(sum_counts_by_gene > 100)
-  sum(sum_counts_by_gene > 1000)
-  sum(sum_counts_by_gene > 10000)
+  print(length(sum_counts_by_gene))
+  print(sum(sum_counts_by_gene > 100))
+  print(sum(sum_counts_by_gene > 1000))
+  print(sum(sum_counts_by_gene > 10000))
   
-  as.data.frame(rowData(ve)[rowData(ve)$sum_counts_by_gene > 10000, ])  ## top genes are mitochondrial
+  print(as.data.frame(rowData(ve)[rowData(ve)$sum_counts_by_gene > 10000, ]))  ## top genes are mitochondrial
   
   # calculate proportion reads from mitochondrial genes
   
   # identify mitochondrial genes
   is_mito <- grepl("(^MT-)|(^mt-)", rowData(ve)$gene_name)
-  table(is_mito)
-  rowData(ve)$gene_name[is_mito]
+  print(table(is_mito))
+  print(rowData(ve)$gene_name[is_mito])
   
-  sum(counts(ve)[is_mito, ]) / sum(counts(ve))  ## quite a lot, but not completely dominating
+  print(sum(counts(ve)[is_mito, ]) / sum(counts(ve)))  ## quite a lot, but not completely dominating
 }
 ```
 
@@ -192,7 +194,7 @@ for (i in seq_along(sample_names)) {
 ```{r, fig.width=4.75, fig.height=3.5, message=FALSE}
 # investigate spots
 
-huge_counts <- c(10000, 5000)
+huge_counts <- c(10000, 10000)
 
 for (i in seq_along(sample_names)) {
   
@@ -205,10 +207,10 @@ for (i in seq_along(sample_names)) {
   hist(sum_counts_by_spot, breaks = 20, 
        main = paste0("Counts per spot: ", sample_names[i]))
   
-  length(sum_counts_by_spot)
-  sum(sum_counts_by_spot > 100)
-  sum(sum_counts_by_spot > 1000)
-  sum(sum_counts_by_spot > 10000)
+  print(length(sum_counts_by_spot))
+  print(sum(sum_counts_by_spot > 100))
+  print(sum(sum_counts_by_spot > 1000))
+  print(sum(sum_counts_by_spot > 10000))
   
   colData(ve)$is_huge_counts <- sum_counts_by_spot > huge_counts[i]
   
@@ -224,7 +226,7 @@ for (i in seq_along(sample_names)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray85", "red")) + 
-    ggtitle(paste0("Spots with huge counts: ", sample_names[i])) + 
+    ggtitle(paste0("Spots with counts > ", huge_counts[i], ": ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
