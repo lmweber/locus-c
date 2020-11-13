@@ -231,7 +231,7 @@ for (i in seq_along(sample_names)) {
   print(p)
   
   dir_plot <- here("plots", "features_per_spot")
-  if (!dir.exists(dir_plot)) dir.create(dir_plot)
+  if (!dir.exists(dir_plot)) dir.create(dir_plot, recursive = TRUE)
   
   fn <- file.path(dir_plot, paste0("QC_spots_huge_counts_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
