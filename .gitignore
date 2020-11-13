@@ -8,3 +8,5 @@ sample_info/*
 images/raw/*.tif
 images/json_after_manual_loupe/*.json
 *.html
+*.pdf
+*.png

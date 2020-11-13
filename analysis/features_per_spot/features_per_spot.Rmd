@@ -9,12 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, include=FALSE}
-# to run on cluster
-# module load conda_R/4.0
-# R
-```
-
 
 ## Introduction
 
@@ -55,8 +49,8 @@ for (i in seq_along(sample_names)) {
   sample_name <- sample_names[i]
   
   # path to Space Ranger output files
-  dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
-  #dir_outputs <- "../outputs/NextSeq"
+  #dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
+  dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/outputs/NextSeq"
   
   # note: requires raw barcodes list
   dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
@@ -158,6 +152,7 @@ These are extremely low numbers of genes and UMIs per spot, given the high numbe
 
 
 ```{r, message=FALSE}
+library(here)
 library(ggplot2)
 ```
 
@@ -235,7 +230,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- paste0("../../../plots/QC_spots_huge_counts_", sample_names[i], ".png")
+  fn <- here("plots", "features_per_spot", paste0("QC_spots_huge_counts_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   # plot counts as gradient
@@ -254,7 +249,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- paste0("../../../plots/QC_counts_by_spot_", sample_names[i], ".png")
+  fn <- here("plots", "features_per_spot", paste0("QC_counts_by_spot_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
