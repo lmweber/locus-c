@@ -230,7 +230,10 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- here("plots", "features_per_spot", paste0("QC_spots_huge_counts_", sample_names[i], ".png"))
+  dir_plot <- here("plots", "features_per_spot")
+  if (!dir.exists(dir_plot)) dir.create(dir_plot)
+  
+  fn <- file.path(dir_plot, paste0("QC_spots_huge_counts_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   # plot counts as gradient
@@ -249,7 +252,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- here("plots", "features_per_spot", paste0("QC_counts_by_spot_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("QC_counts_by_spot_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
