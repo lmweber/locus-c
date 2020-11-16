@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 .DS_Store
-spaceranger.sh.*
+spaceranger_*
 sample_info/*
 images/raw/*.tif
 images/json_after_manual_loupe/*.json
