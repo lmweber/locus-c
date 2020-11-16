@@ -5,7 +5,7 @@
 #$ -cwd
 
 # run on JHPCE cluster
-# qsub scripts/run_spaceranger/spaceranger.sh
+# qsub scripts/spaceranger/spaceranger_MiSeq.sh
 
 ############################
 # Script to run Space Ranger
@@ -24,8 +24,8 @@
 
 
 # load spaceranger module
-#module use /jhpce/shared/jhpce/modulefiles/libd
-#module load spaceranger
+module use /jhpce/shared/jhpce/modulefiles/libd
+module load spaceranger
 
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
