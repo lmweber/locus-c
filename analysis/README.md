@@ -17,7 +17,7 @@ module load conda_R/4.0
 R
 
 # compile RMarkdown (within R)
-rmarkdown::render("features_per_spot.Rmd")
+rmarkdown::render("features_per_spot.Rmd", output_dir = "../../html")
 ```
 
 

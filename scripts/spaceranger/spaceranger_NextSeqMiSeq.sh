@@ -29,8 +29,8 @@ module load spaceranger
 
 # run in outputs directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
-mkdir -p ../outputs/NextSeqMiSeq
-cd ../outputs/NextSeqMiSeq
+mkdir -p outputs/NextSeqMiSeq
+cd outputs/NextSeqMiSeq
 
 
 # run spaceranger count for each sample
