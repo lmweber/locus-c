@@ -27,11 +27,11 @@ cd outputs/memory_error
 spaceranger count \
 --id=DLPFC \
 --transcriptome=/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A \
---fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/FASTQ/DLPFC \
---image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/Images/Raw/Lieber-Institute_OTS-20-7043_1_1.tif \
+--fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_MiSeq/DLPFC \
+--image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/Images/Raw/Lieber-Institute_OTS-20-7043_1_1.tif \
 --slide=V19B23-076 \
 --area=A1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/images_raw_align_json/V19B23-076-A1.json \
+--loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/images_raw_align_json/V19B23-076-A1.json \
 --jobmode=local \
 --localcores=1 \
 --localmem=10
