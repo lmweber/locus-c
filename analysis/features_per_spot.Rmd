@@ -1,7 +1,7 @@
 ---
 title: "LC analyses: features per spot"
 author: "Lukas Weber"
-date: "11/11/2020"
+date: "18 Nov 2020"
 output: html_document
 ---
 
@@ -12,7 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-These analyses investigate the number of features per spot for each sample.
+Analyses for LC project.
+
+Here we investigate the number of features per spot for each sample.
 
 
 ## Load data
@@ -49,8 +51,8 @@ for (i in seq_along(sample_names)) {
   sample_name <- sample_names[i]
   
   # path to Space Ranger output files
-  #dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
-  dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/MiSeq_Pilot/outputs/NextSeq"
+  dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
+  #dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
   
   # note: requires raw barcodes list
   dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
@@ -128,27 +130,37 @@ print(ve_list)
 
 ## Number of features per spot
 
-Using NextSeq samples. Spot-level summaries from `web_summary.html` for each sample:
+Using combined reads from NextSeq and MiSeq samples (97-99% of total reads are from NextSeq).
+
+Spot-level summaries from `web_summary.html` for each sample:
 
 LC_1:
 
 - Number of Spots Under Tissue: 2,979
 - Fraction Reads in Spots Under Tissue: 91.2%
-- Mean Reads per Spot: 109,805
-- Median Genes per Spot: 233
-- Total Genes Detected: 19,349
-- Median UMI Counts per Spot: 329
+- Mean Reads per Spot: 111,630
+- Median Genes per Spot: 235
+- Total Genes Detected: 19,352
+- Median UMI Counts per Spot: 330
+
+- Total reads from NextSeq: 327,107,961 (98.4% of total)
+- Total reads from MiSeq: 5,437,332 (1.6% of total)
+- Total reads: 332,545,293
 
 LC_2:
 
 - Number of Spots Under Tissue: 3,056
 - Fraction Reads in Spots Under Tissue: 82.4%
-- Mean Reads per Spot: 83,717
-- Median Genes per Spot: 82
-- Total Genes Detected: 17,208
-- Median UMI Counts per Spot: 117
+- Mean Reads per Spot: 86,002
+- Median Genes per Spot: 83
+- Total Genes Detected: 17,223
+- Median UMI Counts per Spot: 118
 
-These are extremely low numbers of genes and UMIs per spot, given the high number of reads per spot. Why is this?
+- Total reads from NextSeq: 255,840,579 (97.3% of total)
+- Total reads from MiSeq: 6,982,110 (2.7% of total)
+- Total reads: 262,822,689
+
+Note these are extremely low numbers of genes and UMIs per spot, given the high numbers of reads per spot. Analyses below investigate this.
 
 
 ```{r, message=FALSE}
@@ -196,11 +208,19 @@ for (i in seq_along(sample_names)) {
   # select sample
   ve <- ve_list[[i]]
   
+  dir_plot <- here("plots", "features_per_spot")
+  if (!dir.exists(dir_plot)) dir.create(dir_plot, recursive = TRUE)
+  
+  
+  # UMI counts
   sum_counts_by_spot <- colSums(counts(ve))
   colData(ve)$sum_counts_by_spot <- sum_counts_by_spot
   
+  fn <- file.path(dir_plot, paste0("histogram_UMI_counts_", sample_names[i], ".png"))
+  png(fn)
   hist(sum_counts_by_spot, breaks = 20, 
        main = paste0("Counts per spot: ", sample_names[i]))
+  dev.off()
   
   print(length(sum_counts_by_spot))
   print(sum(sum_counts_by_spot > 100))
@@ -209,7 +229,19 @@ for (i in seq_along(sample_names)) {
   
   colData(ve)$is_huge_counts <- sum_counts_by_spot > huge_counts[i]
   
-  # plot spots with enormous counts
+  # number of genes
+  sum_genes_by_spot <- colSums(as.matrix(counts(ve)) > 0)
+  
+  colData(ve)$sum_genes_by_spot <- sum_genes_by_spot
+  
+  fn <- file.path(dir_plot, paste0("histogram_n_genes_", sample_names[i], ".png"))
+  png(fn)
+  hist(sum_genes_by_spot, breaks = 20, 
+       main = paste0("Number of genes per spot: ", sample_names[i]))
+  dev.off()
+  
+  
+  # plot spots with enormous UMI counts
   
   stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
   
@@ -230,13 +262,11 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  dir_plot <- here("plots", "features_per_spot")
-  if (!dir.exists(dir_plot)) dir.create(dir_plot, recursive = TRUE)
-  
-  fn <- file.path(dir_plot, paste0("QC_spots_huge_counts_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_huge_UMI_counts_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
-  # plot counts as gradient
+  
+  # plot UMI counts per spot as gradient
   
   p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = sum_counts_by_spot)) + 
     geom_point(size = 0.5) + 
@@ -252,7 +282,27 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("QC_counts_by_spot_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_by_spot_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  
+  # plot number of genes detected per spot
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = sum_genes_by_spot)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_gradient(low = "gray95", high = "darkgreen") + 
+    ggtitle(paste0("No. genes by spot: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_n_genes_by_spot_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
