@@ -15,7 +15,7 @@ module load conda_R/4.0
 R
 
 # compile RMarkdown (within R)
-rmarkdown::render("filename.Rmd", output_dir = "../../html")
+rmarkdown::render("filename.Rmd", output_dir = "../html")
 ```
 
 
