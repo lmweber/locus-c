@@ -51,8 +51,8 @@ for (i in seq_along(sample_names)) {
   sample_name <- sample_names[i]
   
   # path to Space Ranger output files
-  dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
-  #dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
+  #dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
+  dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
   
   # note: requires raw barcodes list
   dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
@@ -201,7 +201,7 @@ for (i in seq_along(sample_names)) {
 ```{r, fig.width=4.75, fig.height=3.5, message=FALSE}
 # investigate spots
 
-huge_counts <- c(10000, 10000)
+thresh_counts <- 10000
 
 for (i in seq_along(sample_names)) {
   
@@ -227,7 +227,7 @@ for (i in seq_along(sample_names)) {
   print(sum(sum_counts_by_spot > 1000))
   print(sum(sum_counts_by_spot > 10000))
   
-  colData(ve)$is_huge_counts <- sum_counts_by_spot > huge_counts[i]
+  colData(ve)$is_large_counts <- sum_counts_by_spot > thresh_counts
   
   # number of genes
   sum_genes_by_spot <- colSums(as.matrix(counts(ve)) > 0)
@@ -240,20 +240,23 @@ for (i in seq_along(sample_names)) {
        main = paste0("Number of genes per spot: ", sample_names[i]))
   dev.off()
   
+  # store
+  ve_list[[i]] <- ve
   
-  # plot spots with enormous UMI counts
+  
+  # plot spots with large UMI counts
   
   stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
   
   df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
   head(df_plot)
   
-  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_huge_counts)) + 
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_large_counts)) + 
     geom_point(size = 0.5) + 
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray85", "red")) + 
-    ggtitle(paste0("Spots with counts > ", huge_counts[i], ": ", sample_names[i])) + 
+    ggtitle(paste0("Spots with UMI counts > ", thresh_counts, ": ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
@@ -262,7 +265,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_huge_UMI_counts_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_large_UMI_counts_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
