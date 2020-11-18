@@ -2,14 +2,12 @@
 
 directory: `analysis/`
 
-RMarkdown files containing various analyses:
-
-- `features_per_spot`: RMarkdown report on number of features per spot
+RMarkdown files and/or R scripts to perform various analyses.
 
 
-## How to generate html output from RMarkdown
+## How to compile RMarkdown files
 
-Run from command line
+The RMarkdown files should be compiled from the command line, using the code below to save the `.html` output in the correct directory.
 
 ```
 # load R
@@ -17,14 +15,14 @@ module load conda_R/4.0
 R
 
 # compile RMarkdown (within R)
-rmarkdown::render("features_per_spot.Rmd", output_dir = "../../html")
+rmarkdown::render("filename.Rmd", output_dir = "../../html")
 ```
 
 
-## Outputs
+## Output directories
 
-Output files generated from RMarkdown files are saved in the following locations. These are not committed to the repository, to avoid creating a huge repository.
+Using the code above, the `.html` RMarkdown output files (as well as `.png` or `.pdf` plot files generated from code within the scripts) will be saved in the following locations:
 
-- `html` files: saved in same directory as `.Rmd` file
-- plots: saved in `plots/` directory in same subdirectories
+- `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/html/`
+- `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/plots/`
 
