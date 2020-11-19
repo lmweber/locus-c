@@ -1,8 +1,14 @@
 ---
 title: "LC analyses: features per spot"
 author: "Lukas Weber"
-date: "18 Nov 2020"
-output: html_document
+date: "19 Nov 2020"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
 ---
 
 ```{r setup, include=FALSE}
@@ -10,12 +16,22 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Introduction
+# Introduction
 
-Analyses for LC project.
+Analyses for LC project: number of features per spot.
 
-Here we investigate the number of features per spot for each sample.
+One of the key characteristics of the LC Visium samples is that most spots contain very small numbers of features (UMI counts or expressed genes) per spot, and a small region of spots contains much higher numbers of features.
 
+Our initial thoughts are that this could be either due to:
+
+- (1) LC neurons are concentrated in the smaller region, so these spots capture orders of magnitude higher numbers of mRNAs than the "background" spots consisting largely of axon tracts / fiber bundles in white matter.
+
+- (2) Experimental problems, e.g. with capturing mRNAs in the "background" spots.
+
+This file contains analyses and plots to investigate these questions.
+
+
+# Analysis
 
 ## Load data
 
@@ -51,8 +67,8 @@ for (i in seq_along(sample_names)) {
   sample_name <- sample_names[i]
   
   # path to Space Ranger output files
-  #dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
-  dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
+  dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
+  #dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
   
   # note: requires raw barcodes list
   dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
@@ -309,4 +325,89 @@ for (i in seq_along(sample_names)) {
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
+
+
+## Segmented analysis
+
+Segmented analysis on regions with high or low numbers of features.
+
+Making the assumption that regions with high numbers of features are the LC region we are interested in, since LC neurons are assumed to have much high numbers of expressed features than the white matter background.
+
+```{r, fig.width=4.75, fig.height=3.5, message=FALSE}
+# segmented analysis
+
+thresh_genes <- 1000
+thresh_genes_2 <- 2000
+
+for (i in seq_along(sample_names)) {
+  
+  # select sample
+  ve <- ve_list[[i]]
+  
+  # select region with number of features
+  ve_sub <- ve[, colData(ve)$sum_genes_by_spot > thresh_genes]
+  
+  print(dim(ve))
+  print(dim(ve_sub))
+  print(ncol(ve_sub) / ncol(ve))  ## e.g. LC_1: 540 out of 2979 spots
+  
+  
+  # plot spots with large numbers of genes
+  
+  colData(ve)$is_large_n_genes <- colData(ve)$sum_genes_by_spot > thresh_genes
+  colData(ve)$is_large_n_genes_2 <- colData(ve)$sum_genes_by_spot > thresh_genes_2
+  
+  ve_list[[i]] <- ve
+  
+  stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+  
+  df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
+  head(df_plot)
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_large_n_genes)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray85", "orange")) + 
+    ggtitle(paste0("Spots with no. genes > ", thresh_genes, ": ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_large_UMI_counts_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  ## higher threshold
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_large_n_genes_2)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray85", "orange")) + 
+    ggtitle(paste0("Spots with no. genes > ", thresh_genes_2, ": ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_large_UMI_counts_2_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+}
+```
+
+
+## Next steps
+
+1. use marker genes to better segment the high/low regions; consider whether need a medium region
+
+2. cluster each of the high/low regions
+
+3. investigate expression of marker genes (and other genes) within each of the high/low regions --> biological results
 
