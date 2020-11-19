@@ -261,7 +261,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_MiSeq_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
@@ -282,7 +282,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_high_UMI_counts_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_high_UMI_counts_MiSeq_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
@@ -303,7 +303,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_low_UMI_counts_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_low_UMI_counts_MiSeq_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
@@ -346,7 +346,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_n_genes_per_spot_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_n_genes_per_spot_MiSeq_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
@@ -367,7 +367,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_high_n_genes_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_high_n_genes_MiSeq_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
@@ -388,7 +388,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_low_n_genes_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_low_n_genes_MiSeq_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
