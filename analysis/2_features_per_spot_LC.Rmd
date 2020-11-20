@@ -454,3 +454,10 @@ for (i in seq_along(sample_names)) {
 }
 ```
 
+
+# Session info
+
+```{r, message=FALSE}
+sessionInfo()
+```
+
