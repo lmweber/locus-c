@@ -1,5 +1,5 @@
 ---
-title: "LC analyses: features per spot (MiSeq reads)"
+title: "LC analyses: features per spot (LC samples)"
 author: "Lukas Weber"
 date: "19 Nov 2020"
 output:
@@ -33,9 +33,7 @@ This file contains analyses and plots to investigate these questions.
 
 ## Data
 
-In this file, we are using the MiSeq reads only, where we also have a third sample from DLPFC, which allows comparison of the background / white matter spots.
-
-In the main file, we use combined reads from NextSeq and MiSeq, where we only have the two LC samples.
+In this file, we are using the combined NextSeq and MiSeq reads for the LC samples (LC_1 and LC_2).
 
 
 # Analysis
@@ -61,7 +59,7 @@ library(rjson)
 ```
 
 ```{r}
-sample_names <- c("DLPFC", "LC_1", "LC_2")
+sample_names <- c("LC_1", "LC_2")
 sce_list <- vector("list", length = length(sample_names))
 names(sce_list) <- sample_names
 
@@ -77,10 +75,10 @@ for (i in seq_along(sample_names)) {
   # path to Space Ranger output files
   if (Sys.info()["sysname"] == "Linux") {
     # files on JHPCE cluster
-    dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/MiSeq"
+    dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
   } else if (Sys.info()["sysname"] == "Darwin") {
     # copy of files on Mac laptop
-    dir_outputs <- "~/data/locus-c/outputs/MiSeq"
+    dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
   }
   
   # note: using "filtered" barcodes list containing only spots over tissue
@@ -221,7 +219,44 @@ for (i in seq_along(sample_names)) {
 ```
 
 
+## Number of features per spot
+
+Spot-level summaries from Space Ranger output file `web_summary.html` for each sample.
+
+Note that we are using combined reads from the NextSeq and MiSeq runs, where 97-99% of total reads are from NextSeq.
+
+Additional plots comparing against the additional DLPFC sample (where only MiSeq reads are available) are included in the other analysis file `features_per_spot_MiSeq.Rmd`.
+
+LC_1:
+
+- Number of Spots Under Tissue: 2,979
+- Fraction Reads in Spots Under Tissue: 91.2%
+- Mean Reads per Spot: 111,630
+- Median Genes per Spot: 235
+- Total Genes Detected: 19,352
+- Median UMI Counts per Spot: 330
+
+- Total reads from NextSeq: 327,107,961 (98.4% of total)
+- Total reads from MiSeq: 5,437,332 (1.6% of total)
+- Total reads: 332,545,293
+
+LC_2:
+
+- Number of Spots Under Tissue: 3,056
+- Fraction Reads in Spots Under Tissue: 82.4%
+- Mean Reads per Spot: 86,002
+- Median Genes per Spot: 83
+- Total Genes Detected: 17,223
+- Median UMI Counts per Spot: 118
+
+- Total reads from NextSeq: 255,840,579 (97.3% of total)
+- Total reads from MiSeq: 6,982,110 (2.7% of total)
+- Total reads: 262,822,689
+
+
 ## Number of UMI counts per spot
+
+Thresholds for the regions with high UMI counts were selected by checking plots with various thresholds, to find values that most clearly distinguish between the two regions.
 
 ```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
 # number of UMI counts per spot in different regions of each sample
@@ -229,8 +264,7 @@ for (i in seq_along(sample_names)) {
 dir_plot <- here("plots", "features_per_spot")
 if (!dir.exists(dir_plot)) dir.create(dir_plot, recursive = TRUE)
 
-thresh_counts_high <- 2000
-thresh_counts_low <- 200
+thresh_counts_high <- c(4000, 2000)
 
 for (i in seq_along(sample_names)) {
   
@@ -238,8 +272,7 @@ for (i in seq_along(sample_names)) {
   sce <- sce_list[[i]]
   
   # identify spots with high/low counts
-  colData(sce)$is_high_counts <- colData(sce)$sum > thresh_counts_high
-  colData(sce)$is_low_counts <- colData(sce)$sum < thresh_counts_low
+  colData(sce)$is_high_counts <- colData(sce)$sum > thresh_counts_high[i]
   # store object
   sce_list[[i]] <- sce
   
@@ -261,11 +294,11 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_MiSeq_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
-  # plot spots with high UMI counts (neurons?)
+  # plot spots with high UMI counts
   
   p <- ggplot(as.data.frame(colData(sce)), 
               aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_high_counts)) + 
@@ -273,7 +306,7 @@ for (i in seq_along(sample_names)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray95", "red")) + 
-    ggtitle(paste0("Spots with UMI counts > ", thresh_counts_high, ": ", sample_names[i])) + 
+    ggtitle(paste0("Spots with UMI counts > ", thresh_counts_high[i], ": ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
@@ -282,28 +315,7 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_high_UMI_counts_MiSeq_", sample_names[i], ".png"))
-  ggsave(fn, width = 4.75, height = 3.5)
-  
-  
-  # plot spots with low UMI counts (white matter?)
-  
-  p <- ggplot(as.data.frame(colData(sce)), 
-              aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_low_counts)) + 
-    geom_point(size = 0.5) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    scale_color_manual(values = c("gray95", "darkorange")) + 
-    ggtitle(paste0("Spots with UMI counts < ", thresh_counts_low, ": ", sample_names[i])) + 
-    theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  print(p)
-  
-  fn <- file.path(dir_plot, paste0("xyplot_low_UMI_counts_MiSeq_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_high_UMI_counts_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
@@ -311,11 +323,12 @@ for (i in seq_along(sample_names)) {
 
 ## Number of detected genes per spot
 
+Thresholds for the regions with high numbers of detected genes were selected by checking plots with various thresholds, to find values that most clearly distinguish between the two regions.
+
 ```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
 # number of detected genes per spot in different regions of each sample
 
-thresh_genes_high <- 1000
-thresh_genes_low <- 100
+thresh_genes_high <- c(2000, 1000)
 
 for (i in seq_along(sample_names)) {
   
@@ -323,8 +336,7 @@ for (i in seq_along(sample_names)) {
   sce <- sce_list[[i]]
   
   # identify spots with high/low number of detected genes
-  colData(sce)$is_high_n_genes <- colData(sce)$detected > thresh_genes_high
-  colData(sce)$is_low_n_genes <- colData(sce)$detected < thresh_genes_low
+  colData(sce)$is_high_n_genes <- colData(sce)$detected > thresh_genes_high[i]
   # store object
   sce_list[[i]] <- sce
   
@@ -346,11 +358,11 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_n_genes_per_spot_MiSeq_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_n_genes_per_spot_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
-  # plot spots with high number of detected genes (neurons?)
+  # plot spots with high number of detected genes
   
   p <- ggplot(as.data.frame(colData(sce)), 
               aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_high_n_genes)) + 
@@ -358,7 +370,7 @@ for (i in seq_along(sample_names)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray95", "red")) + 
-    ggtitle(paste0("Spots with no. detected genes > ", thresh_genes_high, ": ", sample_names[i])) + 
+    ggtitle(paste0("Spots with no. detected genes > ", thresh_genes_high[i], ": ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
@@ -367,29 +379,78 @@ for (i in seq_along(sample_names)) {
   
   print(p)
   
-  fn <- file.path(dir_plot, paste0("xyplot_high_n_genes_MiSeq_", sample_names[i], ".png"))
+  fn <- file.path(dir_plot, paste0("xyplot_high_n_genes_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
+}
+```
+
+
+## Marker genes
+
+Investigate expression of known marker genes for norepinephrine cells (LC neurons): tyrosine hydroxylase (gene name "TH") and norepinephrine transporter (NET; gene name "SLC6A2").
+
+Note that these plots are using raw counts. Log-transformed normalized counts in spots meeting QC metrics will be calculated later for downstream analyses, after segmenting out the region containing high counts.
+
+```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
+# expression of known marker genes using raw UMI counts
+
+marker_gene_names <- c("TH", "SLC6A2")
+marker_genes_thresh <- 2
+
+for (i in seq_along(sample_names)) {
   
+  # select sample
+  sce <- sce_list[[i]]
   
-  # plot spots with low number of detected genes (white matter?)
-  
-  p <- ggplot(as.data.frame(colData(sce)), 
-              aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_low_n_genes)) + 
-    geom_point(size = 0.5) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    scale_color_manual(values = c("gray95", "darkorange")) + 
-    ggtitle(paste0("Spots with no. detected genes < ", thresh_genes_low, ": ", sample_names[i])) + 
-    theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  print(p)
-  
-  fn <- file.path(dir_plot, paste0("xyplot_low_n_genes_MiSeq_", sample_names[i], ".png"))
-  ggsave(fn, width = 4.75, height = 3.5)
+  for (j in seq_along(marker_gene_names)) {
+    
+    # identify marker gene
+    ix_marker <- which(rowData(sce)$gene_name == marker_gene_names[j])
+    colData(sce)$counts_marker <- counts(sce)[ix_marker, ]
+    colData(sce)$is_counts_marker <- counts(sce)[ix_marker, ] > marker_genes_thresh
+    
+    
+    # plot UMI counts for marker gene
+    
+    p <- ggplot(as.data.frame(colData(sce)), 
+                aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = counts_marker)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(low = "gray95", high = "purple4") + 
+      ggtitle(paste0("UMI counts for gene ", marker_gene_names[j], ": ", sample_names[i])) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    
+    print(p)
+    
+    fn <- file.path(dir_plot, paste0("xyplot_counts_", marker_gene_names[j], "_", sample_names[i], ".png"))
+    ggsave(fn, width = 4.75, height = 3.5)
+    
+    
+    # plot spots with UMI counts above threshold for marker gene
+    
+    p <- ggplot(as.data.frame(colData(sce)), 
+                aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_counts_marker)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_manual(values = c("gray95", "purple4")) + 
+      ggtitle(paste0("Spots with UMI counts > ", marker_genes_thresh, " for gene ", marker_gene_names[j], ": ", sample_names[i])) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    
+    print(p)
+    
+    fn <- file.path(dir_plot, paste0("xyplot_counts_thresh_", marker_gene_names[j], "_", sample_names[i], ".png"))
+    ggsave(fn, width = 4.75, height = 3.5)
+  }
 }
 ```
 
