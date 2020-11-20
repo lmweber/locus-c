@@ -214,7 +214,7 @@ human_markers
 ```
 
 
-## Plot homologous marker genes
+## Plot UMI counts for homologous marker genes
 
 Plot expression for the 41 homologous human marker genes.
 
@@ -222,6 +222,8 @@ Note that these plots are using raw UMI counts.
 
 ```{r, message=FALSE, fig.width=3.5, fig.height=2.5}
 # expression of homologous marker genes using raw UMI counts
+
+colors <- c("navy", "purple4")
 
 for (i in seq_along(sample_names)) {
   
@@ -243,7 +245,7 @@ for (i in seq_along(sample_names)) {
       geom_point(size = 0.25) + 
       coord_fixed() + 
       scale_y_reverse() + 
-      scale_color_gradient(low = "gray95", high = "purple4") + 
+      scale_color_gradient(low = "gray95", high = colors[i]) + 
       ggtitle(paste0("UMI counts: ", human_markers[j], ": ", sample_names[i])) + 
       labs(color = "counts") + 
       theme_bw() + 
