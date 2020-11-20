@@ -226,7 +226,7 @@ Notes:
 ```{r, message=FALSE, fig.width=3.5, fig.height=2.5}
 # expression of homologous marker genes using raw UMI counts
 
-colors <- c("navy", "darkgreen")
+colors <- c("navy", "dodgerblue2")
 
 for (i in seq_along(sample_names)) {
   
