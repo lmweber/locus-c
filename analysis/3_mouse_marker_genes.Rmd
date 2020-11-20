@@ -218,12 +218,15 @@ human_markers
 
 Plot expression for the 41 homologous human marker genes.
 
-Note that these plots are using raw UMI counts.
+Notes:
+
+- these plots use raw UMI counts
+- different colors are used for the two samples (LC_1 and LC_2)
 
 ```{r, message=FALSE, fig.width=3.5, fig.height=2.5}
 # expression of homologous marker genes using raw UMI counts
 
-colors <- c("navy", "purple4")
+colors <- c("navy", "darkgreen")
 
 for (i in seq_along(sample_names)) {
   
