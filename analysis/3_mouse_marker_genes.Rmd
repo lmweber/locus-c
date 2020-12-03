@@ -139,7 +139,7 @@ sce_list
 ```
 
 
-## Calculate QC metrics
+## Calculate scater QC metrics
 
 ```{r, message=FALSE}
 library(scater)

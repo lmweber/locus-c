@@ -154,7 +154,7 @@ sce_list
 ```
 
 
-## Calculate QC metrics
+## Calculate scater QC metrics
 
 ```{r, message=FALSE}
 library(here)
@@ -394,7 +394,7 @@ Note that these plots are using raw counts. Log-transformed normalized counts in
 ```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
 # expression of known marker genes using raw UMI counts
 
-marker_gene_names <- c("TH", "SLC6A2")
+marker_gene_names <- c("MAP2", "TH", "SLC6A2")
 marker_genes_thresh <- 2
 
 for (i in seq_along(sample_names)) {
