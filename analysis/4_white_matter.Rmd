@@ -223,6 +223,122 @@ for (i in seq_along(sample_names)) {
 ```
 
 
+## Compare with DLPFC samples
+
+Load DLPFC samples from `spatialLIBD`.
+
+```{r}
+# load spatialLIBD object
+library(spatialLIBD)
+sce_dlpfc <- fetch_data(type = "sce")
+
+# ground truth layer labels
+table(sce_dlpfc$layer_guess_reordered, useNA = "always")
+```
+
+```{r, message=FALSE, fig.width=3.5, fig.height=2.5}
+# spatialLIBD plots
+sce_image_clus(
+  sce = sce_dlpfc, 
+  clustervar = "layer_guess_reordered", 
+  sampleid = "151673", 
+  colors = libd_layer_colors
+)
+```
+
+```{r, message=FALSE, fig.width=3.5, fig.height=2.5}
+# UMI counts for white matter
+
+# identify white matter spots
+ix_wm <- colData(sce_dlpfc)$layer_guess_reordered == "WM"
+ix_wm[is.na(ix_wm)] <- FALSE
+
+colData(sce_dlpfc)$ix_wm <- ix_wm
+
+# object with white matter spots
+sce_wm <- sce_dlpfc[, colData(sce_dlpfc)$ix_wm]
+dim(sce_wm)
+
+# object with non white matter spots
+sce_nonwm <- sce_dlpfc[, !colData(sce_dlpfc)$ix_wm]
+dim(sce_nonwm)
+
+
+# histograms: sample 151673 only
+fn <- file.path(dir_plot, paste0("hist_UMI_counts_per_spot_DLPFC_WM_151673.png"))
+png(fn)
+hist(colSums(counts(sce_wm[, colData(sce_wm)$sample_name == "151673"])), 
+     main = "UMI counts for WM spots (sample 151673)", 
+     xlab = "total UMI counts")
+dev.off()
+
+fn <- file.path(dir_plot, paste0("hist_UMI_counts_per_spot_DLPFC_nonWM_151673.png"))
+png(fn)
+hist(colSums(counts(sce_nonwm[, colData(sce_nonwm)$sample_name == "151673"])), 
+     main = "UMI counts for non-WM spots (sample 151673)", 
+     xlab = "total UMI counts")
+dev.off()
+
+
+# histograms: all samples
+fn <- file.path(dir_plot, paste0("hist_UMI_counts_per_spot_DLPFC_WM_all.png"))
+png(fn)
+hist(colSums(counts(sce_wm)), 
+     main = "UMI counts for WM spots (all samples)", 
+     xlab = "total UMI counts")
+dev.off()
+
+fn <- file.path(dir_plot, paste0("hist_UMI_counts_per_spot_DLPFC_nonWM_all.png"))
+png(fn)
+hist(colSums(counts(sce_nonwm)), 
+     main = "UMI counts for non-WM spots (all samples)", 
+     xlab = "total UMI counts")
+dev.off()
+```
+
+```{r, message=FALSE, fig.width=3.5, fig.height=2.5}
+# plot total UMI counts (showing white matter region)
+sce_sub <- sce_dlpfc[, colData(sce_dlpfc)$sample_name == "151673"]
+dim(sce_sub)
+
+p <- ggplot(as.data.frame(colData(sce_sub)), 
+            aes(x = imagecol, y = -1 * imagerow, color = sum_umi)) + 
+  geom_point(size = 0.5) + 
+  coord_fixed() + 
+  scale_color_gradient(low = "gray95", high = "navy") + 
+  ggtitle(paste0("UMI counts per spot: sample 151673")) + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+print(p)
+
+fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_151673.png"))
+ggsave(fn, width = 4.75, height = 3.5)
+
+
+# plot number of detected genes (showing white matter region)
+p <- ggplot(as.data.frame(colData(sce_sub)), 
+            aes(x = imagecol, y = -1 * imagerow, color = sum_gene)) + 
+  geom_point(size = 0.5) + 
+  coord_fixed() + 
+  scale_color_gradient(low = "gray95", high = "darkgreen") + 
+  ggtitle(paste0("Detected genes per spot: sample 151673")) + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+print(p)
+
+fn <- file.path(dir_plot, paste0("xyplot_detected genes_per_spot_151673.png"))
+ggsave(fn, width = 4.75, height = 3.5)
+```
+
+
 # Session info
 
 ```{r, message=FALSE}
