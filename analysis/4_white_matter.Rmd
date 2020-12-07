@@ -1,7 +1,7 @@
 ---
 title: "LC analyses: white matter"
 author: "Lukas Weber"
-date: "19 Nov 2020"
+date: "`r Sys.Date()`"
 output:
   html_document:
     toc: true
