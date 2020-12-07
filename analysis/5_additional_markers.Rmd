@@ -213,7 +213,7 @@ for (i in seq_along(sample_names)) {
     print(p)
     
     fn <- file.path(dir_plot, paste0("xyplot_counts_", marker_gene_names[j], "_", sample_names[i], ".png"))
-    ggsave(fn, width = 4.75, height = 3.5)
+    ggsave(fn, width = 3.5, height = 2.5)
   }
 }
 ```
