@@ -243,27 +243,6 @@ for (i in seq_along(sample_names)) {
   sce_list[[i]] <- sce
   
   
-  # plot UMI counts per spot
-  
-  p <- ggplot(as.data.frame(colData(sce)), 
-              aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = sum)) + 
-    geom_point(size = 0.5) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    scale_color_gradient(low = "gray95", high = "navy") + 
-    ggtitle(paste0("UMI counts per spot: ", sample_names[i])) + 
-    theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  print(p)
-  
-  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_all_spots_", sample_names[i], ".png"))
-  ggsave(fn, width = 4.75, height = 3.5)
-  
-  
   # plot spots with nonzero UMI counts
   
   p <- ggplot(as.data.frame(colData(sce)), 
@@ -282,6 +261,27 @@ for (i in seq_along(sample_names)) {
   print(p)
   
   fn <- file.path(dir_plot, paste0("xyplot_nonzero_counts_all_spots", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  
+  # plot UMI counts per spot
+  
+  p <- ggplot(as.data.frame(colData(sce)), 
+              aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = sum)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_gradient(low = "gray95", high = "navy") + 
+    ggtitle(paste0("UMI counts per spot: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_per_spot_all_spots_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
@@ -349,27 +349,6 @@ for (i in seq_along(sample_names)) {
   sce_list[[i]] <- sce
   
   
-  # plot number of genes detected per spot
-  
-  p <- ggplot(as.data.frame(colData(sce)), 
-              aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = detected)) + 
-    geom_point(size = 0.5) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    scale_color_gradient(low = "gray95", high = "darkgreen") + 
-    ggtitle(paste0("Detected genes per spot: ", sample_names[i])) + 
-    theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  print(p)
-  
-  fn <- file.path(dir_plot, paste0("xyplot_n_genes_per_spot_all_spots_", sample_names[i], ".png"))
-  ggsave(fn, width = 4.75, height = 3.5)
-  
-  
   # plot spots with nonzero number of detected genes
   
   p <- ggplot(as.data.frame(colData(sce)), 
@@ -388,6 +367,27 @@ for (i in seq_along(sample_names)) {
   print(p)
   
   fn <- file.path(dir_plot, paste0("xyplot_nonzero_genes_all_spots_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  
+  # plot number of genes detected per spot
+  
+  p <- ggplot(as.data.frame(colData(sce)), 
+              aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = detected)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_gradient(low = "gray95", high = "darkgreen") + 
+    ggtitle(paste0("Detected genes per spot: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_n_genes_per_spot_all_spots_", sample_names[i], ".png"))
   ggsave(fn, width = 4.75, height = 3.5)
   
   
