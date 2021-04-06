@@ -5,7 +5,10 @@ Repository for our code on locus coeruleus project.
 
 ## Structure
 
-Top-level directory containing git repository and other files is located at `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/`
+Top-level directory containing git repository and other files is located at:
+
+- `/dcs04/hicks/data/lweber/locus-c/`
+- (previously at: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/` - will move back once we have additional space here)
 
 
 ## Files in git repository
