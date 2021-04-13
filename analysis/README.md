@@ -2,7 +2,7 @@
 
 directory: `analysis/`
 
-RMarkdown files and/or R scripts to perform various analyses.
+RMarkdown files and/or R scripts to perform analyses.
 
 
 ## How to compile RMarkdown files
@@ -21,8 +21,8 @@ rmarkdown::render("filename.Rmd", output_dir = "../html")
 
 ## Output directories
 
-Using the code above, the `.html` RMarkdown output files (as well as `.png` or `.pdf` plot files generated from code within the scripts) will be saved in the following locations:
+Output files (`.html` files from the RMarkdown scripts, as well as individual `.png` and `.pdf` plot files from code within the scripts) are saved in:
 
-- `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/html/`
-- `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/plots/`
+- `../html/`
+- `../plots/`
 
