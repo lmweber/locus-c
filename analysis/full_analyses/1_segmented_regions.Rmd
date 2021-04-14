@@ -6,7 +6,7 @@ output:
   html_document:
     toc: true
     number_sections: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float:
       collapsed: false
 ---
@@ -155,7 +155,7 @@ library(scater)
 library(ggplot2)
 ```
 
-```{r, message=FALSE}
+```{r}
 for (i in seq_along(sample_names)) {
   
   spe <- spe_list[[i]]
@@ -188,7 +188,7 @@ sapply(spe_list, dim)
 
 ## Plot QC metrics
 
-```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
+```{r, fig.width=4.75, fig.height=3.5}
 # plot UMI counts
 for (i in seq_along(sample_names)) {
   
@@ -280,7 +280,7 @@ for (i in seq_along(sample_names)) {
 
 Spots with high mitochondrial percentages are mostly within the white matter regions, so we leave them.
 
-```{r, message=FALSE}
+```{r}
 for (i in seq_along(sample_names)) {
   spe <- spe_list[[i]]
   print(max(colData(spe)$subsets_mito_percent))
@@ -292,8 +292,7 @@ for (i in seq_along(sample_names)) {
 
 Segment regions using threshold on number of UMI counts per spot. The region with high UMI counts is assumed to contain the LC neurons, and the region with low UMI counts is white matter.
 
-
-```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
+```{r, fig.width=4.75, fig.height=3.5}
 # select thresholds
 thresh_umi <- c(3000, 1500)
 
@@ -320,6 +319,220 @@ for (i in seq_along(sample_names)) {
           axis.ticks = element_blank())
   
   print(p)
+}
+```
+
+```{r}
+# lists to store SpatialExperiments containing segmented regions
+spe_neuro_list <- spe_wm_list <- vector("list", length = length(sample_names))
+names(spe_neuro_list) <- names(spe_wm_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_list[[i]]
+  
+  spe_neuro <- spe[, colData(spe)$is_high_umi]
+  spe_wm <- spe[, !colData(spe)$is_high_umi]
+  
+  dim(spe_neuro)
+  dim(spe_wm)
+  
+  spe_neuro_list[[i]] <- spe_neuro
+  spe_wm_list[[i]] <- spe_wm
+}
+```
+
+
+## Analysis pipeline within segmented region
+
+Now continue with the analysis pipeline within the region containing the LC neurons identified above.
+
+
+### Normalization and transformation
+
+```{r, message=FALSE}
+library(scran)
+```
+
+```{r, fig.width=4.5, fig.height=4}
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  # calculate pool-based size factors
+  set.seed(123)
+  qclus <- quickCluster(spe)
+  table(qclus)
+  spe <- computeSumFactors(spe, cluster = qclus)
+  
+  summary(sizeFactors(spe))
+  hist(log10(sizeFactors(spe)), 
+       xlab = "log10 (size factors)", main = "Size factors")
+  
+  # calculate logcounts
+  spe <- logNormCounts(spe)
+  
+  # store in list
+  spe_neuro_list[[i]] <- spe
+}
+```
+
+
+### Feature selection
+
+Feature selection using highly variable genes (HVGs).
+
+```{r, fig.width=4.5, fig.height=4}
+top_hvgs_list <- vector("list", length = length(sample_names))
+names(top_hvgs_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  # remove mitochondrial genes
+  is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
+  table(is_mito)
+  rowData(spe)$gene_name[is_mito]
+  spe <- spe[!is_mito, ]
+  dim(spe)
+  
+  # remove low-count genes
+  is_low <- rowSums(counts(spe)) <= 5
+  table(is_low)
+  spe <- spe[!is_low, ]
+  dim(spe)
+  
+  # store in list
+  spe_neuro_list[[i]] <- spe
+  
+  # fit mean-variance relationship
+  dec <- modelGeneVar(spe)
+  fit <- metadata(dec)
+  plot(fit$mean, fit$var, 
+       xlab = "mean of log-expression", ylab = "variance of log-expression")
+  curve(fit$trend(x), col = "dodgerblue", add = TRUE, lwd = 2)
+  
+  # select top HVGs
+  top_hvgs <- getTopHVGs(dec, prop = 0.1)
+  length(top_hvgs)
+  
+  # store in list
+  top_hvgs_list[[i]] <- top_hvgs
+}
+```
+
+
+### Dimensionality reduction
+
+```{r}
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  top_hvgs <- top_hvgs_list[[i]]
+  length(top_hvgs)
+  
+  # calculate PCA
+  set.seed(123)
+  spe <- runPCA(spe, subset_row = top_hvgs)
+  
+  reducedDimNames(spe)
+  dim(reducedDim(spe, "PCA"))
+  
+  # calculate UMAP on top 50 PCs
+  set.seed(123)
+  spe <- runUMAP(spe, dimred = "PCA")
+  # update column names
+  colnames(reducedDim(spe, "UMAP")) <- paste0("UMAP", 1:2)
+  
+  reducedDimNames(spe)
+  dim(reducedDim(spe, "UMAP"))
+  
+  # store in list
+  spe_neuro_list[[i]] <- spe
+}
+```
+
+
+### Clustering
+
+```{r}
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  # graph-based clustering
+  set.seed(123)
+  g <- buildSNNGraph(spe, use.dimred = "PCA")
+  g_walk <- igraph::cluster_walktrap(g)
+  clus <- g_walk$membership
+  table(clus)
+  
+  colLabels(spe) <- factor(clus)
+  
+  # store in list
+  spe_neuro_list[[i]] <- spe
+}
+```
+
+
+```{r, fig.height=4.5, fig.width=5.5}
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  # color palette
+  colors <- unname(palette.colors(palette = "Okabe-Ito"))
+  
+  
+  # plot clusters in spatial coordinates
+  p <- ggplot(as.data.frame(colData(spe)), 
+              aes(x = y, y = x, color = label)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = colors) + 
+    ggtitle(paste0("Clustering: spatial coordinates: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path("../../plots", paste0("clustering_segmented_XY_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  
+  # plot clusters in UMAP coordinates
+  p <- ggplot(as.data.frame(cbind(colData(spe), reducedDim(spe, "UMAP"))), 
+              aes(x = UMAP1, y = UMAP2, color = label)) + 
+    geom_point(size = 0.5) + 
+    scale_y_reverse() + 
+    scale_color_manual(values = colors) + 
+    ggtitle(paste0("Clustering: UMAP coordinates: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path("../../plots", paste0("clustering_segmented_UMAP_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
 }
 ```
 
