@@ -288,6 +288,42 @@ for (i in seq_along(sample_names)) {
 ```
 
 
+## Segment regions
+
+Segment regions using threshold on number of UMI counts per spot. The region with high UMI counts is assumed to contain the LC neurons, and the region with low UMI counts is white matter.
+
+
+```{r, message=FALSE, fig.width=4.75, fig.height=3.5}
+# select thresholds
+thresh_umi <- c(3000, 1500)
+
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_list[[i]]
+  
+  # identify spots above threshold
+  colData(spe)$is_high_umi <- colData(spe)$sum > thresh_umi[i]
+  spe_list[[i]] <- spe
+  
+  # plot thresholded regions
+  p <- ggplot(as.data.frame(colData(spe)), 
+              aes(x = y, y = x, color = is_high_umi)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray95", "red")) + 
+    ggtitle(paste0("High UMI counts: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+}
+```
+
+
 # Session info
 
 ```{r, message=FALSE}
