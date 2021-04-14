@@ -485,7 +485,7 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-```{r, fig.height=4.5, fig.width=5.5}
+```{r, fig.width=5, fig.height=4.5}
 for (i in seq_along(sample_names)) {
   
   # using subsetted object containing LC neurons region
@@ -499,7 +499,7 @@ for (i in seq_along(sample_names)) {
   # plot clusters in spatial coordinates
   p <- ggplot(as.data.frame(colData(spe)), 
               aes(x = y, y = x, color = label)) + 
-    geom_point(size = 0.5) + 
+    geom_point(size = 1.0) + 
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = colors) + 
@@ -513,13 +513,13 @@ for (i in seq_along(sample_names)) {
   print(p)
   
   fn <- file.path("../../plots", paste0("clustering_segmented_XY_", sample_names[i], ".png"))
-  ggsave(fn, width = 4.75, height = 3.5)
+  ggsave(fn, width = 5, height = 4.5)
   
   
   # plot clusters in UMAP coordinates
   p <- ggplot(as.data.frame(cbind(colData(spe), reducedDim(spe, "UMAP"))), 
               aes(x = UMAP1, y = UMAP2, color = label)) + 
-    geom_point(size = 0.5) + 
+    geom_point(size = 1.0) + 
     scale_y_reverse() + 
     scale_color_manual(values = colors) + 
     ggtitle(paste0("Clustering: UMAP coordinates: ", sample_names[i])) + 
@@ -532,7 +532,7 @@ for (i in seq_along(sample_names)) {
   print(p)
   
   fn <- file.path("../../plots", paste0("clustering_segmented_UMAP_", sample_names[i], ".png"))
-  ggsave(fn, width = 4.75, height = 3.5)
+  ggsave(fn, width = 5, height = 4.5)
 }
 ```
 
