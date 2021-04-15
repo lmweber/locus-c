@@ -26,7 +26,7 @@ Analyses for LC project: analyses within segmented regions containing neurons an
 Using combined NextSeq and MiSeq reads for LC samples LC_1 and LC_2.
 
 
-# Analysis
+# Analysis pipeline
 
 ## Load data
 
@@ -623,11 +623,63 @@ print(p_list[[2]])
 ```
 
 
-## Spatial expression patterns
+## Spatial expression plots
+
+### Top HVGs
+
+Plot spatial expression for top (non-spatial) highly variable genes (HVGs) identified in analysis pipeline above.
+
+```{r, fig.width=3.5, fig.height=3.25}
+for (i in seq_along(sample_names)) {
+  
+  print(paste0("Sample ", sample_names[i]))
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  
+  # get top n HVGs
+  n <- 100
+  top_hvgs <- top_hvgs_list[[i]][1:n]
+  names(top_hvgs) <- rowData(spe)[top_hvgs, ][, "gene_name"]
+  print(names(top_hvgs))
+  # sort alphabetically
+  ord <- order(names(top_hvgs))
+  top_hvgs <- top_hvgs[ord]
+  
+  # subset object
+  spe_sub <- spe[top_hvgs, ]
+  dim(spe_sub)
+  
+  max_logcounts <- max(logcounts(spe_sub))
+  
+  for (k in seq_along(top_hvgs)) {
+    
+    # plot spatial distribution of expression per gene
+    df <- cbind(as.data.frame(colData(spe)), 
+                expr = counts(spe)[top_hvgs[k], ], 
+                logexpr = logcounts(spe)[top_hvgs[k], ])
+    
+    p <- ggplot(df, aes(x = y, y = x, color = logexpr)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(limits = c(0, max_logcounts), low = "gray90", high = "blue3") + 
+      ggtitle(paste0(sample_names[i], ": ", names(top_hvgs)[k])) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    
+    print(p)
+  }
+}
+```
+
 
 ### Cluster marker genes
 
-Plot spatial distributions of expression for cluster marker genes identified in analysis pipeline above.
+Plot spatial expression for cluster marker genes identified in analysis pipeline above.
 
 ```{r, fig.width=3.5, fig.height=3.25}
 for (i in seq_along(sample_names)) {
@@ -645,9 +697,13 @@ for (i in seq_along(sample_names)) {
   top_genes <- sort(top_genes)
   length(top_genes)
   
+  print(top_genes)
+  
   # subset object
   spe_sub <- spe[rowData(spe)$gene_name %in% top_genes, ]
   dim(spe_sub)
+  
+  max_logcounts <- max(logcounts(spe_sub))
   
   for (k in seq_along(top_genes)) {
     
@@ -660,7 +716,7 @@ for (i in seq_along(sample_names)) {
       geom_point(size = 0.5) + 
       coord_fixed() + 
       scale_y_reverse() + 
-      scale_color_gradient(low = "gray90", high = "blue3") + 
+      scale_color_gradient(limits = c(0, max_logcounts), low = "gray90", high = "red3") + 
       ggtitle(paste0(sample_names[i], ": ", top_genes[k])) + 
       theme_bw() + 
       theme(panel.grid = element_blank(), 
