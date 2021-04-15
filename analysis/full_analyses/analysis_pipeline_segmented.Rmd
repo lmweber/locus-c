@@ -769,7 +769,7 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-### Plot SVGs using SPARK
+### Plot top SVGs from SPARK
 
 Plot spatial expression patterns for spatially variable genes (SVGs) from SPARK-X calculated above.
 
