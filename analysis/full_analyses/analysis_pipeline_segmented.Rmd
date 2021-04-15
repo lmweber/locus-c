@@ -730,6 +730,100 @@ for (i in seq_along(sample_names)) {
 ```
 
 
+### Calculate SVGs
+
+Calculate spatially variable genes (SVGs) using SPARK-X (Sun et al. 2020: https://xzhoulab.github.io/SPARK/).
+
+Notes:
+- SPARK-X is faster version of SPARK, which scales to Visium-sized datasets
+- SPARK-X (and SPARK) use raw counts (not logcounts)
+
+```{r, message=FALSE}
+library(SPARK)
+```
+
+```{r}
+for (i in seq_along(sample_names)) {
+  
+  print(paste0("Sample ", sample_names[i]))
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  
+  # inputs for SPARK-X
+  # note mitochondrial genes have been filtered out (as recommended)
+  sp_count <- counts(spe)
+  location <- spatialCoords(spe)
+  dim(sp_count)
+  dim(location)
+  
+  # run SPARK
+  sparkX <- sparkx(sp_count, location)
+  
+  # store outputs
+  stopifnot(all(rownames(sparkX$res_mtest) == rownames(spe)))
+  rowData(spe) <- cbind(rowData(spe), DataFrame(sparkX$res_mtest))
+  
+  spe_neuro_list[[i]] <- spe
+}
+```
+
+
+### Plot SVGs
+
+Plot spatial expression patterns for spatially variable genes (SVGs) from SPARK-X calculated above.
+
+```{r, fig.width=3.5, fig.height=3.25}
+for (i in seq_along(sample_names)) {
+  
+  print(paste0("Sample ", sample_names[i]))
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  # set gene names as row names for easier visualization in plots
+  rownames(spe) <- rowData(spe)$gene_name
+  
+  # subset object containing top n SVGs
+  n <- 100
+  ix_top <- which(rank(rowData(spe)$adjustedPval, ties.method = "first") <= n)
+  spe_sub <- spe[ix_top, ]
+  dim(spe_sub)
+  
+  # names of top n SVGs in ranked order
+  ord <- order(rowData(spe_sub)$adjustedPval)
+  top_svgs <- rowData(spe_sub)$gene_name[ord]
+  print(top_svgs)
+  
+  # alphabetical order for plotting
+  top_svgs_alph <- sort(top_svgs)
+  
+  max_logcounts <- max(logcounts(spe_sub))
+  
+  for (k in seq_along(top_svgs_alph)) {
+    
+    # plot spatial distribution of expression per gene
+    df <- cbind(as.data.frame(colData(spe_sub)), 
+                expr = counts(spe_sub)[top_svgs_alph[k], ], 
+                logexpr = logcounts(spe)[top_svgs_alph[k], ])
+    
+    p <- ggplot(df, aes(x = y, y = x, color = logexpr)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(limits = c(0, max_logcounts), low = "gray90", high = "green4") + 
+      ggtitle(paste0(sample_names[i], ": ", names(top_svgs_alph)[k])) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    
+    print(p)
+  }
+}
+```
+
+
 # Session info
 
 ```{r, message=FALSE}
