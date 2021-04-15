@@ -1,5 +1,5 @@
 ---
-title: "LC analyses: segmented regions"
+title: "LC analysis pipeline: segmented regions"
 author: "Lukas Weber"
 date: "`r Sys.Date()`"
 output:
