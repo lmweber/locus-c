@@ -12,7 +12,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 
@@ -534,6 +534,92 @@ for (i in seq_along(sample_names)) {
   fn <- file.path("../../plots", paste0("clustering_segmented_UMAP_", sample_names[i], ".png"))
   ggsave(fn, width = 5, height = 4.5)
 }
+```
+
+
+### Marker genes
+
+Identify top marker genes for clusters identified above.
+
+```{r, message=FALSE}
+library(pheatmap)
+```
+
+```{r, fig.width=4, fig.height=4}
+top_genes_list <- vector("list", length = length(sample_names))
+names(top_genes_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  # set gene names as row names for easier visualization in plots
+  rownames(spe) <- rowData(spe)$gene_name
+  
+  # test for marker genes
+  markers <- findMarkers(spe, test = "binom", direction = "up")
+  # list with one DataFrame per cluster
+  markers
+  
+  top_genes_list[[i]] <- vector("list", length = length(markers))
+  names(top_genes_list[[i]]) <- names(markers)
+  
+  for (k in seq_along(markers)) {
+    
+    # plot log-fold changes for one cluster over all other clusters
+    interesting <- markers[[k]]
+    best_set <- interesting[interesting$Top <= 5, ]
+    logFCs <- getMarkerEffects(best_set)
+    
+    pheatmap(logFCs, cluster_cols = FALSE, 
+             breaks = seq(-5, 5, length.out = 101), 
+             main = paste0(sample_names[i], ": ", "cluster ", k))
+    
+    # plot log-transformed normalized expression of top genes for one cluster
+    top_genes <- rownames(best_set)
+    
+    top_genes_list[[i]][[k]] <- top_genes
+  }
+}
+```
+
+```{r}
+p_list <- vector("list", length = length(sample_names))
+names(p_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  dim(spe)
+  
+  # set gene names as row names for easier visualization in plots
+  rownames(spe) <- rowData(spe)$gene_name
+  
+  # get combined set of top genes for all clusters
+  top_genes <- unique(unlist(top_genes_list[[i]]))
+  # sort alphabetically
+  top_genes <- sort(top_genes)
+  length(top_genes)
+  
+  # plot expression of combined set of top genes
+  p <- plotExpression(spe, x = "label", features = top_genes) + 
+    ggtitle(sample_names[i])
+  
+  p_list[[i]] <- p
+}
+```
+
+```{r, fig.width=7.5, fig.height=50}
+# display plots using custom width and height
+print(p_list[[1]])
+```
+
+```{r, fig.width=5, fig.height=14}
+# display plots using custom width and height
+print(p_list[[2]])
 ```
 
 
