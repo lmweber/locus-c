@@ -199,7 +199,7 @@ for (i in seq_along(sample_names)) {
     geom_point(size = 0.5) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_gradient(low = "gray95", high = "navy") + 
+    scale_color_gradient(low = "gray90", high = "navy") + 
     ggtitle(paste0("UMI counts: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -220,7 +220,7 @@ for (i in seq_along(sample_names)) {
     geom_point(size = 0.5) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_gradient(low = "gray95", high = "deeppink3") + 
+    scale_color_gradient(low = "gray90", high = "deeppink3") + 
     ggtitle(paste0("Detected genes: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -241,7 +241,7 @@ for (i in seq_along(sample_names)) {
     geom_point(size = 0.5) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_gradient(low = "gray95", high = "darkorange2") + 
+    scale_color_gradient(low = "gray90", high = "darkorange2") + 
     ggtitle(paste0("Percent mitochondrial: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -265,7 +265,7 @@ for (i in seq_along(sample_names)) {
     geom_point(size = 0.5) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_manual(values = c("gray95", "red")) + 
+    scale_color_manual(values = c("gray90", "red")) + 
     ggtitle(paste0("High mitochondrial percent: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -310,7 +310,7 @@ for (i in seq_along(sample_names)) {
     geom_point(size = 0.5) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_manual(values = c("gray95", "red")) + 
+    scale_color_manual(values = c("gray90", "red")) + 
     ggtitle(paste0("High UMI counts: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -551,10 +551,10 @@ names(top_genes_list) <- sample_names
 
 for (i in seq_along(sample_names)) {
   
+  print(paste0("Sample ", sample_names[i]))
+  
   # using subsetted object containing LC neurons region
   spe <- spe_neuro_list[[i]]
-  dim(spe)
-  
   # set gene names as row names for easier visualization in plots
   rownames(spe) <- rowData(spe)$gene_name
   
@@ -591,10 +591,10 @@ names(p_list) <- sample_names
 
 for (i in seq_along(sample_names)) {
   
+  print(paste0("Sample ", sample_names[i]))
+  
   # using subsetted object containing LC neurons region
   spe <- spe_neuro_list[[i]]
-  dim(spe)
-  
   # set gene names as row names for easier visualization in plots
   rownames(spe) <- rowData(spe)$gene_name
   
@@ -620,6 +620,57 @@ print(p_list[[1]])
 ```{r, fig.width=5, fig.height=14}
 # display plots using custom width and height
 print(p_list[[2]])
+```
+
+
+## Spatial expression patterns
+
+### Cluster marker genes
+
+Plot spatial distributions of expression for cluster marker genes identified in analysis pipeline above.
+
+```{r, fig.width=3.5, fig.height=3.25}
+for (i in seq_along(sample_names)) {
+  
+  print(paste0("Sample ", sample_names[i]))
+  
+  # using subsetted object containing LC neurons region
+  spe <- spe_neuro_list[[i]]
+  # set gene names as row names for easier visualization in plots
+  rownames(spe) <- rowData(spe)$gene_name
+  
+  # get combined set of top genes for all clusters
+  top_genes <- unique(unlist(top_genes_list[[i]]))
+  # sort alphabetically
+  top_genes <- sort(top_genes)
+  length(top_genes)
+  
+  # subset object
+  spe_sub <- spe[rowData(spe)$gene_name %in% top_genes, ]
+  dim(spe_sub)
+  
+  for (k in seq_along(top_genes)) {
+    
+    # plot spatial distribution of expression per gene
+    df <- cbind(as.data.frame(colData(spe)), 
+                expr = counts(spe)[top_genes[k], ], 
+                logexpr = logcounts(spe)[top_genes[k], ])
+    
+    p <- ggplot(df, aes(x = y, y = x, color = logexpr)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(low = "gray90", high = "blue3") + 
+      ggtitle(paste0(sample_names[i], ": ", top_genes[k])) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    
+    print(p)
+  }
+}
 ```
 
 
