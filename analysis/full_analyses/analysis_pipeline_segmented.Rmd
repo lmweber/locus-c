@@ -343,12 +343,12 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-## Analysis pipeline within segmented region
+## Analyses within regions
 
 Now continue with the analysis pipeline within the region containing the LC neurons identified above.
 
 
-### Normalization and transformation
+### Normalization
 
 ```{r, message=FALSE}
 library(scran)
