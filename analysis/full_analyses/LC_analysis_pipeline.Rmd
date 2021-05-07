@@ -1,0 +1,176 @@
+---
+title: "LC analysis pipeline"
+author: "Lukas Weber"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+
+# Introduction
+
+Analysis pipeline for LC project.
+
+
+## Data
+
+Using combined NextSeq and MiSeq reads for LC samples LC_1 and LC_2.
+
+
+# Analysis pipeline
+
+## Load data
+
+Load data from Space Ranger outputs into R and create `SpatialExperiment` objects.
+
+Note that we create a separate `SpatialExperiment` object for each sample, and store these in a list.
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(Matrix)
+library(rjson)
+library(dplyr)
+```
+
+```{r}
+sample_names <- c("LC_1", "LC_2")
+spe_list <- vector("list", length = length(sample_names))
+names(spe_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # ---------
+  # load data
+  # ---------
+  
+  sample_name <- sample_names[i]
+  
+  # path to Space Ranger output files (either on JHPCE or Mac laptop)
+  if (Sys.info()["sysname"] == "Linux") {
+    # files on JHPCE cluster
+    dir_outputs <- "../outputs/NextSeqMiSeq"
+  } else if (Sys.info()["sysname"] == "Darwin") {
+    # files on Mac laptop
+    dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
+  }
+  
+  # using "filtered" output files containing only spots over tissue
+  dir_matrix <- file.path(dir_outputs, sample_name, "outs", "filtered_feature_bc_matrix")
+  
+  # barcodes
+  file_barcodes <- file.path(dir_matrix, "barcodes.tsv.gz")
+  df_barcodes <- read.csv(file_barcodes, sep = "\t", header = FALSE, 
+                          col.names = c("barcode_id"))
+  # features
+  file_features <- file.path(dir_matrix, "features.tsv.gz")
+  df_features <- read.csv(file_features, sep = "\t", header = FALSE, 
+                          col.names = c("gene_id", "gene_name", "feature_type"))
+  # counts
+  file_counts <- file.path(dir_matrix, "matrix.mtx.gz")
+  counts <- readMM(file = file_counts)
+  
+  # spatial coordinates
+  dir_spatial <- file.path(dir_outputs, sample_name, "outs", "spatial")
+  file_tisspos <- file.path(dir_spatial, "tissue_positions_list.csv")
+  df_tisspos <- read.csv(file_tisspos, header = FALSE, 
+                         col.names=c("barcode_id", "in_tissue", "array_col", "array_row", 
+                                     "pxl_col_in_fullres", "pxl_row_in_fullres"))
+  
+  # image file paths
+  img_paths <- c(
+    aligned_fiducials = file.path(dir_spatial, "aligned_fiducials.jpg"), 
+    detected_tissue_image = file.path(dir_spatial, "detected_tissue_image.jpg"), 
+    tissue_hires_image = file.path(dir_spatial, "tissue_hires_image.png"), 
+    tissue_lowres_image = file.path(dir_spatial, "tissue_lowres_image.png")
+  )
+  
+  # spatial scale factors
+  file_scale_factors <- file.path(dir_spatial, "scalefactors_json.json")
+  scale_factors <- fromJSON(file = file_scale_factors)
+  
+  # check dimensions
+  dim(df_barcodes)
+  dim(df_features)
+  dim(counts)
+  # df_tisspos contains all spots (not filtered) - need to match rows
+  dim(df_tisspos)
+  
+  
+  # --------------
+  # match barcodes
+  # --------------
+  
+  # match barcode IDs in 'df_barcodes' and 'df_tisspos'
+  dim(df_barcodes)
+  dim(df_tisspos)
+  stopifnot(all(df_barcodes$barcode_id %in% df_tisspos$barcode_id))
+  
+  df_tisspos_ord <- left_join(df_barcodes, df_tisspos, by = "barcode_id")
+  rownames(df_tisspos_ord) <- df_tisspos_ord$barcode_id
+  dim(df_tisspos_ord)
+  head(df_tisspos_ord, 3)
+  
+  
+  # ------------------------
+  # create SpatialExperiment
+  # ------------------------
+  
+  # row data
+  row_data <- DataFrame(df_features)
+  rownames(row_data) <- df_features$gene_id
+  head(row_data, 3)
+  
+  # column data: include column of sample IDs
+  col_data <- DataFrame(sample_id = rep(sample_names[i], nrow(df_barcodes)))
+  rownames(col_data) <- df_barcodes$barcode_id
+  head(col_data, 3)
+  
+  # spatial data
+  spatial_data <- DataFrame(df_tisspos_ord)
+  rownames(spatial_data) <- df_tisspos_ord$barcode_id
+  # also include duplicate spatial coordinates with original column names in colData
+  col_data <- cbind(col_data, spatial_data[, c("pxl_col_in_fullres", "pxl_row_in_fullres")])
+  # use default column names for spatial coordinates in spatialData
+  colnames(spatial_data)[c(5, 6)] <- c("x", "y")
+  head(col_data, 3)
+  head(spatial_data, 3)
+  
+  # spatial coordinates
+  spatial_coords <- as.matrix(spatial_data[, c("x", "y")])
+  head(spatial_coords, 3)
+  
+  # image data: low and high resolution images from Space Ranger
+  img_data <- readImgData(
+    path = dir_spatial, 
+    sample_id = sample_names[i], 
+    imageSources = c(img_paths["tissue_lowres_image"], img_paths["tissue_hires_image"]), 
+    scaleFactors = file_scale_factors, 
+    load = TRUE
+  )
+  
+  # create SpatialExperiment
+  spe <- SpatialExperiment(
+    assays = list(counts = counts), 
+    rowData = row_data, 
+    colData = col_data, 
+    spatialData = spatial_data, 
+    spatialCoords = spatial_coords, 
+    imgData = img_data
+  )
+  
+  # store in list
+  spe_list[[i]] <- spe
+}
+
+spe_list
+```
+
