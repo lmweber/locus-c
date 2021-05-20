@@ -11,6 +11,7 @@ outputs/
 sample_info/
 html/
 plots/
+processed_data/
 spaceranger_*
 *.html
 *.pdf
