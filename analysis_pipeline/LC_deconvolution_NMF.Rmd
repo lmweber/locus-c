@@ -1,0 +1,392 @@
+---
+title: "LC analysis pipeline: spot-level cell type deconvolution"
+author: "Lukas Weber"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+
+# Introduction
+
+Computational analysis pipeline for LC project: spot-level cell type deconvolution.
+
+This script loads preprocessed `SpatialExperiment` objects from `LC_preprocessing.Rmd` and continues with downstream analyses on spot-level cell type deconvolution.
+
+Samples: LC_1 and LC_2 (combined NextSeq and MiSeq reads)
+
+
+# Analysis pipeline
+
+
+## Load preprocessed data
+
+Load preprocessed `SpatialExperiment` objects saved with `LC_preprocessing.Rmd` script.
+
+Note we have one `SpatialExperiment` object per sample, stored in a list.
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(dplyr)
+```
+
+```{r}
+# load objects
+dir_load <- "../processed_data"
+file_load <- file.path(dir_load, "LC_SPE_list.RData")
+load(file_load)
+```
+
+
+## Load reference cell types
+
+Load reference cell type marker gene expression profiles, provided by Louise Huuki.
+
+This is a pan-brain set of cell types and marker gene expression profiles, consisting of 6 major cell types: astrocytes, microglia, oligodendrocytes, oligodendrocyte progenitor cells (OPCs), excitatory neurons, and inhibitory neurons (interneurons).
+
+Marker genes for each cells are identified by ranking genes in terms of the relative difference in expression compared to the cell type with the next-highest expression of that gene. This strategy tends to give more specific markers than comparing against all other cells.
+
+```{r}
+# load marker gene set
+file_markers <- "../../marker_genes/marker_stats.Rdata"
+load(file_markers)
+```
+
+```{r}
+# use 'broad' set (i.e. major cell types)
+head(marker_stats$broad)
+# 'cellType.target' is the cell type of interest
+table(marker_stats$broad$cellType.target)
+
+# extract top 10 marker genes for each cell type
+markers_top <- 
+  marker_stats$broad %>% 
+  filter(rank_ratio <= 10) %>% 
+  select(c(gene, cellType.target, mean.target, rank_ratio, Symbol))
+
+head(markers_top)
+dim(markers_top)
+
+# all markers are unique per cell type
+length(unique(markers_top$Symbol))
+```
+
+
+# Deconvolution methods
+
+The following spot-level cell type deconvolution methods have recently been published. However, these are all difficult to apply in practice.
+
+- RCTD: [Cable et al. (2021)](https://www.nature.com/articles/s41587-021-00830-w)
+
+    - Requires matched snRNA-seq and ST data from the same samples, where the snRNA-seq data must consist of a full UMI count table. We do not have this here, so we cannot apply this method.
+
+- SpatialDWLS: [Dong et al. (2021)](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02362-7)
+
+    - Complicated to install, since it requires installing the full Giotto pipeline. Available as function `runDWLSDeconv` in Giotto package. No vignette or examples available.
+
+- DestVI: [Lopez et al. (2021)](https://www.biorxiv.org/content/10.1101/2021.05.10.443517v1)
+
+    - Available as a module in scVI in Python. Hard to integrate into R pipelines.
+
+- STdeconvolve: Work in progress by [Brendan Miller and Jean Fan](https://github.com/JEFworks-Lab/STdeconvolve)
+
+    - Based on LDA. Work in progress.
+
+
+## Non-negative matrix factorization (NMF)
+
+Try our own method using non-negative matrix factorization (suggestion from Casey Greene).
+
+Using NMF package from CRAN ([Gaujoux et al. 2010](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-367)).
+
+```{r, message=FALSE}
+library(NMF)
+library(ggplot2)
+```
+
+
+## Additional preprocessing for NMF
+
+Subset spots containing relatively high UMIs for further analysis.
+
+Using sample-specific thresholds on UMIs per spot.
+
+```{r, fig.width=4.75, fig.height=3.5}
+# sample names
+sample_names <- c("LC_1", "LC_2")
+
+# select thresholds for each sample
+thresh_umi <- c(3000, 1500)
+
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_list[[i]]
+  
+  # identify spots above threshold
+  colData(spe)$is_high_umi <- colData(spe)$sum > thresh_umi[i]
+  # note: remove duplicated columns introduced when adding columns to colData
+  colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
+  spe_list[[i]] <- spe
+  
+  # plot thresholded regions
+  p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
+              aes(x = y, y = x, color = is_high_umi)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray90", "red")) + 
+    ggtitle(paste0("High UMI counts: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+}
+```
+
+
+Store subsetted objects in new list.
+
+```{r}
+# lists to store subsetted objects
+spe_high_list <- spe_low_list <- vector("list", length = length(sample_names))
+names(spe_high_list) <- names(spe_low_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_list[[i]]
+  
+  spe_high <- spe[, colData(spe)$is_high_umi]
+  spe_low <- spe[, !colData(spe)$is_high_umi]
+  
+  dim(spe_high)
+  dim(spe_low)
+  
+  spe_high_list[[i]] <- spe_high
+  spe_low_list[[i]] <- spe_low
+}
+```
+
+
+Normalization for spots within segmented region.
+
+```{r, message=FALSE}
+library(scater)
+library(scran)
+```
+
+```{r, fig.width=4.5, fig.height=4}
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing high UMIs
+  spe <- spe_high_list[[i]]
+  dim(spe)
+  
+  # calculate pool-based size factors
+  set.seed(123)
+  qclus <- quickCluster(spe)
+  table(qclus)
+  spe <- computeSumFactors(spe, cluster = qclus)
+  
+  summary(sizeFactors(spe))
+  hist(log10(sizeFactors(spe)), 
+       xlab = "log10 (size factors)", main = "Size factors")
+  
+  # calculate logcounts
+  spe <- logNormCounts(spe)
+  
+  # store in list
+  spe_high_list[[i]] <- spe
+}
+```
+
+
+Feature selection to identify set of top highly variable genes (HVGs) for spots within segmented region.
+
+```{r, fig.width=4.5, fig.height=4}
+top_hvgs_list <- vector("list", length = length(sample_names))
+names(top_hvgs_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing high UMIs
+  spe <- spe_high_list[[i]]
+  dim(spe)
+  
+  # remove mitochondrial genes
+  is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
+  table(is_mito)
+  rowData(spe)$gene_name[is_mito]
+  spe <- spe[!is_mito, ]
+  dim(spe)
+  
+  # remove low-count genes
+  is_low <- rowSums(counts(spe)) <= 5
+  table(is_low)
+  spe <- spe[!is_low, ]
+  dim(spe)
+  
+  # store in list
+  spe_high_list[[i]] <- spe
+  
+  # fit mean-variance relationship
+  dec <- modelGeneVar(spe)
+  fit <- metadata(dec)
+  plot(fit$mean, fit$var, 
+       xlab = "mean of log-expression", ylab = "variance of log-expression")
+  curve(fit$trend(x), col = "dodgerblue", add = TRUE, lwd = 2)
+  
+  # select top HVGs
+  top_hvgs <- getTopHVGs(dec, prop = 0.1)
+  length(top_hvgs)
+  
+  # store in list
+  top_hvgs_list[[i]] <- top_hvgs
+  
+  # store in SpatialExperiment object
+  rowData(spe)$is_hvg <- rowData(spe)$gene_id %in% top_hvgs
+  spe_high_list[[i]] <- spe
+}
+```
+
+
+## Run NMF
+
+Run NMF using set of top highly variable genes (HVGs) for spots within segmented region.
+
+```{r}
+nmf_out_list <- vector("list", length = length(sample_names))
+names(nmf_out_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing high UMIs
+  spe <- spe_high_list[[i]]
+  dim(spe)
+  
+  # keep rows containing HVGs
+  spe_hvgs <- spe[rowData(spe)$is_hvg, ]
+  dim(spe_hvgs)
+  
+  # run NMF using logcounts
+  x <- as.matrix(logcounts(spe_hvgs))
+  
+  # assumed number of cell types
+  r <- 6
+  
+  # run NMF using default algorithm and parameters (runtime: ~15 sec)
+  nmf_out <- nmf(x, rank = r)
+  
+  # store in list
+  nmf_out_list[[i]] <- nmf_out
+  
+  # check outputs
+  # expression matrix (genes * NMF cell types)
+  W <- basis(nmf_out)
+  dim(W)
+  head(W)
+  # composition matrix (NMF cell types * genes)
+  H <- coef(nmf_out)
+  dim(H)
+  H[, 1:6]
+}
+```
+
+
+## Plot composition
+
+Plot composition of NMF cell types per spot.
+
+```{r, fig.width=3.5, fig.height=3}
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  spe <- spe_high_list[[i]]
+  nmf_out <- nmf_out_list[[i]]
+  
+  # composition matrix (transposed: genes * NMF cell types)
+  H <- coef(nmf_out)
+  df_H <- t(H)
+  colnames(df_H) <- paste0("NMF_celltype_", seq_len(ncol(df_H)))
+  head(df_H)
+  stopifnot(all(rownames(df_H) == rownames(colData(spe))))
+  
+  # plot composition: one panel per NMF cell type
+  for (k in seq_len(ncol(df_H))) {
+    p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe), prop = df_H[, k])), 
+                aes(x = y, y = x, color = prop)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(low = "gray85", high = "blue") + 
+      ggtitle(paste0(sample_names[i], ": ", colnames(df_H)[k])) + 
+      guides(color = guide_colorbar("proportion\n(logcounts)")) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    print(p)
+  }
+}
+```
+
+
+## Plot expression profiles
+
+Plot expression profiles of NMF cell types.
+
+```{r, message=FALSE}
+library(ComplexHeatmap)
+```
+
+```{r, fig.width=6, fig.height=12}
+# threshold to display genes in heatmap
+thresh_sum_logcounts <- c(700, 300)
+
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  spe <- spe_high_list[[i]]
+  # keep rows containing HVGs
+  spe_hvgs <- spe[rowData(spe)$is_hvg, ]
+  
+  nmf_out <- nmf_out_list[[i]]
+  
+  # expression matrix (genes * NMF cell types)
+  df_W <- basis(nmf_out)
+  colnames(df_W) <- paste0("NMF_celltype_", seq_len(ncol(df_W)))
+  head(df_W)
+  stopifnot(all(rownames(df_W) == rownames(rowData(spe_hvgs))))
+  rownames(df_W) <- rowData(spe_hvgs)$gene_name
+  
+  # keep only highly-expressed genes
+  rowData(spe_hvgs)$sum_logcounts <- rowSums(logcounts(spe_hvgs))
+  rowData(spe_hvgs)$is_high <- rowData(spe_hvgs)$sum_logcounts > thresh_sum_logcounts[i]
+  df_W_high <- df_W[rowData(spe_hvgs)$is_high, ]
+  dim(df_W_high)
+  
+  # plot heatmap of expression profiles
+  print(Heatmap(df_W_high, name = sample_names[i]))
+}
+```
+
+
+## Compare with known markers
+
+Compare NMF cell type expression profiles with known marker gene sets.
+
+
+## Session info
+
+```{r}
+sessionInfo()
+```
+
