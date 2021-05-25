@@ -22,6 +22,7 @@ Main directory containing git repository and data files is located at: `/dcs04/h
 - `raw_data/images/`: TIF images for each sample
 - `raw_data/images_align/`: manually aligned JSON files from Loupe for raw image files (for Space Ranger)
 - `processed_data/spaceranger/`: output files from Space Ranger
+- `inputs/`: other input files
 
 
 ## Output files
