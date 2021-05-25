@@ -27,7 +27,6 @@ Main directory containing git repository and data files is located at: `/dcs04/h
 
 ## Output files
 
-- `outputs/html/`: HTML output files from R/RMarkdown scripts
 - `outputs/objects/`: intermediate output objects from R/RMarkdown scripts
 - `outputs/plots/`: plot files from R/RMarkdown scripts
 

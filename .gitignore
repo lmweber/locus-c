@@ -9,4 +9,5 @@ inputs/
 outputs/
 sample_info/
 Andrew_MiSeq/
+*.html
 spaceranger_*
