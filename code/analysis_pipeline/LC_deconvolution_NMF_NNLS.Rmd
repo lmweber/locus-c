@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 
@@ -95,12 +95,18 @@ The following spot-level cell type deconvolution methods have recently been publ
 
     - Based on LDA. Work in progress.
 
+- SPOTlight: [Elosua-Bayes et al. (2021)](https://academic.oup.com/nar/article/49/9/e50/6129341)
 
-## Non-negative matrix factorization (NMF)
+    - Requires full scRNA-seq dataset as input and performs automated clustering and marker gene selection using Seurat.
 
-Try our own method using non-negative matrix factorization (suggestion from Casey Greene).
+List additional methods here.
 
-Using NMF package from CRAN ([Gaujoux et al. 2010](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-367)).
+
+# Non-negative matrix factorization (NMF)
+
+Try our own unsupervised method using non-negative matrix factorization (NMF) (suggestion from Casey Greene).
+
+Using `NMF` package from CRAN ([Gaujoux et al. 2010](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-367)).
 
 ```{r, message=FALSE}
 library(NMF)
@@ -277,7 +283,7 @@ for (i in seq_along(sample_names)) {
   x <- as.matrix(logcounts(spe_hvgs))
   
   # assumed number of cell types
-  r <- 6
+  r <- 10
   
   # run NMF using default algorithm and parameters (runtime: ~15 sec)
   nmf_out <- nmf(x, rank = r)
@@ -382,6 +388,41 @@ for (i in seq_along(sample_names)) {
 ## Compare with known markers
 
 Compare NMF cell type expression profiles with known marker gene sets.
+
+Expression heatmap of known marker genes.
+
+```{r, message=FALSE}
+library(tidyr)
+```
+
+```{r, fig.width=6, fig.height=12}
+# expression matrix of known marker genes
+df_markers_top <- markers_top[, c("Symbol", "cellType.target", "mean.target")]
+colnames(df_markers_top) <- c("gene_name", "celltype", "mean")
+
+df_markers_top <- as.data.frame(spread(df_markers_top, "celltype", "mean"))
+
+rownames(df_markers_top) <- df_markers_top$gene_name
+df_markers_top <- df_markers_top[, -1]
+head(df_markers_top)
+
+# set NA values to 0 for heatmaps
+mat_markers_top <- as.matrix(df_markers_top)
+mat_markers_top[is.na(mat_markers_top)] <- 0
+
+Heatmap(mat_markers_top, cluster_columns = FALSE, name = "markers")
+```
+
+
+# Non-negative least squares (NNLS)
+
+Try our own supervised method using non-negative least squares (NNLS).
+
+Using `nnls` package from CRAN ([Mullen et al. 2012](https://cran.r-project.org/web/packages/nnls/index.html)).
+
+```{r, message=FALSE}
+library(nnls)
+```
 
 
 ## Session info
