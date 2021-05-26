@@ -482,7 +482,7 @@ for (i in seq_along(sample_names)) {
   n_celltypes <- ncol(mat_markers_i)
   
   nnls_out_mat <- matrix(NA, nrow = n_celltypes, ncol = ncol(spe_markers))
-  rownames(nnls_out_mat) <- paste0("celltype_", seq_len(n_celltypes))
+  rownames(nnls_out_mat) <- colnames(mat_markers_i)
   colnames(nnls_out_mat) <- colnames(spe_markers)
   
   for (s in seq_len(ncol(spe_markers))) {
