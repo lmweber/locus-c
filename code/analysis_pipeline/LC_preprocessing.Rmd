@@ -32,6 +32,7 @@ library(SpatialExperiment)
 library(Matrix)
 library(rjson)
 library(dplyr)
+library(here)
 ```
 
 ```{r}
@@ -50,10 +51,10 @@ for (i in seq_along(sample_names)) {
   # path to Space Ranger output files (either on JHPCE or Mac laptop)
   if (Sys.info()["sysname"] == "Linux") {
     # files on JHPCE cluster
-    dir_outputs <- "../outputs/NextSeqMiSeq"
+    dir_outputs <- here("processed_data/spaceranger/NextSeqMiSeq")
   } else if (Sys.info()["sysname"] == "Darwin") {
     # files on Mac laptop
-    dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
+    dir_outputs <- "~/data/locus-c/processed_data/spaceranger/NextSeqMiSeq"
   }
   
   # using "filtered" output files containing only spots over tissue
@@ -320,9 +321,8 @@ Save `SpatialExperiment` objects for use in downstream analyses in other `RMarkd
 
 ```{r}
 # save objects
-dir_save <- "../processed_data"
-file_save <- file.path(dir_save, "LC_SPE_list.RData")
-save(spe_list, file = file_save)
+file_out <- here("outputs/objects/LC_SPE_list.RData")
+save(spe_list, file = file_out)
 ```
 
 

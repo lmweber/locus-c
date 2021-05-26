@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
@@ -31,12 +31,12 @@ Note we have one `SpatialExperiment` object per sample, stored in a list.
 ```{r, message=FALSE}
 library(SpatialExperiment)
 library(dplyr)
+library(here)
 ```
 
 ```{r}
 # load objects
-dir_load <- "../processed_data"
-file_load <- file.path(dir_load, "LC_SPE_list.RData")
+file_load <- here("outputs/objects/LC_SPE_list.RData")
 load(file_load)
 ```
 
@@ -51,7 +51,7 @@ Marker genes for each cells are identified by ranking genes in terms of the rela
 
 ```{r}
 # load marker gene set
-file_markers <- "../../marker_genes/marker_stats.Rdata"
+file_markers <- here("inputs/marker_genes/marker_stats.Rdata")
 load(file_markers)
 ```
 
