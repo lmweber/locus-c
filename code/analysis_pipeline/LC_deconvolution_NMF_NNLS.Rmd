@@ -74,10 +74,7 @@ dim(markers_top)
 # all markers are unique per cell type
 length(unique(markers_top$Symbol))
 
-# display as table
-pivot_wider(markers_top, )
-
-# display as table
+# summary table
 markers_top %>% 
   select(c("cellType.target", "rank_ratio", "Symbol")) %>% 
   spread(key = "cellType.target", value = "Symbol")
