@@ -31,6 +31,7 @@ Note we have one `SpatialExperiment` object per sample, stored in a list.
 ```{r, message=FALSE}
 library(SpatialExperiment)
 library(dplyr)
+library(tidyr)
 library(here)
 ```
 
@@ -72,6 +73,14 @@ dim(markers_top)
 
 # all markers are unique per cell type
 length(unique(markers_top$Symbol))
+
+# display as table
+pivot_wider(markers_top, )
+
+# display as table
+markers_top %>% 
+  select(c("cellType.target", "rank_ratio", "Symbol")) %>% 
+  spread(key = "cellType.target", value = "Symbol")
 ```
 
 
@@ -394,10 +403,6 @@ Compare NMF cell type expression profiles with known marker gene sets.
 Expression heatmap of known marker genes.
 
 Note: have we excluded highly specific overall neuron markers since we have only kept markers that can distinguish excitatory from inhibitory neurons? Could we generate an additional marker set with all neurons in a single category?
-
-```{r, message=FALSE}
-library(tidyr)
-```
 
 ```{r, fig.width=5, fig.height=8}
 # expression matrix of known marker genes
