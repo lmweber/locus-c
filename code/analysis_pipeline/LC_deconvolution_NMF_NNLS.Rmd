@@ -265,6 +265,8 @@ for (i in seq_along(sample_names)) {
 
 Run NMF using set of top highly variable genes (HVGs) for spots within segmented region.
 
+Runtime: seconds
+
 ```{r}
 nmf_out_list <- vector("list", length = length(sample_names))
 names(nmf_out_list) <- sample_names
@@ -391,11 +393,13 @@ Compare NMF cell type expression profiles with known marker gene sets.
 
 Expression heatmap of known marker genes.
 
+Note: have we excluded highly specific overall neuron markers since we have only kept markers that can distinguish excitatory from inhibitory neurons? Could we generate an additional marker set with all neurons in a single category?
+
 ```{r, message=FALSE}
 library(tidyr)
 ```
 
-```{r, fig.width=6, fig.height=12}
+```{r, fig.width=5, fig.height=8}
 # expression matrix of known marker genes
 df_markers_top <- markers_top[, c("Symbol", "cellType.target", "mean.target")]
 colnames(df_markers_top) <- c("gene_name", "celltype", "mean")
@@ -410,7 +414,9 @@ head(df_markers_top)
 mat_markers_top <- as.matrix(df_markers_top)
 mat_markers_top[is.na(mat_markers_top)] <- 0
 
-Heatmap(mat_markers_top, cluster_columns = FALSE, name = "markers")
+Heatmap(mat_markers_top, 
+        cluster_columns = FALSE, name = "markers", 
+        row_names_gp = gpar(fontsize = 10))
 ```
 
 
@@ -422,6 +428,126 @@ Using `nnls` package from CRAN ([Mullen et al. 2012](https://cran.r-project.org/
 
 ```{r, message=FALSE}
 library(nnls)
+```
+
+
+## Run NNLS
+
+Run NNLS in a loop (once per spot within segmented region) using the set of known marker genes.
+
+Note we detect only 40 (LC_1) or 34 (LC_2) of the 60 marker genes.
+
+To do: replace non-detected values in matrix A (currently zeros) with actual values. Alternatively change matrix A to indicator values only (since snRNA-seq data generally not available)?
+
+Runtime: seconds
+
+```{r}
+# data frame of marker genes (using gene ID instead of gene symbol for dis-ambiguity)
+df_markers_top <- markers_top[, c("gene", "cellType.target", "mean.target")]
+colnames(df_markers_top) <- c("gene_id", "celltype", "mean")
+
+df_markers_top <- as.data.frame(spread(df_markers_top, "celltype", "mean"))
+
+rownames(df_markers_top) <- df_markers_top$gene_id
+df_markers_top <- df_markers_top[, -1]
+
+mat_markers_top <- as.matrix(df_markers_top)
+mat_markers_top[is.na(mat_markers_top)] <- 0
+head(mat_markers_top)
+
+
+# run NNLS
+nnls_out_list <- vector("list", length = length(sample_names))
+names(nnls_out_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # using subsetted object containing high UMIs
+  spe <- spe_high_list[[i]]
+  print(dim(spe))
+  
+  # keep rows containing marker genes
+  spe_markers <- spe[rowData(spe)$gene_id %in% markers_top$gene, ]
+  dim(spe_markers)
+  
+  # loop over spots
+  
+  # detected marker genes for this sample (note: using zero values for non-detected)
+  mat_markers_i <- mat_markers_top[rownames(mat_markers_top) %in% rowData(spe_markers)$gene_id, ]
+  dim(mat_markers_i)
+  # re-order rows to match spe_markers
+  mat_markers_i <- mat_markers_i[rowData(spe_markers)$gene_id, ]
+  stopifnot(all(rownames(mat_markers_i) == rownames(spe_markers)))
+  
+  n_celltypes <- ncol(mat_markers_i)
+  
+  nnls_out_mat <- matrix(NA, nrow = n_celltypes, ncol = ncol(spe_markers))
+  rownames(nnls_out_mat) <- paste0("celltype_", seq_len(n_celltypes))
+  colnames(nnls_out_mat) <- colnames(spe_markers)
+  
+  for (s in seq_len(ncol(spe_markers))) {
+    # NNLS formula: A*x = b
+    A <- mat_markers_i
+    b <- logcounts(spe_markers)[, s]
+    # run NNLS
+    x <- nnls(A, b)$x
+    # store cell type proportions
+    nnls_out_mat[, s] <- x
+  }
+  
+  # store output
+  nnls_out_list[[i]] <- nnls_out_mat
+}
+```
+
+
+## Cell type proportions
+
+Why don't cell type proportions per spot sum to one? Can we simply normalize them?
+
+```{r, fig.width=5, fig.height=4}
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  # histogram of cell type proportions per spot
+  print(hist(colSums(nnls_out_list[[i]]), 
+             main = sample_names[i], 
+             xlab = "sum of cell type proportions per spot"))
+}
+```
+
+
+## Plot cell type proportions
+
+Plot cell type proportions per spot.
+
+```{r, fig.width=3.5, fig.height=3}
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  spe <- spe_high_list[[i]]
+  nnls_out_mat <- nnls_out_list[[i]]
+  
+  # plot composition: one panel per cell type
+  for (k in seq_len(nrow(nnls_out_mat))) {
+    p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe), prop = nnls_out_mat[k, ])), 
+                aes(x = y, y = x, color = prop)) + 
+      geom_point(size = 0.5) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(low = "gray85", high = "blue") + 
+      ggtitle(paste0(sample_names[i], ": ", rownames(nnls_out_mat)[k])) + 
+      guides(color = guide_colorbar("proportion\n(logcounts)")) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    print(p)
+  }
+}
 ```
 
 

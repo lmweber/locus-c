@@ -11,3 +11,5 @@ sample_info/
 Andrew_MiSeq/
 *.html
 ./spaceranger_*
+*_cache
+*_files
