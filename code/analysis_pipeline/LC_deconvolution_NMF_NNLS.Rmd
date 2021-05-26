@@ -2,7 +2,13 @@
 title: "LC analysis pipeline: spot-level cell type deconvolution"
 author: "Lukas Weber"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
 ---
 
 ```{r setup, include=FALSE}
