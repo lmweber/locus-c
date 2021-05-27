@@ -435,6 +435,7 @@ for (i in seq_along(sample_names)) {
   
   print(sample_names[i])
   
+  # set of top HVGs
   top_hvgs <- top_hvgs_list[[i]]
   
   # number of marker genes
@@ -448,6 +449,26 @@ for (i in seq_along(sample_names)) {
 
 
 The overlap between the set of top HVGs and the set of marker genes is very low, which may explain why the NMF cell types do not match well to the known cell types.
+
+
+For comparison: What is the overlap between the set of all detected genes and known marker genes?
+
+```{r}
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  # using subsetted object containing high UMIs
+  spe <- spe_high_list[[i]]
+  
+  # number of marker genes
+  print(length(markers_top$gene))
+  # number of detected genes for this sample
+  print(nrow(spe))
+  # number overlapping
+  print(sum(markers_top$gene %in% rowData(spe)$gene_id))
+}
+```
 
 
 
