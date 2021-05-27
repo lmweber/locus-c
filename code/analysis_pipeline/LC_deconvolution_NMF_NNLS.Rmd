@@ -310,7 +310,7 @@ for (i in seq_along(sample_names)) {
   W <- basis(nmf_out)
   dim(W)
   head(W)
-  # composition matrix (NMF cell types * genes)
+  # composition matrix (NMF cell types * spots)
   H <- coef(nmf_out)
   dim(H)
   H[, 1:6]
@@ -330,7 +330,7 @@ for (i in seq_along(sample_names)) {
   spe <- spe_high_list[[i]]
   nmf_out <- nmf_out_list[[i]]
   
-  # composition matrix (transposed: genes * NMF cell types)
+  # composition matrix (transposed: spots * NMF cell types)
   H <- coef(nmf_out)
   df_H <- t(H)
   colnames(df_H) <- paste0("NMF_celltype_", seq_len(ncol(df_H)))
@@ -405,7 +405,7 @@ Compare NMF cell type expression profiles with known marker gene sets.
 
 Expression heatmap of known marker genes.
 
-Note: have we excluded highly specific overall neuron markers since we have only kept markers that can distinguish excitatory from inhibitory neurons? Could we generate an additional marker set with all neurons in a single category?
+Note: In the current version (6 major cell types), we have likely excluded highly specific overall neuron markers, since markers are only ranked highly if they can distinguish excitatory from inhibitory neurons. To do: updated version using 5 major cell types instead (with combined neurons category).
 
 ```{r, fig.width=5, fig.height=8}
 # expression matrix of known marker genes
@@ -426,6 +426,29 @@ Heatmap(mat_markers_top,
         cluster_columns = FALSE, name = "markers", 
         row_names_gp = gpar(fontsize = 10))
 ```
+
+
+What is the overlap between the set of top HVGs (used for NMF) and known marker genes?
+
+```{r}
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  top_hvgs <- top_hvgs_list[[i]]
+  
+  # number of marker genes
+  print(length(markers_top$gene))
+  # number of HVGs for this sample
+  print(length(top_hvgs))
+  # number overlapping
+  print(sum(markers_top$gene %in% top_hvgs))
+}
+```
+
+
+The overlap between the set of top HVGs and the set of marker genes is very low, which may explain why the NMF cell types do not match well to the known cell types.
+
 
 
 # Non-negative least squares (NNLS)
