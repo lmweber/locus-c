@@ -589,9 +589,9 @@ for (i in seq_along(sample_names)) {
   print(sample_names[i])
   
   # histogram of cell type proportions per spot
-  print(hist(colSums(nnls_out_list[[i]]), 
-             main = sample_names[i], 
-             xlab = "sum of cell type proportions per spot"))
+  hist(colSums(nnls_out_list[[i]]), 
+       main = sample_names[i], 
+       xlab = "sum of cell type proportions per spot")
 }
 ```
 
