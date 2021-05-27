@@ -37,11 +37,11 @@ cd processed_data/spaceranger/Linda_2021-05-21
 spaceranger count \
 --id=Br8153_LC \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/Linda_2021-05-21/Br8153_LC \
---image=images/split/V10U24-093_A1_Br8153_LC_1.tif \
+--fastqs=../../../fastq/Linda_2021-05-21/Br8153_LC \
+--image=../../../images/split/V10U24-093_A1_Br8153_LC_1.tif \
 --slide=V10U24-093 \
 --area=A1 \
---loupe-alignment=images_align/V10U24-093-A1.json \
+--loupe-alignment=../../../images_align/V10U24-093-A1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -49,11 +49,11 @@ spaceranger count \
 spaceranger count \
 --id=Br5459_LC \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/Linda_2021-05-21/Br5459_LC \
---image=images/split/V10U24-093_B1_Br5459_LC_2.tif \
+--fastqs=../../../fastq/Linda_2021-05-21/Br5459_LC \
+--image=../../../images/split/V10U24-093_B1_Br5459_LC_2.tif \
 --slide=V10U24-093 \
 --area=B1 \
---loupe-alignment=images_align/V10U24-093-B1.json \
+--loupe-alignment=../../../images_align/V10U24-093-B1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -61,11 +61,11 @@ spaceranger count \
 spaceranger count \
 --id=Br2701_LC \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/Linda_2021-05-21/Br2701_LC \
---image=images/split/V10U24-093_C1_Br2701_LC_3.tif \
+--fastqs=../../../fastq/Linda_2021-05-21/Br2701_LC \
+--image=../../../images/split/V10U24-093_C1_Br2701_LC_3.tif \
 --slide=V10U24-093 \
 --area=C1 \
---loupe-alignment=images_align/V10U24-093-C1.json \
+--loupe-alignment=../../../images_align/V10U24-093-C1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64

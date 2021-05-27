@@ -37,11 +37,11 @@ cd processed_data/spaceranger/MiSeq
 spaceranger count \
 --id=Br8100_DLPFC \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/MiSeq_2020-08-12/DLPFC \
---image=images/split/Lieber-Institute_OTS-20-7043_1_1.tif \
+--fastqs=../../../fastq/MiSeq_2020-08-12/DLPFC \
+--image=../../../images/split/Lieber-Institute_OTS-20-7043_1_1.tif \
 --slide=V19B23-076 \
 --area=A1 \
---loupe-alignment=images_align/V19B23-076-A1.json \
+--loupe-alignment=../../../images_align/V19B23-076-A1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -49,11 +49,11 @@ spaceranger count \
 spaceranger count \
 --id=Br6522_LC_1 \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/MiSeq_2020-08-12/LC_1 \
---image=images/split/Lieber-Institute_OTS-20-7043_1_2.tif \
+--fastqs=../../../fastq/MiSeq_2020-08-12/LC_1 \
+--image=../../../images/split/Lieber-Institute_OTS-20-7043_1_2.tif \
 --slide=V19B23-076 \
 --area=B1 \
---loupe-alignment=images_align/V19B23-076-B1.json \
+--loupe-alignment=../../../images_align/V19B23-076-B1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -61,11 +61,11 @@ spaceranger count \
 spaceranger count \
 --id=Br6522_LC_2 \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/MiSeq_2020-08-12/LC_2 \
---image=images/split/Lieber-Institute_OTS-20-7043_1_3.tif \
+--fastqs=../../../fastq/MiSeq_2020-08-12/LC_2 \
+--image=../../../images/split/Lieber-Institute_OTS-20-7043_1_3.tif \
 --slide=V19B23-076 \
 --area=C1 \
---loupe-alignment=images_align/V19B23-076-C1.json \
+--loupe-alignment=../../../images_align/V19B23-076-C1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
@@ -73,11 +73,11 @@ spaceranger count \
 spaceranger count \
 --id=Br8079_LC_3 \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=fastq/MiSeq_2020-08-12/LC_3 \
---image=images/split/Lieber-Institute_OTS-20-7043_1_4.tif \
+--fastqs=../../../fastq/MiSeq_2020-08-12/LC_3 \
+--image=../../../images/split/Lieber-Institute_OTS-20-7043_1_4.tif \
 --slide=V19B23-076 \
 --area=D1 \
---loupe-alignment=images_align/V19B23-076-D1.json \
+--loupe-alignment=../../../images_align/V19B23-076-D1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
