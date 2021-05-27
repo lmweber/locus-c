@@ -37,7 +37,7 @@ cd processed_data/spaceranger/NextSeqMiSeq
 spaceranger count \
 --id=Br6522_LC_1 \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=../../../fastq/NextSeq_2020-09-25/LC_1,fastq/MiSeq_2020-08-12/LC_1 \
+--fastqs=../../../fastq/NextSeq_2020-09-25/LC_1,../../../fastq/MiSeq_2020-08-12/LC_1 \
 --image=../../../images/split/Lieber-Institute_OTS-20-7043_1_2.tif \
 --slide=V19B23-076 \
 --area=B1 \
@@ -49,7 +49,7 @@ spaceranger count \
 spaceranger count \
 --id=Br6522_LC_2 \
 --transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
---fastqs=../../../fastq/NextSeq_2020-09-25/LC_2,fastq/MiSeq_2020-08-12/LC_2 \
+--fastqs=../../../fastq/NextSeq_2020-09-25/LC_2,../../../fastq/MiSeq_2020-08-12/LC_2 \
 --image=../../../images/split/Lieber-Institute_OTS-20-7043_1_3.tif \
 --slide=V19B23-076 \
 --area=C1 \
