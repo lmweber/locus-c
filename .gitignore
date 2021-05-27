@@ -7,8 +7,9 @@ raw_data/
 processed_data/
 inputs/
 outputs/
+fastq/
+images/
 sample_info/
-Andrew_MiSeq/
 *.html
 ./spaceranger_*
 *_cache
