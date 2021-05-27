@@ -487,28 +487,33 @@ library(nnls)
 
 Run NNLS in a loop (once per spot within segmented region) using the set of known marker genes.
 
-Note we detect only 40 (LC_1) or 34 (LC_2) of the 60 marker genes.
+Using (i) binary matrix of marker genes expressed per cell type sourced from external snRNA-seq data, then (ii) scale expression values per marker gene by mean log-expression per spot where this gene is detected in the ST data (so the reference marker expression profiles are on the correct scale for the ST data - suggestion from Shijie Zheng).
 
-To do: replace non-detected values in matrix A (currently zeros) with actual values. Alternatively change matrix A to indicator values only (since snRNA-seq data generally not available)?
+Note we detect only some of the marker genes per sample (see previous section).
 
 Runtime: seconds
 
 ```{r}
-# data frame of marker genes (using gene ID instead of gene symbol for dis-ambiguity)
+# set of marker gene IDs (using gene ID instead of symbol for dis-ambiguity)
+marker_ids_all <- markers_top$gene
+length(marker_ids_all)
+
+# create binary matrix of marker genes expressed per cell type
 df_markers_top <- markers_top[, c("gene", "cellType.target", "mean.target")]
 colnames(df_markers_top) <- c("gene_id", "celltype", "mean")
-
 df_markers_top <- as.data.frame(spread(df_markers_top, "celltype", "mean"))
-
 rownames(df_markers_top) <- df_markers_top$gene_id
 df_markers_top <- df_markers_top[, -1]
+df_markers_top[is.na(df_markers_top)] <- 0
 
-mat_markers_top <- as.matrix(df_markers_top)
-mat_markers_top[is.na(mat_markers_top)] <- 0
-head(mat_markers_top)
+markers_top_binary <- as.matrix(df_markers_top > 0) + 0
+dim(markers_top_binary)
+head(markers_top_binary)
+```
 
-
+```{r}
 # run NNLS
+
 nnls_out_list <- vector("list", length = length(sample_names))
 names(nnls_out_list) <- sample_names
 
@@ -518,28 +523,44 @@ for (i in seq_along(sample_names)) {
   spe <- spe_high_list[[i]]
   print(dim(spe))
   
-  # keep rows containing marker genes
-  spe_markers <- spe[rowData(spe)$gene_id %in% markers_top$gene, ]
-  dim(spe_markers)
+  # scale binary reference profile matrix by mean expression in spots where each 
+  # gene is detected in ST data (so reference profiles are on same scale as ST data)
+  
+  # subset detected marker genes
+  marker_ids <- marker_ids_all[marker_ids_all %in% rownames(spe)]
+  length(marker_ids)
+  markers_top_binary_sub <- markers_top_binary[marker_ids, ]
+  print(dim(markers_top_binary_sub))
+  
+  # subset SPE object to keep only marker genes
+  spe_markers <- spe[rowData(spe)$gene_id %in% marker_ids, ]
+  print(dim(spe_markers))
+  
+  # scale reference matrix by mean log-expression per gene
+  # note: treat non-expressed as NAs
+  logcounts_nas <- as.matrix(logcounts(spe_markers))
+  logcounts_nas[logcounts_nas == 0] <- NA
+  mean_markers <- rowMeans(logcounts_nas, na.rm = TRUE)
+  
+  markers_scaled <- markers_top_binary_sub * 
+                    matrix(rep(mean_markers, ncol(markers_top_binary_sub)), 
+                           ncol = ncol(markers_top_binary_sub))
+  head(markers_scaled)
+  
+  stopifnot(all(rownames(spe_markers) == rownames(spe_markers)))
+  
   
   # loop over spots
   
-  # detected marker genes for this sample (note: using zero values for non-detected)
-  mat_markers_i <- mat_markers_top[rownames(mat_markers_top) %in% rowData(spe_markers)$gene_id, ]
-  dim(mat_markers_i)
-  # re-order rows to match spe_markers
-  mat_markers_i <- mat_markers_i[rowData(spe_markers)$gene_id, ]
-  stopifnot(all(rownames(mat_markers_i) == rownames(spe_markers)))
-  
-  n_celltypes <- ncol(mat_markers_i)
+  n_celltypes <- ncol(markers_scaled)
   
   nnls_out_mat <- matrix(NA, nrow = n_celltypes, ncol = ncol(spe_markers))
-  rownames(nnls_out_mat) <- colnames(mat_markers_i)
+  rownames(nnls_out_mat) <- colnames(markers_scaled)
   colnames(nnls_out_mat) <- colnames(spe_markers)
   
   for (s in seq_len(ncol(spe_markers))) {
     # NNLS formula: A*x = b
-    A <- mat_markers_i
+    A <- markers_scaled
     b <- logcounts(spe_markers)[, s]
     # run NNLS
     x <- nnls(A, b)$x
@@ -555,7 +576,7 @@ for (i in seq_along(sample_names)) {
 
 ## Cell type proportions
 
-Why don't cell type proportions per spot sum to one? Can we simply normalize them?
+Should cell type proportions per spot sum to one? Can we simply normalize them?
 
 ```{r, fig.width=5, fig.height=4}
 for (i in seq_along(sample_names)) {
