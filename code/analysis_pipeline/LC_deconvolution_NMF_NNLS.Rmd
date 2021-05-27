@@ -517,6 +517,9 @@ head(markers_top_binary)
 nnls_out_list <- vector("list", length = length(sample_names))
 names(nnls_out_list) <- sample_names
 
+markers_scaled_list <- vector("list", length = length(sample_names))
+names(markers_scaled_list) <- sample_names
+
 for (i in seq_along(sample_names)) {
   
   # using subsetted object containing high UMIs
@@ -546,6 +549,8 @@ for (i in seq_along(sample_names)) {
                     matrix(rep(mean_markers, ncol(markers_top_binary_sub)), 
                            ncol = ncol(markers_top_binary_sub))
   head(markers_scaled)
+  
+  markers_scaled_list[[i]] <- markers_scaled
   
   stopifnot(all(rownames(spe_markers) == rownames(spe_markers)))
   
@@ -622,6 +627,31 @@ for (i in seq_along(sample_names)) {
   }
 }
 ```
+
+
+## Expression matrix of scaled marker expression profiles
+
+Plot expression matrix of scaled marker expression profiles used for NNLS deconvolution above.
+
+```{r, fig.width=5, fig.height=8}
+for (i in seq_along(sample_names)) {
+  
+  print(sample_names[i])
+  
+  spe <- spe_high_list[[i]]
+  
+  # expression matrix of scaled marker expression profiles
+  markers_scaled <- markers_scaled_list[[i]]
+  
+  markers_scaled_hm <- markers_scaled
+  rownames(markers_scaled_hm) <- rowData(spe[rownames(markers_scaled), ])$gene_name
+  
+  print(Heatmap(markers_scaled_hm, 
+                cluster_columns = FALSE, name = "scaled\nmarkers", 
+                row_names_gp = gpar(fontsize = 10)))
+}
+```
+
 
 
 ## Session info
