@@ -5,7 +5,7 @@
 #$ -cwd
 
 # run on JHPCE cluster
-# qsub scripts/spaceranger/spaceranger_MiSeq.sh
+# qsub code/scripts/spaceranger/spaceranger_MiSeq.sh
 
 ############################
 # Script to run Space Ranger
@@ -13,72 +13,71 @@
 
 # locations of files:
 # -------------------
-# spaceranger reference: /dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A
-# fastq (MiSeq): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_MiSeq/
-# fastq (NextSeq): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_NextSeq/
-# images (raw): /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/Images/Raw/
-# manual alignment files from Loupe: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/images_raw_align_json/
+# spaceranger reference: /dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A/
+# fastq (first 2 samples MiSeq):    ./fastq/MiSeq_2020-08-12/
+# fastq (first 2 samples NextSeq):  ./fastq/NextSeq_2020-09-25/
+# fastq (new samples from Linda):   ./fastq/Linda_2021-05-21/
+# images (split by sample):         ./images/split/
+# image alignment files from Loupe: ./images_align/
+# sample information spreadsheets:  ./sample_info/
 
-# summary spreadsheet: /dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/sample_info/Visium LC pilot_072120 Master.xlsx
-# - contains sample ID, sample name, slide serial number, capture area ID
 
+# load spaceranger module (or use local installation)
+#module use /jhpce/shared/jhpce/modulefiles/libd
+#module load spaceranger
 
-# load spaceranger module
-module use /jhpce/shared/jhpce/modulefiles/libd
-module load spaceranger
-
-# run in outputs directory (spaceranger can only save outputs in current working directory)
+# run in output directory (spaceranger can only save outputs in current working directory)
 cwd=$(pwd)
-mkdir -p outputs/MiSeq
-cd outputs/MiSeq
+mkdir -p processed_data/spaceranger/MiSeq
+cd processed_data/spaceranger/MiSeq
 
 
 # run spaceranger count for each sample
 
 spaceranger count \
---id=DLPFC \
---transcriptome=/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A \
---fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_MiSeq/DLPFC \
---image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/Images/Raw/Lieber-Institute_OTS-20-7043_1_1.tif \
+--id=Br8100_DLPFC \
+--transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
+--fastqs=fastq/MiSeq_2020-08-12/DLPFC \
+--image=images/split/Lieber-Institute_OTS-20-7043_1_1.tif \
 --slide=V19B23-076 \
 --area=A1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/images_raw_align_json/V19B23-076-A1.json \
+--loupe-alignment=images_align/V19B23-076-A1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
 
 spaceranger count \
---id=LC_1 \
---transcriptome=/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A \
---fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_MiSeq/LC_1 \
---image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/Images/Raw/Lieber-Institute_OTS-20-7043_1_2.tif \
+--id=Br6522_LC_1 \
+--transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
+--fastqs=fastq/MiSeq_2020-08-12/LC_1 \
+--image=images/split/Lieber-Institute_OTS-20-7043_1_2.tif \
 --slide=V19B23-076 \
 --area=B1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/images_raw_align_json/V19B23-076-B1.json \
+--loupe-alignment=images_align/V19B23-076-B1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
 
 spaceranger count \
---id=LC_2 \
---transcriptome=/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A \
---fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_MiSeq/LC_2 \
---image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/Images/Raw/Lieber-Institute_OTS-20-7043_1_3.tif \
+--id=Br6522_LC_2 \
+--transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
+--fastqs=fastq/MiSeq_2020-08-12/LC_2 \
+--image=images/split/Lieber-Institute_OTS-20-7043_1_3.tif \
 --slide=V19B23-076 \
 --area=C1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/images_raw_align_json/V19B23-076-C1.json \
+--loupe-alignment=images_align/V19B23-076-C1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
 
 spaceranger count \
---id=LC_3 \
---transcriptome=/dcl02/lieber/ajaffe/SpatialTranscriptomics/refdata-gex-GRCh38-2020-A \
---fastqs=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/FASTQ/FASTQ_MiSeq/LC_3 \
---image=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/Images/Raw/Lieber-Institute_OTS-20-7043_1_4.tif \
+--id=Br8079_LC_3 \
+--transcriptome=/dcs04/hicks/data/lweber/data/refdata-gex-GRCh38-2020-A \
+--fastqs=fastq/MiSeq_2020-08-12/LC_3 \
+--image=images/split/Lieber-Institute_OTS-20-7043_1_4.tif \
 --slide=V19B23-076 \
 --area=D1 \
---loupe-alignment=/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/images_raw_align_json/V19B23-076-D1.json \
+--loupe-alignment=images_align/V19B23-076-D1.json \
 --jobmode=local \
 --localcores=8 \
 --localmem=64
