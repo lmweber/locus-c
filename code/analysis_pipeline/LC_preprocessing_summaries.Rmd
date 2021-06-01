@@ -347,11 +347,10 @@ for (i in seq_along(sample_names)) {
 
 # Segment LC region
 
-## Markers (1)
+Marker genes for major cell types, and strategies for segmenting LC region.
 
-Various strategies for segmenting LC region.
 
-Previously tried spot-level cell type deconvolution methods here, but may not be necessary.
+## Markers (short list)
 
 ```{r, fig.width=3.75, fig.height=3.25}
 # genes of interest
@@ -391,11 +390,11 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-## Markers (2)
+## Markers (long list)
 
 ```{r, fig.width=3.75, fig.height=3.25}
 # genes of interest
-gns <- c("SNAP25", "SYT1", "TH", "GAD1", "MOG", "MOBP", "PDGFRA", "CSF1R", "C3", "GFAP", "GLI3")
+gns <- c("SNAP25", "GAD1", "TH", "SLC6A2", "MOBP", "PDGFRA", "C3", "GFAP")
 
 # plot expression of neuron markers
 for (i in seq_along(sample_names)) {
