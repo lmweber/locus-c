@@ -120,8 +120,8 @@ f_plots <- function(i, human_markers) {
     # note: remove duplicated columns introduced when adding columns to colData
     colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
     
-    # skip plot if zero expression
-    if (sum(counts(spe)[ix, ]) == 0) next
+    # filter out low-expressed genes (max UMI counts per spot <= 1)
+    if (max(counts(spe)[ix, ]) <= 1) next
     
     p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
                 aes(x = y, y = x, color = sum_gn)) + 
