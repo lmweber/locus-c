@@ -125,10 +125,10 @@ f_plots <- function(i, human_markers) {
     
     p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
                 aes(x = y, y = x, color = sum_gn)) + 
-      geom_point(size = 0.35) + 
+      geom_point(size = 0.3) + 
       coord_fixed() + 
       scale_y_reverse() + 
-      scale_color_gradient(low = "gray95", high = "blue") + 
+      scale_color_gradient(low = "gray90", high = "blue") + 
       labs(color = "UMI\ncounts") + 
       ggtitle(paste0(sample_names[i], ": ", gn)) + 
       theme_bw() + 
