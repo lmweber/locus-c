@@ -345,7 +345,7 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-# Segment LC region
+# Identify LC region
 
 Marker genes for major cell types, and strategies for segmenting LC region.
 
@@ -490,6 +490,67 @@ for (i in seq_along(sample_names)) {
           axis.ticks = element_blank())
   
   print(p)
+}
+```
+
+
+# Spots expressing TH or SLC6A2
+
+Calculate number of spots with high expression of either TH or SLC6A2, as an approximation for the proportion of spots in the LC region of interest.
+
+This is more accurate than segmenting on total UMI counts, since total UMI counts also picks up other cell types.
+
+
+## Plots and summary values
+
+```{r, fig.width=3.75, fig.height=3.25}
+# thresholds
+thresh_TH <- 2
+thresh_SLC6A2 <- 2
+
+# calculate and plot thresholded regions
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_list[[i]]
+  
+  # identify spots
+  ix_TH <- which(rowData(spe)$gene_name == "TH")
+  ix_SLC6A2 <- which(rowData(spe)$gene_name == "SLC6A2")
+  colData(spe)$sum_TH <- counts(spe)[ix_TH, ]
+  colData(spe)$sum_SLC6A2 <- counts(spe)[ix_SLC6A2, ]
+  colData(spe)$contains_NE_neuron <- (colData(spe)$sum_TH > thresh_TH) | (colData(spe)$sum_SLC6A2 > thresh_SLC6A2)
+  # note: remove duplicated columns introduced when adding columns to colData
+  colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
+  
+  # store object
+  spe_list[[i]] <- spe
+  
+  # plot thresholded regions
+  p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
+              aes(x = y, y = x, color = contains_NE_neuron)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray90", "magenta")) + 
+    labs(color = "high_umi") + 
+    ggtitle(paste0("High UMI counts: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  # summary values
+  print(paste0("Sample name: ", sample_names[i]))
+  
+  print("Table of 'contains_NE_neuron':")
+  print(table(colData(spe)$contains_NE_neuron))
+  
+  print(paste0("Mean: ", round(mean(colData(spe)$contains_NE_neuron), 3)))
+  
+  print(paste0("Number of spots over tissue: ", ncol(spe)))
 }
 ```
 
