@@ -1,0 +1,186 @@
+---
+title: "LC analyses: mouse markers"
+author: "Lukas Weber"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+
+# Introduction
+
+Computational analysis pipeline for LC project: mouse marker genes.
+
+Investigate expression of top highly expressed genes in mouse LC described by Mulvey et al. (2018) (converted to approximate human genes).
+
+
+# Analysis pipeline
+
+
+## Load preprocessed data
+
+Load preprocessed `SpatialExperiment` objects saved with `LC_preprocessing_summaries.Rmd` script.
+
+Note we have one `SpatialExperiment` object per sample, stored in a list.
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(here)
+```
+
+```{r}
+# load objects
+file_load <- here("outputs/objects/LC_SPE_list.RData")
+load(file_load)
+```
+
+
+## Load mouse marker genes
+
+Using panel of top 45 marker genes for mouse LC, from Mulvey et al. (2018), Figure 2A: https://pubmed.ncbi.nlm.nih.gov/29791834/.
+
+I have extracted the gene names from Figure 2A and saved them in a text file.
+
+```{r, message=FALSE}
+# load list of mouse marker genes
+file_markers <- file.path(here("inputs/marker_genes/Mulvey2018_Fig2A_marker_genes.txt"))
+mouse_markers <- read.table(file_markers)[, 1]
+
+length(mouse_markers)
+mouse_markers
+```
+
+
+## Convert to human genes
+
+Convert list of mouse marker genes to homologous human gene names.
+
+Using code from `biomaRt` vignette and https://www.r-bloggers.com/2016/10/converting-mouse-to-human-gene-names-with-biomart-package/
+
+This retrieves homologous human gene names for 41 out of the 45 mouse marker genes from the list above.
+
+```{r, message=FALSE}
+library(biomaRt)
+```
+
+```{r, message=FALSE}
+human = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+
+genes_v2 <- getLDS(
+  attributes = c("mgi_symbol"), filters = "mgi_symbol", values = mouse_markers, 
+  mart = mouse, attributesL = c("hgnc_symbol"), martL = human, uniqueRows = TRUE
+)
+
+head(genes_v2)
+
+human_markers <- genes_v2[, 2]
+human_markers <- sort(human_markers)
+
+length(human_markers)
+human_markers
+```
+
+
+# Plot expression
+
+Plot UMI counts for the 41 homologous human genes matching to the top 45 mouse LC marker genes from Mulvey et al. (2018).
+
+Organized as one subsection per sample below.
+
+```{r}
+# retrieve sample names
+sample_names <- names(spe_list)
+
+# function for plots
+f_plots <- function(i, human_markers) {
+  
+  print(sample_names[i])
+  
+  spe <- spe_list[[i]]
+  
+  for (g in seq_along(human_markers)) {
+    
+    # identify gene of interest
+    gn <- human_markers[g]
+    ix <- which(rowData(spe)$gene_name == gn)
+    colData(spe)$sum_gn <- counts(spe)[ix, ]
+    # note: remove duplicated columns introduced when adding columns to colData
+    colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
+    
+    # skip plot if zero expression
+    if (sum(counts(spe)[ix, ]) == 0) next
+    
+    p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
+                aes(x = y, y = x, color = sum_gn)) + 
+      geom_point(size = 0.35) + 
+      coord_fixed() + 
+      scale_y_reverse() + 
+      scale_color_gradient(low = "gray95", high = "blue") + 
+      labs(color = "UMI\ncounts") + 
+      ggtitle(paste0(sample_names[i], ": ", gn)) + 
+      theme_bw() + 
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank(), 
+            axis.text = element_blank(), 
+            axis.ticks = element_blank())
+    
+    print(p)
+  }
+}
+```
+
+
+## Br6522_LC_1
+
+```{r, fig.width=2.75, fig.height=2.25}
+f_plots(1, human_markers)
+```
+
+
+## Br6522_LC_2
+
+```{r, fig.width=2.75, fig.height=2.25}
+f_plots(2, human_markers)
+```
+
+
+## Br8153_LC
+
+```{r, fig.width=2.75, fig.height=2.25}
+f_plots(3, human_markers)
+```
+
+
+## Br5459_LC
+
+```{r, fig.width=2.75, fig.height=2.25}
+f_plots(4, human_markers)
+```
+
+
+## Br2701_LC
+
+```{r, fig.width=2.75, fig.height=2.25}
+f_plots(5, human_markers)
+```
+
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
