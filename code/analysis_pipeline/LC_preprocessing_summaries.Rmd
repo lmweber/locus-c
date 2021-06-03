@@ -503,7 +503,7 @@ This is more accurate than segmenting on total UMI counts, since total UMI count
 
 ## Plots and summary values
 
-```{r, fig.width=3.75, fig.height=3.25}
+```{r, fig.width=4.25, fig.height=3.75}
 # thresholds
 thresh_TH <- 2
 thresh_SLC6A2 <- 2
@@ -532,8 +532,8 @@ for (i in seq_along(sample_names)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray90", "magenta")) + 
-    labs(color = "high_umi") + 
-    ggtitle(paste0("High UMI counts: ", sample_names[i])) + 
+    labs(color = "NE_neurons") + 
+    ggtitle(paste0("Identified spots: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
