@@ -1,5 +1,5 @@
 ---
-title: "LC analyses: preprocessing summaries"
+title: "LC analyses: preprocessing distributions"
 author: "Lukas Weber"
 date: "`r Sys.Date()`"
 output:
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 # Introduction
 
-Computational analysis pipeline for LC project: preprocessing summaries.
+Computational analysis pipeline for LC project: preprocessing summaries and distributions
 
 
 # Analysis pipeline
@@ -312,17 +312,15 @@ for (i in seq_along(sample_names)) {
   
   # threshold percent mitochondrial reads
   thresh_mito <- 35
-  colData(spe)$mito_high <- colData(spe)$subsets_mito_percent > thresh_mito
-  # note: remove duplicated columns introduced when adding columns to colData
-  colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
+  colData(spe)$high_mito <- colData(spe)$subsets_mito_percent > thresh_mito
   
   p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
-              aes(x = y, y = x, color = mito_high)) + 
-    geom_point(size = 0.5) + 
+              aes(x = y, y = x, color = high_mito)) + 
+    geom_point(size = 0.35) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_manual(values = c("gray90", "red")) + 
-    labs(color = "mito_high") + 
+    scale_color_manual(values = c("gray90", "darkorange2")) + 
+    labs(color = "high_mito") + 
     ggtitle(paste0("High mitochondrial percent: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -335,158 +333,38 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-## Distribution of UMI counts
+# Distributions of UMI counts
+
+## Spots with high UMI counts
+
+Select threshold for checking distributions in LC region vs. background. Selected conservatively, i.e. prefer to select too many spots than too few.
 
 ```{r, fig.width=3.5, fig.height=3.25}
-# distributions of UMI counts
+# new list to store objects
+spe_highUMI <- vector("list", length = length(sample_names))
+names(spe_highUMI) <- sample_names
+
+# select thresholds
+thresh_umi <- c(1000, 1000, 1000, 1000, 1000)
+
 for (i in seq_along(sample_names)) {
   
   spe <- spe_list[[i]]
   
-  hist(log10(colData(spe)$sum), breaks = 20, 
-       xlab = "log10 sum UMIs", main = sample_names[i])
-}
-```
-
-
-# Identify LC region
-
-Marker genes for major cell types, and strategies for segmenting LC region.
-
-
-## Markers (short list)
-
-```{r, fig.width=3.75, fig.height=3.25}
-# genes of interest
-gns <- c("SNAP25", "TH")
-
-# plot expression of neuron markers
-for (i in seq_along(sample_names)) {
-  
-  spe <- spe_list[[i]]
-  
-  for (g in seq_along(gns)) {
-    
-    # identify gene of interest
-    gn <- gns[g]
-    ix <- which(rowData(spe)$gene_name == gn)
-    colData(spe)$sum_gn <- counts(spe)[ix, ]
-    # note: remove duplicated columns introduced when adding columns to colData
-    colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
-    
-    p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
-                aes(x = y, y = x, color = sum_gn)) + 
-      geom_point(size = 0.5) + 
-      coord_fixed() + 
-      scale_y_reverse() + 
-      scale_color_gradient(low = "gray95", high = "darkgreen") + 
-      labs(color = "counts") + 
-      ggtitle(paste0("UMI counts: ", sample_names[i], ": ", gn)) + 
-      theme_bw() + 
-      theme(panel.grid = element_blank(), 
-            axis.title = element_blank(), 
-            axis.text = element_blank(), 
-            axis.ticks = element_blank())
-    
-    print(p)
-  }
-}
-```
-
-
-## Markers (long list)
-
-```{r, fig.width=3.75, fig.height=3.25}
-# genes of interest
-gns <- c("SNAP25", "GAD1", "TH", "SLC6A2", "MOBP", "PDGFRA", "C3", "GFAP")
-
-# plot expression of neuron markers
-for (i in seq_along(sample_names)) {
-  
-  print(sample_names[i])
-  
-  spe <- spe_list[[i]]
-  
-  for (g in seq_along(gns)) {
-    
-    # identify gene of interest
-    gn <- gns[g]
-    ix <- which(rowData(spe)$gene_name == gn)
-    colData(spe)$sum_gn <- counts(spe)[ix, ]
-    # note: remove duplicated columns introduced when adding columns to colData
-    colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
-    
-    p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
-                aes(x = y, y = x, color = sum_gn)) + 
-      geom_point(size = 0.5) + 
-      coord_fixed() + 
-      scale_y_reverse() + 
-      scale_color_gradient(low = "gray95", high = "darkgreen") + 
-      labs(color = "counts") + 
-      ggtitle(paste0("UMI counts: ", sample_names[i], ": ", gn)) + 
-      theme_bw() + 
-      theme(panel.grid = element_blank(), 
-            axis.title = element_blank(), 
-            axis.text = element_blank(), 
-            axis.ticks = element_blank())
-    
-    print(p)
-  }
-}
-```
-
-
-## UMI counts
-
-```{r, fig.width=3.75, fig.height=3.25}
-# select thresholds for each sample
-thresh_umi <- c(3000, 1500, 1500, 1500, 1500)
-
-# plot thresholded regions
-for (i in seq_along(sample_names)) {
-  
-  spe <- spe_list[[i]]
-  
-  # identify spots above threshold
-  colData(spe)$is_high_umi <- colData(spe)$sum > thresh_umi[i]
-  # note: remove duplicated columns introduced when adding columns to colData
-  colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
+  colData(spe)$high_umi <- colData(spe)$sum > thresh_umi[i]
   
   # store object
   spe_list[[i]] <- spe
+  spe_highUMI[[i]] <- spe
   
-  # plot thresholded regions
   p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
-              aes(x = y, y = x, color = is_high_umi)) + 
-    geom_point(size = 0.5) + 
+              aes(x = y, y = x, color = high_umi)) + 
+    geom_point(size = 0.35) + 
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_manual(values = c("gray90", "red")) + 
     labs(color = "high_umi") + 
-    ggtitle(paste0("High UMI counts: ", sample_names[i])) + 
-    theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  print(p)
-  
-  # compare with marker expression
-  gn <- "SNAP25"
-  ix <- which(rowData(spe)$gene_name == gn)
-  colData(spe)$sum_gn <- counts(spe)[ix, ]
-  # note: remove duplicated columns introduced when adding columns to colData
-  colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
-  
-  p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
-              aes(x = y, y = x, color = sum_gn)) + 
-    geom_point(size = 0.5) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    scale_color_gradient(low = "gray95", high = "darkgreen") + 
-    labs(color = "counts") + 
-    ggtitle(paste0("UMI counts: ", sample_names[i], ": ", gn)) + 
+    ggtitle(paste0("High UMIs: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
@@ -498,46 +376,51 @@ for (i in seq_along(sample_names)) {
 ```
 
 
-# Spots expressing TH or SLC6A2
+Distributions for selected spots with high UMIs.
 
-Calculate number of spots with high expression of either TH or SLC6A2, as an approximation for the proportion of spots in the LC region of interest.
-
-This is more accurate than segmenting on total UMI counts, since total UMI counts also picks up other cell types.
-
-
-## Plots and summary values
-
-```{r, fig.width=4.25, fig.height=3.75}
-# thresholds
-thresh_TH <- 2
-thresh_SLC6A2 <- 2
-
-# calculate and plot thresholded regions
+```{r, fig.width=3.5, fig.height=3.25}
+# distributions of UMI counts for selected spots
 for (i in seq_along(sample_names)) {
   
   spe <- spe_list[[i]]
   
-  # identify spots
+  spe_sub <- spe[, colData(spe)$high_umi]
+  
+  hist(log10(colData(spe_sub)$sum), breaks = 20, 
+       xlab = "log10 sum UMIs", main = sample_names[i], 
+       col = "navy")
+}
+```
+
+
+## Spots with detected TH expression
+
+```{r, fig.width=3.5, fig.height=3.25}
+# new list to store objects
+spe_TH <- vector("list", length = length(sample_names))
+names(spe_TH) <- sample_names
+
+# select thresholds
+thresh_TH <- 1
+
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_list[[i]]
+  
   ix_TH <- which(rowData(spe)$gene_name == "TH")
-  ix_SLC6A2 <- which(rowData(spe)$gene_name == "SLC6A2")
-  colData(spe)$sum_TH <- counts(spe)[ix_TH, ]
-  colData(spe)$sum_SLC6A2 <- counts(spe)[ix_SLC6A2, ]
-  colData(spe)$contains_NE_neuron <- (colData(spe)$sum_TH > thresh_TH) | (colData(spe)$sum_SLC6A2 > thresh_SLC6A2)
-  # note: remove duplicated columns introduced when adding columns to colData
-  colData(spe) <- colData(spe)[, !(duplicated(colnames(colData(spe))) | duplicated(colnames(colData(spe)), fromLast = TRUE))]
+  colData(spe)$high_TH <- counts(spe)[ix_TH, ] > thresh_TH
   
   # store object
   spe_list[[i]] <- spe
+  spe_TH[[i]] <- spe
   
-  # plot thresholded regions
   p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
-              aes(x = y, y = x, color = contains_NE_neuron)) + 
-    geom_point(size = 0.5) + 
+              aes(x = y, y = x, color = high_TH)) + 
+    geom_point(size = 0.35) + 
     coord_fixed() + 
     scale_y_reverse() + 
-    scale_color_manual(values = c("gray90", "magenta")) + 
-    labs(color = "NE_neurons") + 
-    ggtitle(paste0("Identified spots: ", sample_names[i])) + 
+    scale_color_manual(values = c("gray90", "darkgreen")) + 
+    ggtitle(paste0("Expressed TH: ", sample_names[i])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           axis.title = element_blank(), 
@@ -545,16 +428,23 @@ for (i in seq_along(sample_names)) {
           axis.ticks = element_blank())
   
   print(p)
+}
+```
+
+
+Distributions for selected spots with detected expression of TH.
+
+```{r, fig.width=3.5, fig.height=3.25}
+# distributions of UMI counts for selected spots
+for (i in seq_along(sample_names)) {
   
-  # summary values
-  print(paste0("Sample name: ", sample_names[i]))
+  spe <- spe_list[[i]]
   
-  print("Table of 'contains_NE_neuron':")
-  print(table(colData(spe)$contains_NE_neuron))
+  spe_sub <- spe[, colData(spe)$high_TH]
   
-  print(paste0("Mean: ", round(mean(colData(spe)$contains_NE_neuron), 3)))
-  
-  print(paste0("Number of spots over tissue: ", ncol(spe)))
+  hist(log10(colData(spe_sub)$sum), breaks = 20, 
+       xlab = "log10 sum UMIs", main = sample_names[i], 
+       col = "navy")
 }
 ```
 
@@ -565,8 +455,11 @@ Save `SpatialExperiment` objects for use in downstream analyses in other `RMarkd
 
 ```{r}
 # save objects
-file_out <- here("outputs/objects/LC_SPE_list.RData")
-save(spe_list, file = file_out)
+file_out <- here("outputs/objects/LC_spe_highUMI.RData")
+save(spe_highUMI, file = file_out)
+
+file_out <- here("outputs/objects/LC_spe_TH.RData")
+save(spe_TH, file = file_out)
 ```
 
 
