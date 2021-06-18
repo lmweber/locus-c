@@ -1,0 +1,220 @@
+---
+title: "LC analyses: subclustering"
+author: "Lukas Weber"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+
+# Introduction
+
+Computational analysis pipeline for LC project: subclustering within TH expressing spots
+
+
+# Analysis pipeline
+
+## Load preprocessed data
+
+Load preprocessed `SpatialExperiment` objects saved with previous script.
+
+Note we have one `SpatialExperiment` object per sample, stored in a list.
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(here)
+```
+
+```{r}
+# load objects
+file_load <- here("outputs/objects/LC_spe_TH.RData")
+load(file_load)
+```
+
+```{r}
+# check
+sapply(spe_TH, dim)
+head(colData(spe_TH[[1]]))
+```
+
+
+# Check spots
+
+Check spots have been identified in correct regions.
+
+```{r, fig.width=3.5, fig.height=3.25}
+# overall plots
+sample_names <- names(spe_TH)
+
+for (i in seq_along(sample_names)) {
+  
+  spe <- spe_TH[[i]]
+  
+  p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
+              aes(x = y, y = x, color = high_TH)) + 
+    geom_point(size = 0.35) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray90", "darkgreen")) + 
+    ggtitle(paste0("Expressed TH: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+}
+```
+
+
+# Clustering analyses
+
+Apply clustering pipeline within TH expressing spots only.
+
+Using code from OSTA book.
+
+Skip sample `Br5459_LC` since this one does not have enough TH expressing spots.
+
+```{r}
+# subset objects for simplicity
+spe_sub <- vector("list", length = length(sample_names))
+names(spe_sub) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  spe <- spe_TH[[i]]
+  ix_keep <- colData(spe)$high_TH
+  spe_sub[[i]] <- spe[, ix_keep]
+}
+
+sapply(spe_sub, dim)
+```
+
+
+```{r}
+#for (i in c(1:3, 5)) {
+for (i in c(1, 5)) {
+  
+  spe <- spe_sub[[i]]
+  
+  # NORMALIZATION
+  
+  library(scran)
+  # quick clustering for pool-based size factors
+  set.seed(123)
+  #qclus <- quickCluster(spe)
+  # calculate size factors
+  #spe <- computeSumFactors(spe, cluster = qclus)
+  # calculate logcounts (log-transformed normalized counts)
+  spe <- logNormCounts(spe)
+  
+  # FEATURE SELECTION
+  
+  # remove mitochondrial genes
+  #spe <- spe[!is_mito, ]
+  # fit mean-variance relationship
+  dec <- modelGeneVar(spe)
+  # select top HVGs
+  top_hvgs <- getTopHVGs(dec, prop = 0.1)
+  
+  # DIMENSIONALITY REDUCTION
+  
+  library(scater)
+  # compute PCA
+  set.seed(123)
+  spe <- runPCA(spe, subset_row = top_hvgs)
+  # compute UMAP on top 50 PCs
+  set.seed(123)
+  spe <- runUMAP(spe, dimred = "PCA")
+  # update column names
+  colnames(reducedDim(spe, "UMAP")) <- paste0("UMAP", 1:2)
+  
+  # CLUSTERING
+  
+  # graph-based clustering
+  set.seed(123)
+  k <- 10
+  g <- buildSNNGraph(spe, k = k, use.dimred = "PCA")
+  g_walk <- igraph::cluster_walktrap(g)
+  clus <- g_walk$membership
+  colLabels(spe) <- factor(clus)
+  
+  # store objects
+  spe_sub[[i]] <- spe
+}
+```
+
+
+## Plots: UMAP
+
+```{r, fig.width=3.5, fig.height=3.25}
+# color palette
+colors <- unname(palette.colors(palette = "Dark2"))
+
+for (i in c(1, 5)) {
+  
+  spe <- spe_sub[[i]]
+  
+  p <- ggplot(as.data.frame(cbind(colData(spe), reducedDim(spe, type = "UMAP"))), 
+              aes(x = UMAP1, y = UMAP2, color = label)) + 
+    geom_point(size = 0.75) + 
+    scale_color_manual(values = colors) + 
+    ggtitle(paste0("Subclustering TH spots: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+}
+```
+
+
+## Plots: spatial
+
+```{r, fig.width=3.5, fig.height=3.25}
+for (i in c(1, 5)) {
+  
+  spe_sub_i <- spe_sub[[i]]
+  spe <- spe_TH[[i]]
+  colData(spe)[rownames(colData(spe_sub_i)), "label"] <- colData(spe_sub_i)$label
+  n_clus <- length(table(colData(spe)$label))
+  colData(spe)$label[is.na(colData(spe)$label)] <- "NA"
+  colData(spe)$label <- as.factor(colData(spe)$label)
+  
+  p <- ggplot(as.data.frame(cbind(colData(spe), spatialCoords(spe))), 
+              aes(x = y, y = x, color = label)) + 
+    geom_point(size = 0.35) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c(colors[1:n_clus], "gray90")) + 
+    ggtitle(paste0("Subclustering TH spots: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+}
+```
+
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
