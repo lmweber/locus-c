@@ -1,13 +1,29 @@
 # Locus coeruleus (LC) 10x Visium project
 
-Repository for locus coeruleus (LC) project.
+Repository for locus coeruleus (LC) project
 
 
 ## Location of files
 
-Main directory containing git repository and data files is located at: `/dcs04/hicks/data/lweber/locus-c/`
+Two main copies of files are on JHPCE at:
 
-(Previously this was at: `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/` - moved due to space limitations.)
+- `/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/`
+- `/dcs04/hicks/data/lweber/locus-c/`
+
+Previously files were at:
+
+-`/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/`
+
+
+## FASTQ files
+
+FASTQ files are in the following directories:
+
+- Round 1: `MiSeq_2020-08-12` and `NextSeq_2020-09-25`
+
+- Round 2: `Linda_2021-05-21`
+
+- Round 3: `KMay_2021-07-09`
 
 
 ## Code files
@@ -29,10 +45,4 @@ Main directory containing git repository and data files is located at: `/dcs04/h
 
 - `outputs/objects/`: intermediate output objects from R/RMarkdown scripts
 - `outputs/plots/`: plot files from R/RMarkdown scripts
-
-
-## Other miscellaneous files
-
-- `sample_info/`: spreadsheets with sample information
-- `Andrew_MiSeq/`: backup of files from initial runs on MiSeq data by Andrew Jaffe
 
