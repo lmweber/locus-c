@@ -9,9 +9,9 @@ inputs/
 outputs/
 fastq/
 images/
-images_align/
 sample_info/
 *.html
 ./spaceranger_*
 *_cache
 *_files
+**/archive/
