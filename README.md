@@ -30,9 +30,10 @@ FASTQ files are in the following subdirectories:
 
 ## Image files
 
-Image files are located at:
+Image files are in the following directories:
 
-- `/dcs04/lieber/marmaypag/visiumImages_LIBD001/raw-data/`
+- Rounds 1 and 2: `/dcs04/hicks/data/lweber/locus-c/images/split/`
+- Round 3: `/dcs04/lieber/marmaypag/visiumImages_LIBD001/raw-data/2021-06-15_V10B01-003/`
 
 
 ## Code scripts
