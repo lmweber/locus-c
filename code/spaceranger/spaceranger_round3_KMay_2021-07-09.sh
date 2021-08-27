@@ -33,7 +33,7 @@ spaceranger count \
 --image=../../../images/round3/2021-06-15_V10B01-003_LC_A1.tif \
 --slide=V10B01-003 \
 --area=A1 \
---loupe-alignment=../../../alignment/V10B01-003-A1.json \
+--loupe-alignment=../../../alignment/round3/V10B01-003-A1.json \
 --jobmode=local \
 --localcores=6 \
 --localmem=60
@@ -46,7 +46,7 @@ spaceranger count \
 --image=../../../images/round3/2021-06-15_V10B01-003_LC_B1.tif \
 --slide=V10B01-003 \
 --area=B1 \
---loupe-alignment=../../../alignment/V10B01-003-B1.json \
+--loupe-alignment=../../../alignment/round3/V10B01-003-B1.json \
 --jobmode=local \
 --localcores=6 \
 --localmem=60
@@ -59,7 +59,7 @@ spaceranger count \
 --image=../../../images/round3/2021-06-15_V10B01-003_LC_C1.tif \
 --slide=V10B01-003 \
 --area=C1 \
---loupe-alignment=../../../alignment/V10B01-003-C1.json \
+--loupe-alignment=../../../alignment/round3/V10B01-003-C1.json \
 --jobmode=local \
 --localcores=6 \
 --localmem=60
@@ -72,7 +72,7 @@ spaceranger count \
 --image=../../../images/round3/2021-06-15_V10B01-003_LC_D1.tif \
 --slide=V10B01-003 \
 --area=D1 \
---loupe-alignment=../../../alignment/V10B01-003-D1.json \
+--loupe-alignment=../../../alignment/round3/V10B01-003-D1.json \
 --jobmode=local \
 --localcores=6 \
 --localmem=60

@@ -33,7 +33,7 @@ spaceranger count \
 --image=../../../images/round1/Lieber-Institute_OTS-20-7043_1_2.tif \
 --slide=V19B23-076 \
 --area=B1 \
---loupe-alignment=../../../images_align/V19B23-076-B1.json \
+--loupe-alignment=../../../alignment/round1/V19B23-076-B1.json \
 --jobmode=local \
 --localcores=6 \
 --localmem=60
@@ -46,7 +46,7 @@ spaceranger count \
 --image=../../../images/round1/Lieber-Institute_OTS-20-7043_1_3.tif \
 --slide=V19B23-076 \
 --area=C1 \
---loupe-alignment=../../../images_align/V19B23-076-C1.json \
+--loupe-alignment=../../../alignment/round1/V19B23-076-C1.json \
 --jobmode=local \
 --localcores=6 \
 --localmem=60
