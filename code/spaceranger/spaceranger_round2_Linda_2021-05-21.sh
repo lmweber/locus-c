@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
-#$ -pe local 6
-#$ -l mem_free=10G,h_vmem=12G,h_fsize=300G
+#$ -pe local 8
+#$ -l mem_free=8G,h_vmem=10G,h_fsize=300G
 
 # qsub code/spaceranger/filename.sh
 
@@ -34,9 +34,11 @@ spaceranger count \
 --slide=V10U24-093 \
 --area=A1 \
 --loupe-alignment=../../../alignment/round2/V10U24-093-A1.json \
+--nosecondary \
 --jobmode=local \
---localcores=6 \
---localmem=60
+--localcores=8 \
+--localmem=64 \
+--localvmem=80
 
 
 spaceranger count \
@@ -47,9 +49,11 @@ spaceranger count \
 --slide=V10U24-093 \
 --area=B1 \
 --loupe-alignment=../../../alignment/round2/V10U24-093-B1.json \
+--nosecondary \
 --jobmode=local \
---localcores=6 \
---localmem=60
+--localcores=8 \
+--localmem=64 \
+--localvmem=80
 
 
 spaceranger count \
@@ -60,9 +64,11 @@ spaceranger count \
 --slide=V10U24-093 \
 --area=C1 \
 --loupe-alignment=../../../alignment/round2/V10U24-093-C1.json \
+--nosecondary \
 --jobmode=local \
---localcores=6 \
---localmem=60
+--localcores=8 \
+--localmem=64 \
+--localvmem=80
 
 
 # restore working directory
