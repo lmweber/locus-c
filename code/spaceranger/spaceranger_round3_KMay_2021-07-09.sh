@@ -3,7 +3,7 @@
 #$ -pe local 6
 #$ -l mem_free=10G,h_vmem=12G,h_fsize=300G
 
-# qsub code/scripts/spaceranger/filename.sh
+# qsub code/spaceranger/filename.sh
 
 
 ############################
