@@ -34,7 +34,6 @@ spaceranger count \
 --slide=V10U24-093 \
 --area=A1 \
 --loupe-alignment=../../../alignment/round2/V10U24-093-A1.json \
---nosecondary \
 --jobmode=local \
 --localcores=8 \
 --localmem=64 \
@@ -49,7 +48,6 @@ spaceranger count \
 --slide=V10U24-093 \
 --area=B1 \
 --loupe-alignment=../../../alignment/round2/V10U24-093-B1.json \
---nosecondary \
 --jobmode=local \
 --localcores=8 \
 --localmem=64 \
@@ -64,7 +62,6 @@ spaceranger count \
 --slide=V10U24-093 \
 --area=C1 \
 --loupe-alignment=../../../alignment/round2/V10U24-093-C1.json \
---nosecondary \
 --jobmode=local \
 --localcores=8 \
 --localmem=64 \
