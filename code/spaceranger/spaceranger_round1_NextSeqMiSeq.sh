@@ -34,6 +34,7 @@ spaceranger count \
 --slide=V19B23-076 \
 --area=B1 \
 --loupe-alignment=../../../alignment/round1/V19B23-076-B1.json \
+--nosecondary \
 --jobmode=local \
 --localcores=8 \
 --localmem=64 \
@@ -48,6 +49,7 @@ spaceranger count \
 --slide=V19B23-076 \
 --area=C1 \
 --loupe-alignment=../../../alignment/round1/V19B23-076-C1.json \
+--nosecondary \
 --jobmode=local \
 --localcores=8 \
 --localmem=64 \
