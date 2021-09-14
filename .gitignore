@@ -10,6 +10,6 @@ outputs/
 fastq/
 images/
 *.html
-./spaceranger_*
+spaceranger_*
 *_cache
 *_files
