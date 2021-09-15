@@ -118,3 +118,11 @@ stopifnot(all(rownames(colData(spe)) == vistoseg_all$barcode))
 # note there is some redundancy with columns in spatialData but will leave this as a check
 colData(spe) <- cbind(colData(spe), vistoseg_all)
 
+
+# -----------
+# save object
+# -----------
+
+fn_out <- here("processed_data", "SPE", "LC_rounds1to3_SPE.rds")
+saveRDS(spe, fn_out)
+
