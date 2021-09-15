@@ -47,3 +47,17 @@ df_samples <- data.frame(
 
 df_samples
 
+
+# ----------------------------------
+# load data from spaceranger outputs
+# ----------------------------------
+
+spe <- read10xVisium(
+  samples = here(df_samples$path, df_samples$sample_id, "outs"), 
+  sample_id = df_samples$sample_id, 
+  type = "sparse", 
+  data = "raw", 
+  images = c("hires", "lowres"), 
+  load = TRUE
+)
+
