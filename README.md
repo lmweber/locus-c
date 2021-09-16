@@ -8,18 +8,18 @@ Repository for locus coeruleus (LC) project
 Files are located on JHPCE at:
 
 - `/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/`
+
+Previously files were also at:
+
 - `/dcs04/hicks/data/lweber/locus-c/`
-
-Previously files were at:
-
--`/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/`
+- `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/`
 
 
 ## FASTQ files
 
 FASTQ files are in the following subdirectories:
 
-- Round 1: `fastq/MiSeq_2020-08-12` and `fastq/NextSeq_2020-09-25`
+- Round 1: `fastq/NextSeq_2020-09-25` and `fastq/MiSeq_2020-08-12`
 - Round 2: `fastq/Linda_2021-05-21`
 - Round 3: `fastq/KMay_2021-07-09`
 
@@ -58,13 +58,15 @@ Image alignment files from manual alignment in Loupe are in the following direct
 ## Code scripts
 
 - `code/spaceranger/`: scripts to run Space Ranger
-- `code/other/`: other shell scripts
-- `code/analysis/`: R and RMarkdown analysis scripts
+- `code/other/`: various other shell scripts
+- `code/analyses/`: main R analysis scripts
+- `code/exploratory/`: RMarkdown scripts used for initial exploratory analyses
 
 
 ## Output files
 
 - `processed_data/spaceranger/`: Space Ranger output files
-- `outputs/objects/`: saved output objects from R/RMarkdown scripts
-- `outputs/plots/`: saved plots
+- `processed_data/VistoSeg/`: VistoSeg output files
+- `processed_data/SPE/`: SpatialExperiment object containing data from all 3 rounds
+- `outputs/plots/`: saved plot files
 
