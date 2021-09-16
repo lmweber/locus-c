@@ -1,10 +1,14 @@
-###########################################
+##########################################
 # LC project
-# Script to create SpatialExperiment object
+# Script to build SpatialExperiment object
 # Lukas Weber, Sep 2021
-###########################################
+##########################################
 
-# Create a single SpatialExperiment object containing all samples
+# Build a single SpatialExperiment object containing all samples
+
+
+# module load conda_R/4.1.x
+# Rscript filename.R
 
 
 library(SpatialExperiment)
