@@ -78,6 +78,9 @@ spe <- read10xVisium(
   load = TRUE
 )
 
+# update column names in spatialCoords
+colnames(spatialCoords(spe)) <- c("x", "y")
+
 
 # -----------------------------------------
 # add additional sample metadata in colData
