@@ -110,7 +110,8 @@ for (s in seq_along(sample_ids)) {
     if (!dir.exists(here("plots", sample_ids[s]))) {
       dir.create(here("plots", sample_ids[s]))
     }
-    fn <- here("plots", sample_ids[s], paste0(sample_ids[s], "_", human_markers[g], ".pdf"))
+    fn <- here("plots", "Mulvey_markers", sample_ids[s], 
+               paste0(sample_ids[s], "_", human_markers[g], ".pdf"))
     ggsave(fn, plot = p, width = 5.25, height = 4)
   }
 }
