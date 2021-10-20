@@ -9,6 +9,7 @@ inputs/
 outputs/
 fastq/
 images/
+plots/
 *.html
 spaceranger_*
 *_cache
