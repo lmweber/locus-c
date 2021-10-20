@@ -86,8 +86,8 @@ for (s in seq_along(sample_ids)) {
     stopifnot(length(ix_marker) == 1)
     
     # skip gene if total UMI counts below threshold
-    thresh <- 3
-    if (sum(counts(spe_sub)[ix_marker, ]) <= 3) {
+    thresh <- 5
+    if (sum(counts(spe_sub)[ix_marker, ]) <= thresh) {
       next
     }
     df$marker <- counts(spe_sub)[ix_marker, ]
