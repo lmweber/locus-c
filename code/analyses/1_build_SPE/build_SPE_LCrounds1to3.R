@@ -130,6 +130,6 @@ colData(spe) <- cbind(colData(spe), vistoseg_all)
 # save object
 # -----------
 
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE.rds")
+fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
 saveRDS(spe, fn_out)
 
