@@ -84,6 +84,12 @@ for (s in seq_along(sample_ids)) {
   for (g in seq_along(human_markers)) {
     ix_marker <- which(toupper(rowData(spe_sub)$symbol) == toupper(human_markers[g]))
     stopifnot(length(ix_marker) == 1)
+    
+    # skip gene if total UMI counts below threshold
+    thresh <- 3
+    if (sum(counts(spe_sub)[ix_marker, ]) <= 3) {
+      next
+    }
     df$marker <- counts(spe_sub)[ix_marker, ]
     
     # plot UMI counts
