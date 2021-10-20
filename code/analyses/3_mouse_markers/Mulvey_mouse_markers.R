@@ -107,8 +107,8 @@ for (s in seq_along(sample_ids)) {
             axis.ticks = element_blank())
     
     # save plot
-    if (!dir.exists(here("plots", sample_ids[s]))) {
-      dir.create(here("plots", sample_ids[s]), recursive = TRUE)
+    if (!dir.exists(here("plots", "Mulvey_markers", sample_ids[s]))) {
+      dir.create(here("plots", "Mulvey_markers", sample_ids[s]), recursive = TRUE)
     }
     fn <- here("plots", "Mulvey_markers", sample_ids[s], 
                paste0(sample_ids[s], "_", human_markers[g], ".pdf"))
