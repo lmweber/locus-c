@@ -4,11 +4,11 @@
 # Lukas Weber, Sep 2021
 ##########################################
 
-# Build a single SpatialExperiment object containing all samples
-
-
 # module load conda_R/4.1.x
 # Rscript filename.R
+
+# file location:
+# /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
 library(SpatialExperiment)

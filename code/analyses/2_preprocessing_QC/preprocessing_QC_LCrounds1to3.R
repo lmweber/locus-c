@@ -4,9 +4,6 @@
 # Lukas Weber, Oct 2021
 #################################
 
-# scran QC and splitting Visium slides into individual samples
-
-
 # module load conda_R/4.1.x
 # Rscript filename.R
 
@@ -23,7 +20,7 @@ library(scater)
 # load data
 # ---------
 
-# load previously built SpatialExperiment object
+# load SpatialExperiment object
 
 fn_spe <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
 spe <- readRDS(fn_spe)
@@ -61,6 +58,6 @@ colData(spe)
 # save object
 # -----------
 
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_preprocessed.rds")
+fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_processed.rds")
 saveRDS(spe, fn_out)
 
