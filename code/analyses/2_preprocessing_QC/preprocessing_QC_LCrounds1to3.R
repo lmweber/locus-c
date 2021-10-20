@@ -88,7 +88,7 @@ for (s in seq_along(sample_ids)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_gradient(low = "gray90", high = "red") + 
-    ggtitle(human_markers[g]) + 
+    ggtitle(sample_ids[s]) + 
     labs(color = "UMI counts") + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -111,7 +111,7 @@ for (s in seq_along(sample_ids)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_gradient(low = "gray90", high = "darkorchid4") + 
-    ggtitle(human_markers[g]) + 
+    ggtitle(sample_ids[s]) + 
     labs(color = "detected genes") + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -130,7 +130,7 @@ for (s in seq_along(sample_ids)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_gradient(low = "gray90", high = "darkgreen") + 
-    ggtitle(human_markers[g]) + 
+    ggtitle(sample_ids[s]) + 
     labs(color = "TH") + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
@@ -149,7 +149,7 @@ for (s in seq_along(sample_ids)) {
     coord_fixed() + 
     scale_y_reverse() + 
     scale_color_gradient(low = "gray90", high = "darkgreen") + 
-    ggtitle(human_markers[g]) + 
+    ggtitle(sample_ids[s]) + 
     labs(color = "SNAP25") + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
