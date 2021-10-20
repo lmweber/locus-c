@@ -35,7 +35,7 @@ spe <- readRDS(fn_spe)
 # from Mulvey et al. (2018), Figure 2A: https://pubmed.ncbi.nlm.nih.gov/29791834/
 
 # load marker gene names saved in text file
-file_markers <- here("inputs", "marker_genes", "Mulvey2018_Fig2A_marker_genes.txt")
+file_markers <- here("inputs", "marker_genes", "Mulvey2018_Fig2A_markers.txt")
 mouse_markers <- read.table(file_markers)[, 1]
 
 length(mouse_markers)

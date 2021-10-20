@@ -5,7 +5,6 @@
 .DS_Store
 raw_data/
 processed_data/
-inputs/
 outputs/
 fastq/
 images/
@@ -14,3 +13,5 @@ plots/
 spaceranger_*
 *_cache
 *_files
+*.png
+*.Rdata
