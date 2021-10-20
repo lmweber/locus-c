@@ -14,10 +14,7 @@
 library(SpatialExperiment)
 library(here)
 library(biomaRt)
-library(dplyr)
-library(tidyr)
 library(ggplot2)
-library(ggspavis)
 
 
 # ---------
