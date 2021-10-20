@@ -86,7 +86,7 @@ for (s in seq_along(sample_ids)) {
     stopifnot(length(ix_marker) == 1)
     
     # skip gene if total UMI counts below threshold
-    thresh <- 5
+    thresh <- 10
     if (sum(counts(spe_sub)[ix_marker, ]) <= thresh) {
       next
     }
@@ -94,7 +94,7 @@ for (s in seq_along(sample_ids)) {
     
     # plot UMI counts
     p <- ggplot(df, aes(x = y, y = x, color = marker)) + 
-      geom_point(size = 0.8) + 
+      geom_point(size = 0.75) + 
       coord_fixed() + 
       scale_y_reverse() + 
       scale_color_gradient(low = "gray90", high = "blue") + 
