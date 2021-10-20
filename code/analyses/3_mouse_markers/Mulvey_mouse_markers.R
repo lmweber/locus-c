@@ -35,7 +35,7 @@ spe <- readRDS(fn_spe)
 # from Mulvey et al. (2018), Figure 2A: https://pubmed.ncbi.nlm.nih.gov/29791834/
 
 # load marker gene names saved in text file
-file_markers <- here("inputs", "marker_genes", "Mulvey2018_Fig2A_markers.txt")
+file_markers <- here("inputs", "Mulvey_markers", "Mulvey2018_Fig2A_markers.txt")
 mouse_markers <- read.table(file_markers)[, 1]
 
 length(mouse_markers)
@@ -108,7 +108,7 @@ for (s in seq_along(sample_ids)) {
     
     # save plot
     if (!dir.exists(here("plots", sample_ids[s]))) {
-      dir.create(here("plots", sample_ids[s]))
+      dir.create(here("plots", sample_ids[s]), recursive = TRUE)
     }
     fn <- here("plots", "Mulvey_markers", sample_ids[s], 
                paste0(sample_ids[s], "_", human_markers[g], ".pdf"))

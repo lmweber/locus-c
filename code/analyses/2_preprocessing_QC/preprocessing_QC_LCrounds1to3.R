@@ -97,7 +97,7 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   if (!dir.exists(here("plots", "summary", sample_ids[s]))) {
-    dir.create(here("plots", "summary", sample_ids[s]))
+    dir.create(here("plots", "summary", sample_ids[s]), recursive = TRUE)
   }
   
   fn <- here("plots", "summary", sample_ids[s], 
