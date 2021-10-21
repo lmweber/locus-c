@@ -111,8 +111,9 @@ for (s in seq_along(sample_ids)) {
       dir.create(here("plots", "Mulvey_markers", sample_ids[s]), recursive = TRUE)
     }
     fn <- here("plots", "Mulvey_markers", sample_ids[s], 
-               paste0(sample_ids[s], "_", human_markers[g], ".pdf"))
-    ggsave(fn, plot = p, width = 5.25, height = 4)
+               paste0(sample_ids[s], "_", human_markers[g]))
+    ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+    ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   }
 }
 

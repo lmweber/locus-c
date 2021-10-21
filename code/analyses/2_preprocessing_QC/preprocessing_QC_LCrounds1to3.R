@@ -101,8 +101,9 @@ for (s in seq_along(sample_ids)) {
   }
   
   fn <- here("plots", "summary", sample_ids[s], 
-             paste0(sample_ids[s], "_sum.pdf"))
-  ggsave(fn, plot = p, width = 5.25, height = 4)
+             paste0(sample_ids[s], "_sum"))
+  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
   
   # plot detected genes
@@ -120,8 +121,9 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- here("plots", "summary", sample_ids[s], 
-             paste0(sample_ids[s], "_detected.pdf"))
-  ggsave(fn, plot = p, width = 5.25, height = 4)
+             paste0(sample_ids[s], "_detected"))
+  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
   
   # plot expression of TH
@@ -139,8 +141,9 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- here("plots", "summary", sample_ids[s], 
-             paste0(sample_ids[s], "_TH.pdf"))
-  ggsave(fn, plot = p, width = 5.25, height = 4)
+             paste0(sample_ids[s], "_TH"))
+  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
   
   # plot expression of SNAP25
@@ -158,8 +161,9 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- here("plots", "summary", sample_ids[s], 
-             paste0(sample_ids[s], "_SNAP25.pdf"))
-  ggsave(fn, plot = p, width = 5.25, height = 4)
+             paste0(sample_ids[s], "_SNAP25"))
+  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
 }
 
