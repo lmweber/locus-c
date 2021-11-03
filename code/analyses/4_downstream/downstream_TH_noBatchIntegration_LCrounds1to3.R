@@ -178,8 +178,8 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_id)) +
   theme(panel.grid = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_sampleIDs"), ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_sampleIDs"), ".png"), width = 4.5, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_sampleIDs"), ".pdf"), width = 5.5, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_sampleIDs"), ".png"), width = 5.5, height = 4)
 
 # plot clustering: expression of TH
 ggplot(df, aes(x = UMAP1, y = UMAP2, color = TH_sum)) + 
@@ -200,8 +200,8 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sum)) +
   theme(panel.grid = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_sum"), ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_sum"), ".png"), width = 4.5, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_sum"), ".pdf"), width = 4.75, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_sum"), ".png"), width = 4.75, height = 4)
 
 # plot clustering: detected
 ggplot(df, aes(x = UMAP1, y = UMAP2, color = detected)) + 
@@ -211,8 +211,8 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = detected)) +
   theme(panel.grid = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_detected"), ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_detected"), ".png"), width = 4.5, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_detected"), ".pdf"), width = 4.75, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_detected"), ".png"), width = 4.75, height = 4)
 
 # plot clustering: mito percent
 ggplot(df, aes(x = UMAP1, y = UMAP2, color = subsets_mito_percent)) + 
@@ -222,8 +222,8 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = subsets_mito_percent)) +
   theme(panel.grid = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_mito"), ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(here("plots", "THpos", "THpos_clustering_mito"), ".png"), width = 4.5, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_mito"), ".pdf"), width = 5.5, height = 4)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_mito"), ".png"), width = 5.5, height = 4)
 
 # plot clustering: labels by sample
 ggplot(df, aes(x = x, y = y, color = label)) + 
