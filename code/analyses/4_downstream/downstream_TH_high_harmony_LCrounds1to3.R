@@ -207,6 +207,8 @@ marker.info
 
 # plot for each cluster
 
+rownames(spe) <- rowData(spe)$symbol
+
 for (i in names(marker.info)) {
   chosen <- marker.info[[i]]
   ordered <- chosen[order(chosen$mean.AUC, decreasing = TRUE), ]
