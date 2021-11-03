@@ -193,3 +193,27 @@ ggplot(df, aes(x = x, y = y, color = label)) +
 ggsave(paste0(here("plots", "THpos_high_harmony", "THpos_high_harmony_clustering_labels_by_sample"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "THpos_high_harmony", "THpos_high_harmony_clustering_labels_by_sample"), ".png"), width = 12, height = 6.5)
 
+
+# --------------------------
+# marker gene identification
+# --------------------------
+
+# code from OSCA
+
+marker.info <- scoreMarkers(spe, colLabels(spe))
+marker.info
+
+# plot for each cluster
+
+for (i in names(marker.info)) {
+  chosen <- marker.info[[i]]
+  ordered <- chosen[order(chosen$mean.AUC, decreasing = TRUE), ]
+  head(ordered[, 1:4])
+  plotExpression(spe, features = head(rownames(ordered)), 
+                 x = "label", colour_by = "label")
+  ggsave(paste0(here("plots", "THpos_high_harmony", "THpos_high_harmony_clustering_markers_cluster"), i, ".pdf"), 
+         width = 6, height = 6.5, bg = "white")
+  ggsave(paste0(here("plots", "THpos_high_harmony", "THpos_high_harmony_clustering_markers_cluster"), i, ".png"), 
+         width = 6, height = 6.5, bg = "white")
+}
+
