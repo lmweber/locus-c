@@ -225,3 +225,18 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = subsets_mito_percent)) +
 ggsave(paste0(here("plots", "THpos", "THpos_clustering_mito"), ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(here("plots", "THpos", "THpos_clustering_mito"), ".png"), width = 4.5, height = 4)
 
+# plot clustering: labels by sample
+ggplot(df, aes(x = x, y = y, color = label)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  ggtitle("TH+ spots, cluster labels by sample") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_labels_by_sample"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "THpos", "THpos_clustering_labels_by_sample"), ".png"), width = 12, height = 6.5)
+
