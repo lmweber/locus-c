@@ -14,7 +14,7 @@
 library(SpatialExperiment)
 library(here)
 library(scater)
-library(ggspavis)
+library(ggplot2)
 
 
 # ---------
@@ -79,7 +79,6 @@ ggplot(df, aes(x = x, y = y, color = sum < 100)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-
 ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".png"), width = 12, height = 6.5)
 
@@ -96,7 +95,6 @@ ggplot(df, aes(x = x, y = y, color = detected < 100)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-
 ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".png"), width = 12, height = 6.5)
 
@@ -113,7 +111,6 @@ ggplot(df, aes(x = x, y = y, color = count > 10)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-
 ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".png"), width = 12, height = 6.5)
 
@@ -133,7 +130,6 @@ ggplot(df, aes(x = x, y = y, color = TH_expr)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-
 ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".png"), width = 12, height = 6.5)
 
