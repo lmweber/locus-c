@@ -109,6 +109,8 @@ colnames(reducedDim(spe, "UMAP")) <- paste0("UMAP", 1:2)
 # batch integration with Harmony
 # ------------------------------
 
+set.seed(100)
+
 # check inputs for Harmony
 dim(reducedDim(spe, "PCA"))
 length(colData(spe)$sample_id)
