@@ -109,7 +109,7 @@ colnames(reducedDim(spe, "UMAP")) <- paste0("UMAP", 1:2)
 # batch integration with Harmony
 # ------------------------------
 
-set.seed(100)
+set.seed(1234)
 
 # check inputs for Harmony
 dim(reducedDim(spe, "PCA"))
@@ -202,12 +202,12 @@ ggsave(paste0(here("plots", "THpos_high_harmony", "THpos_high_harmony_clustering
 
 # code from OSCA
 
+rownames(spe) <- rowData(spe)$symbol
+
 marker.info <- scoreMarkers(spe, colLabels(spe))
 marker.info
 
 # plot for each cluster
-
-rownames(spe) <- rowData(spe)$symbol
 
 for (i in names(marker.info)) {
   chosen <- marker.info[[i]]
