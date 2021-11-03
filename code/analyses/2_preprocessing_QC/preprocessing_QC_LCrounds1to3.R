@@ -14,6 +14,7 @@
 library(SpatialExperiment)
 library(here)
 library(scater)
+library(ggspavis)
 
 
 # ---------
@@ -24,6 +25,20 @@ library(scater)
 
 fn_spe <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
 spe <- readRDS(fn_spe)
+
+dim(spe)
+
+# convert sample IDs to factor
+sample_ids <- c(
+  "Br6522_LC_1_round1", "Br6522_LC_2_round1", 
+  "Br8153_LC_round2", "Br5459_LC_round2", "Br2701_LC_round2", 
+  "Br6522_LC_round3", "Br8079_LC_round3", "Br2701_LC_round3", "Br8153_LC_round3"
+)
+colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
+
+# keep only spots over tissue
+spe <- spe[, spatialData(spe)$in_tissue == TRUE]
+dim(spe)
 
 
 # -------------------------------
@@ -48,16 +63,141 @@ hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "
 hist(colData(spe)$count, xlab = "number of cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
 
-# keep all spots for now
-colData(spe)$discard <- FALSE
+# plot QC metrics using code from ggspavis
+df <- cbind.data.frame(colData(spe), spatialData(spe), spatialCoords(spe))
 
-colData(spe)
+# sum UMIs
+ggplot(df, aes(x = x, y = y, color = sum < 100)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("Spot-level QC") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".png"), width = 12, height = 6.5)
+
+# detected genes
+ggplot(df, aes(x = x, y = y, color = detected < 100)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("Spot-level QC") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".png"), width = 12, height = 6.5)
+
+# cell count
+ggplot(df, aes(x = x, y = y, color = count > 10)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("Spot-level QC") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".png"), width = 12, height = 6.5)
+
+# expression of TH
+ix_TH <- which(rowData(spe)$symbol == "TH")
+df$TH_expr <- counts(spe)[ix_TH, ]
+
+ggplot(df, aes(x = x, y = y, color = TH_expr)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_gradient(low = "gray90", high = "blue") + 
+  ggtitle("TH expression") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".png"), width = 12, height = 6.5)
+
+
+# thresholding on TH
+ggplot(df, aes(x = x, y = y, color = TH_expr > 0)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("TH thresholding") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_0"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_0"), ".png"), width = 12, height = 6.5)
+
+ggplot(df, aes(x = x, y = y, color = TH_expr > 1)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("TH thresholding") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_1"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_1"), ".png"), width = 12, height = 6.5)
+
+ggplot(df, aes(x = x, y = y, color = TH_expr > 2)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("TH thresholding") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_2"), ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_2"), ".png"), width = 12, height = 6.5)
 
 
 # -----------
 # save object
 # -----------
 
+# keep all spots
+colData(spe)$discard <- FALSE
+colData(spe)
+
+# store expression of TH in colData
+colData(spe)$TH_sum <- counts(spe)[ix_TH, ]
+colData(spe)
+
+# save object
 fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_processed.rds")
 saveRDS(spe, fn_out)
 
