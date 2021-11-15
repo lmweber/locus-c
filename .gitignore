@@ -5,6 +5,7 @@
 .DS_Store
 raw_data/
 processed_data/
+data/
 outputs/
 fastq/
 images/
