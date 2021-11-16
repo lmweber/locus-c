@@ -23,7 +23,7 @@ options(repos = BiocManager::repositories())
 ## Delete if already exists
 ## Comment out to deploy app on shinyapps.io
 #system("rm LCrounds1to3_SPE_shiny.RData")
-#system("ln -s processed_data/SPE/LCrounds1to3_SPE_shiny.RData LCrounds1to3_SPE_shiny.RData")
+#system("ln -s ../../../processed_data/SPE/LCrounds1to3_SPE_shiny.RData LCrounds1to3_SPE_shiny.RData")
 
 load("LCrounds1to3_SPE_shiny.RData", verbose = TRUE)
 
