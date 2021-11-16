@@ -208,10 +208,21 @@ spe <- spe[, -spots_no_counts, drop = FALSE]
 dim(spe)
 
 
+## Spots over tissue
+
+## Keep only spots over tissue
+spe <- spe[, spatialData(spe)$in_tissue]
+
+dim(spe)
+
+
 ## Manual annotations
 
 ## Add a variable for saving manual annotations
 colData(spe)$ManualAnnotation <- "NA"
+
+
+## 
 
 
 # -------------------------
