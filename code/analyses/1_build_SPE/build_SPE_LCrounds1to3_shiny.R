@@ -208,6 +208,12 @@ spe <- spe[, -spots_no_counts, drop = FALSE]
 dim(spe)
 
 
+## Manual annotations
+
+## Add a variable for saving manual annotations
+colData(spe)$ManualAnnotation <- "NA"
+
+
 # -------------------------
 # save object for Shiny app
 # -------------------------
