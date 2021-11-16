@@ -222,9 +222,6 @@ dim(spe)
 colData(spe)$ManualAnnotation <- "NA"
 
 
-## 
-
-
 # -------------------------
 # save object for Shiny app
 # -------------------------
