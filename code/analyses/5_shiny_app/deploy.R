@@ -25,7 +25,7 @@ rsconnect::deployApp(
   appDir = here("code", "analyses", "5_shiny_app"), 
   appFiles = c(
     "app.R", 
-    "LCrounds1to3_SPE_shiny.rds"
+    "LCrounds1to3_SPE_shiny.RData"
   ), 
   appName = 'Locus_coeruleus', 
   account = 'lmweber', 

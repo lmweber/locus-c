@@ -17,13 +17,13 @@ options(repos = BiocManager::repositories())
 
 ## Load the data
 ## Comment out to deploy app on shinyapps.io
-#spe <- readRDS(here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.rds"))
+#spe <- read(here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.RData"))
 
 ## Create a soft link to the data, otherwise rsconnect::deployApp doesn't work
 ## Delete if already exists
 ## Comment out to deploy app on shinyapps.io
-#system("rm LCrounds1to3_SPE_shiny.rds")
-#system("ln -s processed-data/SPE/LCrounds1to3_SPE_shiny.rds LCrounds1to3_SPE_shiny.rds")
+#system("rm LCrounds1to3_SPE_shiny.RData")
+#system("ln -s processed_data/SPE/LCrounds1to3_SPE_shiny.RData LCrounds1to3_SPE_shiny.RData")
 
 vars <- colnames(colData(spe))
 

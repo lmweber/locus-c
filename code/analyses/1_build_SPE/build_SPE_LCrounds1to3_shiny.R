@@ -226,6 +226,8 @@ colData(spe)$ManualAnnotation <- "NA"
 # save object for Shiny app
 # -------------------------
 
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.rds")
-saveRDS(spe, fn_out)
+# save as both .rds and .RData
+fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_shiny")
+saveRDS(spe, paste0(fn_out, ".rds"))
+save(spe, file = paste0(fn_out, ".RData"))
 
