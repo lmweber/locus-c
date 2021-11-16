@@ -183,6 +183,31 @@ colData(spe)$expr_chrM <- colSums(counts(spe)[is_mito, , drop = FALSE])
 colData(spe)$expr_chrM_ratio <- colData(spe)$expr_chrM / colData(spe)$sum_umi
 
 
+## Filter zeros (genes and spots)
+
+dim(spe)
+
+## Remove genes with no counts
+no_expr <- which(rowSums(counts(spe)) == 0)
+## Number of genes with no counts
+length(no_expr)
+## Proportion of genes with no counts
+length(no_expr) / nrow(spe)
+## Filter object
+spe <- spe[-no_expr, , drop = FALSE]
+
+## Remove spots with no counts
+spots_no_counts <- which(colData(spe)$sum_umi == 0)
+## Number of spots with no counts
+length(spots_no_counts)
+## Proportion of spots with no counts
+length(spots_no_counts) / ncol(spe)
+## Filter object
+spe <- spe[, -spots_no_counts, drop = FALSE]
+
+dim(spe)
+
+
 # -------------------------
 # save object for Shiny app
 # -------------------------
