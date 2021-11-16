@@ -175,7 +175,7 @@ rowRanges(spe)
 
 ## Add information used by spatialLIBD
 rowData(spe)$gene_search <- paste(
-  rowData(spe)$gene_name, rowData(spe)$gene_id, sep = ";"
+  rowData(spe)$gene_name, rowData(spe)$gene_id, sep = "; "
 )
 ## Compute chrM expression and chrM expression ratio
 is_mito <- which(seqnames(spe) == "chrM")
