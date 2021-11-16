@@ -1,4 +1,4 @@
-.deploy_info.Rdata
+.deploy_info.RData
 rsconnect
 *.RData
 *.rds
