@@ -33,7 +33,7 @@ spatialLIBD::run_app(
   sig_genes = NULL, 
   title = "Locus coeruleus", 
   spe_discrete_vars = c(
-    vars[grep("10x_", vars)], 
+    #vars[grep("10x_", vars)], 
     "ManualAnnotation"
   ), 
   spe_continuous_vars = c(
@@ -53,8 +53,7 @@ spatialLIBD::run_app(
     #"PMAP2", 
     #"NpTau", 
     #"PpTau"
-  ),
+  ), 
   default_cluster = "ManualAnnotation"
-  #default_cluster = "10x_graphclust"
 )
 

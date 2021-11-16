@@ -22,7 +22,7 @@ options(repos = BiocManager::repositories())
 
 ## Deploy the app, that is, upload it to shinyapps.io
 rsconnect::deployApp(
-  appDir = here("code", "analyses", "5_shiny_app", "05_deploy_app"), 
+  appDir = here("code", "analyses", "5_shiny_app"), 
   appFiles = c(
     "app.R", 
     "spe.Rdata"
