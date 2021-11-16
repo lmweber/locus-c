@@ -16,12 +16,14 @@ options("golem.app.prod" = TRUE)
 options(repos = BiocManager::repositories())
 
 ## Load the data
-spe <- readRDS(here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.rds"))
+## Comment out to deploy app on shinyapps.io
+#spe <- readRDS(here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.rds"))
 
 ## Create a soft link to the data, otherwise rsconnect::deployApp doesn't work
 ## Delete if already exists
-system("rm LCrounds1to3_SPE_shiny.rds")
-system("ln -s processed-data/SPE/LCrounds1to3_SPE_shiny.rds LCrounds1to3_SPE_shiny.rds")
+## Comment out to deploy app on shinyapps.io
+#system("rm LCrounds1to3_SPE_shiny.rds")
+#system("ln -s processed-data/SPE/LCrounds1to3_SPE_shiny.rds LCrounds1to3_SPE_shiny.rds")
 
 vars <- colnames(colData(spe))
 
