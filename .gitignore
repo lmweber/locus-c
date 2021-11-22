@@ -16,3 +16,5 @@ spaceranger_*
 *_files
 *.png
 *.Rdata
+*.RData
+*.pdf
