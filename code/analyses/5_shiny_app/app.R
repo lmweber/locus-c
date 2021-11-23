@@ -25,9 +25,8 @@ options(repos = BiocManager::repositories())
 # system("rm LCrounds1to3_SPE_shiny.RData")
 # system("ln -s ../../../processed_data/SPE/LCrounds1to3_SPE_shiny.RData LCrounds1to3_SPE_shiny.RData")
 
+## Load data from soft link
 load("LCrounds1to3_SPE_shiny.RData", verbose = TRUE)
-
-vars <- colnames(colData(spe))
 
 ## Deploy the website
 spatialLIBD::run_app(
