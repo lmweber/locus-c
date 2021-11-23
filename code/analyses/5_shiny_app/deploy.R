@@ -10,7 +10,7 @@ library(here)
 
 ## Or you can go to your shinyapps.io account and copy this
 ## Here we do this to keep our information hidden
-load(here("code", "analyses", "5_shiny_app", ".deploy_info.RData"), verbose = TRUE)
+load(here("code", "analyses", "5_shiny_app", "deploy_info.RData"), verbose = TRUE)
 rsconnect::setAccountInfo(
   name = deploy_info$name, 
   token = deploy_info$token, 
@@ -28,7 +28,7 @@ rsconnect::deployApp(
     "LCrounds1to3_SPE_shiny.RData"
   ), 
   appName = 'Locus_coeruleus', 
-  account = 'lmweber', 
+  account = 'libd', 
   server = 'shinyapps.io'
 )
 

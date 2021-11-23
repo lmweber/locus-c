@@ -31,32 +31,27 @@ vars <- colnames(colData(spe))
 
 ## Deploy the website
 spatialLIBD::run_app(
-  spe, 
+  spe = spe, 
   sce_layer = NULL, 
   modeling_results = NULL, 
   sig_genes = NULL, 
+  #docs_path = NULL, 
   title = "Locus coeruleus", 
   spe_discrete_vars = c(
-    #vars[grep("10x_", vars)], 
     "ManualAnnotation"
   ), 
   spe_continuous_vars = c(
     "sum_umi", 
     "sum_gene", 
     "expr_chrM", 
-    "expr_chrM_ratio"
-    #"NAbeta", 
-    #"PAbeta", 
-    #"NDAPI", 
-    #"PDAPI", 
-    #"NGFAP", 
-    #"PGFAP", 
-    #"NLipofuscin", 
-    #"PLipofuscin", 
-    #"NMAP2", 
-    #"PMAP2", 
-    #"NpTau", 
-    #"PpTau"
+    "expr_chrM_ratio", 
+    "TH", 
+    "DBH", 
+    "SLC6A2", 
+    "SLC18A2", 
+    "DDC", 
+    "GCH1", 
+    "MAOA"
   ), 
   default_cluster = "ManualAnnotation"
 )
