@@ -222,6 +222,18 @@ dim(spe)
 colData(spe)$ManualAnnotation <- "NA"
 
 
+## Genes of interest
+
+## UMIs per spot for genes of interest
+colData(spe)$TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
+colData(spe)$DBH <- counts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
+colData(spe)$SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
+colData(spe)$SLC18A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), ]
+colData(spe)$DDC <- counts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
+colData(spe)$GCH1 <- counts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
+colData(spe)$MAOA <- counts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
+
+
 # -------------------------
 # save object for Shiny app
 # -------------------------
