@@ -209,21 +209,22 @@ dim(spe)
 
 
 ## Spots over tissue
-
 ## Keep only spots over tissue
 spe <- spe[, spatialData(spe)$in_tissue]
-
 dim(spe)
 
 
-## Manual annotations
+## Default cluster labels
+## Add a column of default cluster labels
+colData(spe)$all <- "all"
 
+
+## Manual annotations
 ## Add a variable for saving manual annotations
 colData(spe)$ManualAnnotation <- "NA"
 
 
 ## Genes of interest
-
 ## UMIs per spot for genes of interest
 colData(spe)$TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
 colData(spe)$DBH <- counts(spe)[which(rowData(spe)$gene_name == "DBH"), ]

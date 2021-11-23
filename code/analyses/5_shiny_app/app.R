@@ -45,6 +45,7 @@ spatialLIBD::run_app(
   docs_path = docs_path, 
   title = "Locus coeruleus", 
   spe_discrete_vars = c(
+    "all", 
     "ManualAnnotation"
   ), 
   spe_continuous_vars = c(
@@ -60,6 +61,6 @@ spatialLIBD::run_app(
     "GCH1", 
     "MAOA"
   ), 
-  default_cluster = "ManualAnnotation"
+  default_cluster = "all"
 )
 
