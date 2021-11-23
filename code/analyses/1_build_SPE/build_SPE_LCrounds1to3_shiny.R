@@ -79,7 +79,7 @@ spe <- read10xVisium(
 )
 
 # update column names in spatialCoords
-colnames(spatialCoords(spe)) <- c("x", "y")
+# colnames(spatialCoords(spe)) <- c("x", "y")
 
 
 # -----------------------------------------
@@ -130,8 +130,8 @@ colData(spe) <- cbind(colData(spe), vistoseg_all)
 # save object
 # -----------
 
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
-saveRDS(spe, fn_out)
+# fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
+# saveRDS(spe, fn_out)
 
 
 # -----------------------------
