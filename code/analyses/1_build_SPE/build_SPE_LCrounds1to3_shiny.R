@@ -1,7 +1,7 @@
 ####################################################################
 # LC project
 # Script to build SpatialExperiment object (with info for Shiny app)
-# Lukas Weber, Nov 2021
+# Lukas Weber, Dec 2021
 ####################################################################
 
 # module load conda_R/4.1.x
@@ -233,6 +233,80 @@ colData(spe)$SLC18A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), 
 colData(spe)$DDC <- counts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
 colData(spe)$GCH1 <- counts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
 colData(spe)$MAOA <- counts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
+
+
+# ---------------------------------
+# preprocessing and quality control
+# ---------------------------------
+
+library(scater)
+
+# spot-level QC across all samples
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
+table(is_mito)
+rowData(spe)$gene_name[is_mito]
+
+# calculate QC metrics using scater package
+spe <- addPerCellQC(spe, subsets = list(mito = is_mito))
+
+# plot histograms of QC metrics
+par(mfrow = c(1, 4))
+hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
+hist(colData(spe)$detected, xlab = "detected", main = "Genes per spot")
+hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "Percent mito UMIs")
+hist(colData(spe)$count, xlab = "number of cells", main = "No. cells per spot")
+par(mfrow = c(1, 1))
+
+# to do: QC plots using ggspavis and check QC thresholds
+
+# note: cell counting did not work properly for some samples
+
+# keep all spots
+colData(spe)$discard <- FALSE
+colData(spe)
+
+
+# ---------------------------
+# normalization and logcounts
+# ---------------------------
+
+library(scran)
+
+# quick clustering for pool-based size factors
+# with blocks by sample
+set.seed(123)
+qclus <- quickCluster(spe, block = colData(spe)$sample_id)
+table(qclus)
+
+table(colData(spe)$sample_id, qclus)
+
+# calculate size factors
+spe <- computeSumFactors(spe, cluster = qclus)
+summary(sizeFactors(spe))
+hist(sizeFactors(spe), breaks = 40)
+
+# note: remove small number of spots with size factors == 0
+table(sizeFactors(spe) > 0)
+dim(spe)
+spe <- spe[, sizeFactors(spe) > 0]
+dim(spe)
+
+# calculate logcounts
+spe <- logNormCounts(spe)
+assayNames(spe)
+
+
+## Genes of interest
+## logcounts per spot for genes of interest
+colData(spe)$TH_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"), ]
+colData(spe)$DBH_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
+colData(spe)$SLC6A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
+colData(spe)$SLC18A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), ]
+colData(spe)$DDC_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
+colData(spe)$GCH1_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
+colData(spe)$MAOA_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
 
 
 # -------------------------
