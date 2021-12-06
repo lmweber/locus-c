@@ -1,0 +1,342 @@
+
+R version 4.0.4 RC (2021-02-08 r79975) -- "Lost Library Book"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ### MNT 29Nov2021 =======
+>   # Check Read 1 files for discrepant read lengths, as seen before in Tran-Maynard 2021 project:
+>   # Should be exactly 28bp = 16 [BC] + 12 [UMI]
+> 
+> library(ShortRead)
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: BiocParallel
+Loading required package: Biostrings
+Loading required package: S4Vectors
+Loading required package: stats4
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: XVector
+
+Attaching package: ‘Biostrings’
+
+The following object is masked from ‘package:base’:
+
+    strsplit
+
+Loading required package: Rsamtools
+Loading required package: GenomeInfoDb
+Loading required package: GenomicRanges
+Loading required package: GenomicAlignments
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+> library(jaffelab)
+Loading required package: rafalib
+> 
+> FASTQ.dir <- "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/fastq/snRNA-seq/"
+> 
+> ### Read in abridged sample info (MNT generated for processing through CR)
+> samples.lc <- read.table("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/fastq/snRNA-seq/sample_libs_info.tsv",
++                             sep="\t", header=F)$V1
+> 
+> # List files / sample
+> R1files <- data.frame(
++   sampleName = unlist(as.data.frame(
++     sapply(samples.lc, function(x){
++     rep(x,length(list.files(paste0(FASTQ.dir, x), pattern="R1")))})
++     ), use.names=F),
++   
++   R1 = unlist(as.data.frame(
++     sapply(samples.lc,function(x){list.files(paste0(FASTQ.dir,x),
++                                                    pattern="R1")})
++     ), use.names=F)
++ )
+> dim(R1files)  # 12: 4 lanes x 3 sample libs
+[1] 12  2
+> 
+> for(i in 1:nrow(R1files)){
++   cat(paste0("Checking R1 length distribution for: ", R1files[i,2], "\n"))
++   temp.R1s <- readFastq(paste0(FASTQ.dir, R1files[i,1], "/", R1files[i,2]),
++                         withIds=F)
++   print(head(sread(temp.R1s), n=4))
++   print(table(width(sread(temp.R1s))))
++   rm(temp.R1s)
++   cat("\n\n")
++ }
+Checking R1 length distribution for: 1c-m_S9_L001_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 CNTTGCCTCATCACTTTTGACGTCTAAA
+[2]    28 ANATCCTTCCCGATCTACCCTTTAGCAT
+[3]    28 GNAACATAGCTCCACGAAAGATACCTAG
+[4]    28 CNACAACTCGATAACCTCCCCATCCCCA
+
+      28 
+83264886 
+
+
+Checking R1 length distribution for: 1c-m_S9_L002_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 TNTTACTTCACCTGTCCTCGCTCCGACA
+[2]    28 GNAGGACGTATTGGCTGTTCCCTAAAGT
+[3]    28 ANCCTATTCCAATGCAGACCAACAACAT
+[4]    28 TNCGATCAGGTTCACTCCGCCCTTCTGG
+
+      28 
+82553266 
+
+
+Checking R1 length distribution for: 1c-m_S9_L003_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 GNCAGCCGTAAGCTCTAAGCTCTAACGA
+[2]    28 TNCGGTCAGTCATCCAAGCATTGCTAGA
+[3]    28 CNACAGTTCAGCAGAGCAGATCCAGGGG
+[4]    28 TNATATCCACCCTGTTCATACCATTTAA
+
+      28 
+83323088 
+
+
+Checking R1 length distribution for: 1c-m_S9_L004_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 TNAGATGCTAAAACAAAAGGCAAGCAAG
+[2]    28 ANTACTGTCACAGAGGTCGCTTCGATGT
+[3]    28 TNTCTTGAGGTAGTATTTGTCTAAGAGA
+[4]    28 ANATTTCGTTTGAACCAGAATTGAAGTT
+
+      28 
+83184090 
+
+
+Checking R1 length distribution for: 2c-m_S14_L001_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 CNCGTTCCAGGACGATTACAACAATTGA
+[2]    28 TNACACCGTCTTCGAACCTCTGGAACCT
+[3]    28 ANAAGCGTCCGTGCGAGACTGTGGACGT
+[4]    28 CNCGGAACATGTTCGACGGTTTACGTAA
+
+       28 
+146364613 
+
+
+Checking R1 length distribution for: 2c-m_S14_L002_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 GNCATGGAGTTTCGACATCTGCCTTTGA
+[2]    28 TNGAGTCAGTGCCAGACACGCTGGGGAT
+[3]    28 TNCAATCCAAATTGCCTGGTTTAATGAA
+[4]    28 ANCCCAATCACCTTGCTACGTCCATTAA
+
+       28 
+145146197 
+
+
+Checking R1 length distribution for: 2c-m_S14_L003_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 CNTCACAAGGTCATCTACTTAGTCTAGG
+[2]    28 CNACCATTCTAACGCAGCCACGCCTAGG
+[3]    28 TNGGGCAAGGAAACGATAAACAGGTACT
+[4]    28 CNATCCGTCTCCCATGATGAATTTACCC
+
+       28 
+145962036 
+
+
+Checking R1 length distribution for: 2c-m_S14_L004_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 ANATGTCAGGTCCAGATGCCAACCCCTC
+[2]    28 TNTATACAGCTACGTTTCTTGATTTCCT
+[3]    28 ANGTCATTCTCTAGGACTTTACCACCGT
+[4]    28 TNTTCCTGTTGGACCCGCACCTGTCTTT
+
+       28 
+145718908 
+
+
+Checking R1 length distribution for: 3c-m_S15_L001_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 CNCCTCCTGGCACTGTCCCCGGAGCGGG
+[2]    28 ANCAAAGCAGAGAAAGAGTCGTAGTGCA
+[3]    28 GNTGTTAAGATCGCTTTCATATAGCAGT
+[4]    28 TNTTCATCAATGAACAGAAGTTTCCGGC
+
+       28 
+135158636 
+
+
+Checking R1 length distribution for: 3c-m_S15_L002_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 ANTTCGCCAGAAGCGTGGGAATAAATTT
+[2]    28 GNGCAGCGTCAGGTGATCGGCTGCTGAG
+[3]    28 GNAGGTTTCTCCTACGCTTATGGCTACG
+[4]    28 ANGCACGTCAAGTGTCTAATATGGTACG
+
+       28 
+134650893 
+
+
+Checking R1 length distribution for: 3c-m_S15_L003_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 GNCTCAATCGTGGACCCGTTGCGAGATA
+[2]    28 CNGGCAGTCCTATTGTTGATTTAAAGAC
+[3]    28 ANAAGCGCAGCTCGGTATCTGCATCTCT
+[4]    28 CNAGACACAATTCTCTCCATTCTACGCC
+
+       28 
+135657146 
+
+
+Checking R1 length distribution for: 3c-m_S15_L004_R1_001.fastq.gz
+DNAStringSet object of length 4:
+    width seq
+[1]    28 ANACCCACACGTAGAGGGTAGATTCGAA
+[2]    28 CNTTCAAGTGTGTCGCCCTGGAAACTGC
+[3]    28 CNACGTTGTGACATCTGTAAGTGTATCT
+[4]    28 CNACGGCAGGGTGAAATAGGTGTTCATT
+
+       28 
+135571375 
+
+
+> sessionInfo()
+R version 4.0.4 RC (2021-02-08 r79975)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+Matrix products: default
+BLAS:   /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.0.x/R/4.0.x/lib64/R/lib/libRblas.so
+LAPACK: /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.0.x/R/4.0.x/lib64/R/lib/libRlapack.so
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] jaffelab_0.99.30            rafalib_1.0.0              
+ [3] ShortRead_1.48.0            GenomicAlignments_1.26.0   
+ [5] SummarizedExperiment_1.20.0 Biobase_2.50.0             
+ [7] MatrixGenerics_1.2.1        matrixStats_0.58.0         
+ [9] Rsamtools_2.6.0             GenomicRanges_1.42.0       
+[11] GenomeInfoDb_1.26.7         Biostrings_2.58.0          
+[13] XVector_0.30.0              IRanges_2.24.1             
+[15] S4Vectors_0.28.1            BiocParallel_1.24.1        
+[17] BiocGenerics_0.36.1        
+
+loaded via a namespace (and not attached):
+ [1] pillar_1.6.4           compiler_4.0.4         RColorBrewer_1.1-2    
+ [4] bitops_1.0-7           tools_4.0.4            zlibbioc_1.36.0       
+ [7] tibble_3.1.6           lifecycle_1.0.1        googledrive_2.0.0     
+[10] gargle_1.2.0           lattice_0.20-41        pkgconfig_2.0.3       
+[13] png_0.1-7              rlang_0.4.11           Matrix_1.3-4          
+[16] DBI_1.1.1              DelayedArray_0.16.3    GenomeInfoDbData_1.2.4
+[19] dplyr_1.0.7            hwriter_1.3.2          generics_0.1.1        
+[22] vctrs_0.3.8            fs_1.5.0               tidyselect_1.1.1      
+[25] segmented_1.3-4        grid_4.0.4             glue_1.5.0            
+[28] R6_2.5.1               jpeg_0.1-8.1           fansi_0.5.0           
+[31] limma_3.46.0           latticeExtra_0.6-29    purrr_0.3.4           
+[34] magrittr_2.0.1         ellipsis_0.3.2         splines_4.0.4         
+[37] assertthat_0.2.1       utf8_1.2.2             RCurl_1.98-1.3        
+[40] crayon_1.4.2          
+> 
+> proc.time()
+    user   system  elapsed 
+5376.057  809.302 6197.189 
