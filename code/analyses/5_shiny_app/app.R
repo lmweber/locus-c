@@ -59,7 +59,14 @@ spatialLIBD::run_app(
     "SLC18A2", 
     "DDC", 
     "GCH1", 
-    "MAOA"
+    "MAOA", 
+    "TH_logcounts", 
+    "DBH_logcounts", 
+    "SLC6A2_logcounts", 
+    "SLC18A2_logcounts", 
+    "DDC_logcounts", 
+    "GCH1_logcounts", 
+    "MAOA_logcounts"
   ), 
   default_cluster = "all"
 )
