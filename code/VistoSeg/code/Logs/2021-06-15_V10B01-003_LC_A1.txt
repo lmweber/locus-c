@@ -1,0 +1,286 @@
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 11:13:33 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874388”
+“Job name: countNuclei.sh”
+“Hostname: compute-095.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-095/job_scripts/6874388: line 25: syntax error near unexpected token `('
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-095/job_scripts/6874388: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 12:02:49 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874543”
+“Job name: countNuclei.sh”
+“Hostname: compute-048.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-048/job_scripts/6874543: line 25: syntax error near unexpected token `('
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-048/job_scripts/6874543: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 13:58:53 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874907”
+“Job name: countNuclei.sh”
+“Hostname: compute-120.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-120/job_scripts/6874907: line 25: syntax error near unexpected token `('
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-120/job_scripts/6874907: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 14:06:23 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874910”
+“Job name: countNuclei.sh”
+“Hostname: compute-120.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-120/job_scripts/6874910: line 25: syntax error near unexpected token `('
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-120/job_scripts/6874910: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 14:14:10 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874913”
+“Job name: countNuclei.sh”
+“Hostname: compute-119.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6874913: line 25: syntax error near unexpected token `('
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6874913: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath('$toolbox')), countNuclei('$mask','$jsonname','$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 14:18:55 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874917”
+“Job name: countNuclei.sh”
+“Hostname: compute-119.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6874917: line 25: syntax error near unexpected token `('
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6874917: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.0.x
+“**** Job starts ****”
+Thu Sep  9 14:32:05 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6874941”
+“Job name: countNuclei.sh”
+“Hostname: compute-119.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6874941: line 25: syntax error near unexpected token `('
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6874941: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.1
+“**** Job starts ****”
+Fri Sep 10 10:01:56 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6877821”
+“Job name: countNuclei.sh”
+“Hostname: compute-094.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-094/job_scripts/6877821: line 25: syntax error near unexpected token `('
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-094/job_scripts/6877821: line 25: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.1
+“**** Job starts ****”
+Fri Sep 10 10:07:50 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6877827”
+“Job name: countNuclei.sh”
+“Hostname: compute-048.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-048/job_scripts/6877827: line 33: syntax error near unexpected token `('
+/cm/local/apps/sge/sge-8.1.9/default/spool/compute-048/job_scripts/6877827: line 33: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath(‘$toolbox’)), countNuclei(‘$mask','$jsonname’,'$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.1
+“**** Job starts ****”
+Fri Sep 10 10:14:22 EDT 2021
+“**** JHPCE info ****”
+“User: hdivecha”
+“Job id: 6877832”
+“Job name: countNuclei.sh”
+“Hostname: compute-119.cm.cluster”
+“Task id: undefined”
+“****”
+“Sample id: 2021-06-15_V10B01-003_LC_A1”
+“****”
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6877832: line 33: syntax error near unexpected token `('
+/cm/shared/apps/sge/sge-8.1.9//default/spool/compute-119/job_scripts/6877832: line 33: `matlab -nodesktop -nosplash -nojvm -r “addpath(genpath('$toolbox')), countNuclei('$mask','$jsonname','$posname')”'
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.1
+**** Job starts ****
+Fri Sep 10 10:16:54 EDT 2021
+**** JHPCE info ****
+User: hdivecha
+Job id: 6877835
+Job name: countNuclei.sh
+Hostname: compute-119.cm.cluster
+Task id: undefined
+****
+Sample id: 2021-06-15_V10B01-003_LC_A1
+****
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2019 The MathWorks, Inc.
+                  R2019a (9.6.0.1072779) 64-bit (glnxa64)
+                               March 8, 2019
+
+ 
+For online documentation, see https://www.mathworks.com/support
+For product information, visit www.mathworks.com.
+ 
+loading data
+Elapsed time is 6.294170 seconds.
+24327 cells detected
+4992 spots detected
+counting nuclei per spot
+100 spots finished in time 61.9349s
+200 spots finished in time 114.4051s
+300 spots finished in time 166.5672s
+400 spots finished in time 219.0674s
+500 spots finished in time 272.0199s
+600 spots finished in time 326.6869s
+700 spots finished in time 381.4817s
+800 spots finished in time 438.8844s
+900 spots finished in time 498.1298s
+1000 spots finished in time 560.7347s
+1100 spots finished in time 622.7162s
+1200 spots finished in time 683.6578s
+1300 spots finished in time 744.6541s
+1400 spots finished in time 810.5786s
+1500 spots finished in time 873.6474s
+1600 spots finished in time 938.6227s
+1700 spots finished in time 998.4056s
+1800 spots finished in time 1059.4122s
+1900 spots finished in time 1120.6873s
+2000 spots finished in time 1186.9428s
+2100 spots finished in time 1247.4234s
+2200 spots finished in time 1305.1176s
+2300 spots finished in time 1370.9056s
+2400 spots finished in time 1432.3548s
+2500 spots finished in time 1496.4219s
+2600 spots finished in time 1553.0127s
+2700 spots finished in time 1606.9347s
+2800 spots finished in time 1662.987s
+2900 spots finished in time 1714.7672s
+3000 spots finished in time 1765.0823s
+3100 spots finished in time 1815.7997s
+3200 spots finished in time 1867.2662s
+3300 spots finished in time 1918.5711s
+3400 spots finished in time 1968.3946s
+3500 spots finished in time 2018.7479s
+3600 spots finished in time 2068.7439s
+3700 spots finished in time 2131.1713s
+3800 spots finished in time 2200.808s
+3900 spots finished in time 2272.5195s
+4000 spots finished in time 2345.0965s
+4100 spots finished in time 2426.2963s
+4200 spots finished in time 2503.677s
+4300 spots finished in time 2575.6357s
+4400 spots finished in time 2649.0251s
+4500 spots finished in time 2725.7768s
+4600 spots finished in time 2811.8524s
+4700 spots finished in time 2888.5495s
+4800 spots finished in time 2965.6211s
+4900 spots finished in time 3042.2437s
+writing table
+Elapsed time is 3123.265794 seconds.
+>> **** Job ends ****
+Fri Sep 10 11:09:08 EDT 2021
