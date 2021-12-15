@@ -21,3 +21,4 @@ spaceranger_*
 *.o*
 *.e*
 logs
+R_batchsub.sh
