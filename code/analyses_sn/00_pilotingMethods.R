@@ -26,30 +26,44 @@ i <- "Br6522_LC"
 
 
 ## Create barcode rank plots from `DropletUtils::barcodeRanks()`; get stats ===
+ #   MNT: trick the fitting to identify the 'second knee', as this will be used as
+ #        `lower=` for `emptyDrops()`
 BRdf.list <- list()
 Sys.time()
 # [1] "2021-12-17 12:46:19 EST"
 for(i in names(sample.idx)){
-  BRdf.list[[i]] <- barcodeRanks(counts(sce.lc[ ,sample.idx[[i]]]))
+  BRdf.list[[i]] <- barcodeRanks(counts(sce.lc[ ,sample.idx[[i]]]),
+                                 fit.bounds=c(10,1e3))
 }
 Sys.time()
 # 
 
 sapply(BRdf.list, metadata)
-#            Br2701_LC Br6522_LC Br8079_LC
-# knee       27658     193       196      
-# inflection 8999      106       102
+    # (default params:)
+    #             Br2701_LC Br6522_LC Br8079_LC
+    # knee        27658     193       196      
+    # inflection  8999      106       102
+        # So interestingly this would have detected that 'second knee' for two samples
 
-# So interestingly this would have detected that 'second knee' for two samples
+    # With fit.bounds=c(10,1e3)
+    #             Br2701_LC Br6522_LC Br8079_LC
+    # knee        136       178       155      
+    # inflection  8999      106       102   *"The derivative is computed directly from
+                                            # all points on the curve with total counts
+                                            # greater than lower" - hence the 8999
+
 
 
 # Plotting (adapted from the manual under `barcodeRanks()`) ===
 for(i in names(BRdf.list)){
-png(here("plots","snRNA-seq",paste0("barcodeRankPlot_",i,"_dropletUtils-defaults.png")))
+#png(here("plots","snRNA-seq",paste0("barcodeRankPlot_",i,"_dropletUtils-defaults.png")))
+png(here("plots","snRNA-seq",paste0("barcodeRankPlot_",i,"_dropletUtils-w-fitbounds.png")))
+  
   br.out <- BRdf.list[[i]]
   
   plot(br.out$rank, br.out$total, log="xy", xlab="Barcode Rank", ylab="Total UMIs",
-       main=paste0("Barcode rank plot for: ",i), cex.axis=0.8, cex.lab=1.2, las=1)
+       main=paste0("Barcode rank plot for: ",i,"\n( fit.bounds=c(50,1e3) )"),
+       cex.axis=0.8, cex.lab=1.2, las=1)
   o <- order(br.out$rank)
   lines(br.out$rank[o], br.out$fitted[o], col="red")
   abline(h=metadata(br.out)$knee, col="dodgerblue", lty=2)
@@ -59,22 +73,59 @@ png(here("plots","snRNA-seq",paste0("barcodeRankPlot_",i,"_dropletUtils-defaults
 dev.off()
 }
 
-
+## Apply this
+customLowers <- sapply(BRdf.list, function(x){metadata(x)$knee})
 e.out.custom <- list()
 Sys.time()
 # 
-#for(i in names(sample.idx)){
+for(i in names(sample.idx)){
 cat(paste0("Simulating empty drops for: ", i,"... \n"))
 
 ## Run emptyDrops with this data-defined `lower=` param 
 set.seed(109)
-e.out.br[[i]] <- emptyDrops(counts(sce.lc[ ,sample.idx[[i]]]), niters=20000,
-                            lower=customLower,
+e.out.custom[[i]] <- emptyDrops(counts(sce.lc[ ,sample.idx[[i]]]), niters=20000,
+                            lower=customLowers[i],
                             BPPARAM=BiocParallel::MulticoreParam(2))
 cat(paste0("\n\t...Simulations complete. \n\t", Sys.time(), "\n\n\n"))
 Sys.time()
 
-#}
+}
+
+for(i in 1:length(e.out.custom)){
+  print(names(e.out.custom)[[i]])
+  print(table(Signif = e.out.custom[[i]]$FDR <= 0.001, Limited = e.out.custom[[i]]$Limited))
+}
+    # [1] "Br2701_LC"
+    #       Limited
+    # Signif  FALSE  TRUE
+    #   FALSE 65682     0
+    #   TRUE   2173  9706
+
+    # [1] "Br6522_LC"
+    #       Limited
+    # Signif  FALSE  TRUE
+    #   FALSE 66676  2032 
+    #   TRUE      0   823
+
+    # [1] "Br8079_LC"
+    #       Limited
+    # Signif  FALSE  TRUE
+    #   FALSE 66956     0
+    #   TRUE    816  8930
 
 
+## Save for now
+save(e.out.custom,
+     file=here("processed_data","SCE", "emptyDrops-by-sample_customLower_k2.rda"))
+
+
+
+## Reproducibility information ====
+print('Reproducibility information:')
+Sys.time()
+#
+proc.time()
+#
+options(width = 120)
+session_info()
 
