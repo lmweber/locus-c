@@ -1,7 +1,6 @@
 ### LC snRNA-seq analysis
 ### Build SCE from raw count matrices; perform nuclei calling
 ### qrsh -l bluejay,mf=32G,h_vmem=34G -pe local 2
-  #     (which points to this script with `R CMD BATCH`)
 ### Adopted from https://github.com/LieberInstitute/DLPFC_snRNAseq/blob/main/code/03_build_sce/build_basic_sce.R
 ### Initiated MNT 13Dec2021
 
@@ -16,7 +15,6 @@ library(sessioninfo)
 here()
     # [1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
 
-#### AS SUBMITTED JOB ========
 
 ### Create raw SCE ====
 # Basic sample info
@@ -94,37 +92,89 @@ save(sce.lc, file=here("processed_data","SCE", "sce_raw_LC.rda"))
 
 
 
-### Perform `emptyDrops()` for nuclei calling, within each sample ====
+### Perform `emptyDrops()` for nuclei calling, within each sample ========================
+  #   - Custom iteration: first perform `barcodeRanks()` to re-define the `lower=` param,
+  #     which is by default set =100.  We think this is potentially too low and should
+  #     capture that 'plateau' above the 'second knee point'.
+
+  #   - This 'second knee point' can be estimated by restricting the fit space to (10,1e3)
+  
 sample.idx <- splitit(sce.lc$Sample)
+e.out.custom <- list()
 
 Sys.time()
-    # [1] "2021-12-15 16:03:57 EST"
-e.out.lc <- lapply(sample.idx, function(x){
-  set.seed(109)
-  emptyDrops(counts(sce.lc[ ,x]),
-             niters=20000,
-             BPPARAM=BiocParallel::MulticoreParam(2))
-})
-Sys.time()
-    # [1] "2021-12-15 16:24:25 EST"
-names(e.out.lc) <- names(sample.idx)
+    # [1] "2021-12-20 11:10:03 EST"
+for(i in names(sample.idx)){
+  
+  # Re-define the `lower=` param by identifying the 'second knee point'
+  newknee <- barcodeRanks(counts(sce.lc[ ,sample.idx[[i]]]),
+                          fit.bounds=c(10,1e3))
+  cat(paste0("'Second knee point' for ", i," is: ",
+             metadata(newknee)$knee,"\n"))
+  
+  # Set `lower = newknee + 100` (to capture the 'plateau' mode of low UMI totals)
+  cat(paste0("Simulating empty drops for: ", i,"... \n"))
+    set.seed(109)
+  e.out.custom[[i]] <- emptyDrops(counts(sce.lc[ ,sample.idx[[i]]]), niters=20000,
+                                      lower = metadata(newknee)$knee + 100,
+                                      BPPARAM=BiocParallel::MulticoreParam(2))
+  cat(paste0("\n\t...Simulations complete. \n\t", Sys.time(), "\n\n\n"))
+}
+#'Second knee point' for Br2701_LC is: 136
+#'Second knee point' for Br6522_LC is: 178
+#'Second knee point' for Br8079_LC is: 155
+
+for(i in 1:length(e.out.custom)){
+  print(names(e.out.custom)[[i]])
+  print(table(Signif = e.out.custom[[i]]$FDR <= 0.001,
+              Limited = e.out.custom[[i]]$Limited))
+}
+    #[1] "Br2701_LC"
+    #       Limited
+    # Signif  FALSE  TRUE
+    #   FALSE 23533     0
+    #   TRUE    593  4464   # sum = 5057
+    
+    # [1] "Br6522_LC"
+    #       Limited
+    # Signif  FALSE TRUE
+    #   FALSE  4799    0
+    #   TRUE     88 3018    # sum = 3106
+    
+    # [1] "Br8079_LC"
+    #       Limited
+    # Signif  FALSE  TRUE
+    #   FALSE 17194     0
+    #   TRUE   1176  7070   # sum = 8246
+
 
 ## Save this with the raw SCE for interactive downstream analyses ===
+README.custom <- "Object 'e.out.custom' is the output of emptyDrops() with lower= set to the quantified
+  'second knee point' (+100) to better model empty/debris-containing droplets"
 save(sce.lc, e.out.lc,
+     e.out.custom, README.custom,
      file=here("processed_data","SCE", "sce_raw_LC.rda"))
 
+
+## Filter based on this revised nuclei-calling approach and save into another .rda ===
+BCs.keep <- unlist(
+  lapply(e.out.custom, function(x){ rownames(x)[which(x$FDR <= 0.001)] }
+         ))
+
+sce.lc <- sce.lc[ ,BCs.keep]
+save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
 
 
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    #[1] "2021-12-15 16:31:57 EST"
+    #[1] "2021-12-20 12:07:57 EST"
 proc.time()
     #    user   system  elapsed 
-    #2924.130   59.035 2494.747 
+    #4249.531   43.424 6373.430 
 options(width = 120)
 session_info()
-# ─ Session info ──────────────────────────────────────────────────────────────────────────────────
+# ─ Session info ───────────────────────────────────────────────────────────────────────
 # setting  value
 # version  R version 4.1.2 Patched (2021-11-04 r81138)
 # os       CentOS Linux 7 (Core)
@@ -134,10 +184,10 @@ session_info()
 # collate  en_US.UTF-8
 # ctype    en_US.UTF-8
 # tz       US/Eastern
-# date     2021-12-15
+# date     2021-12-20
 # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
 # 
-# ─ Packages ──────────────────────────────────────────────────────────────────────────────────────
+# ─ Packages ───────────────────────────────────────────────────────────────────────────
 # package              * version  date (UTC) lib source
 # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
 # beachmat               2.10.0   2021-10-26 [2] Bioconductor
@@ -149,7 +199,7 @@ session_info()
 # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
 # cli                    3.1.0    2021-10-27 [2] CRAN (R 4.1.2)
 # crayon                 1.4.2    2021-10-29 [2] CRAN (R 4.1.2)
-# DBI                    1.1.1    2021-01-15 [2] CRAN (R 4.1.0)
+# DBI                    1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
 # DelayedArray           0.20.0   2021-10-26 [2] Bioconductor
 # DelayedMatrixStats     1.16.0   2021-10-26 [2] Bioconductor
 # dplyr                  1.0.7    2021-06-18 [2] CRAN (R 4.1.0)
@@ -165,7 +215,7 @@ session_info()
 # GenomeInfoDbData       1.2.7    2021-11-01 [2] Bioconductor
 # GenomicAlignments      1.30.0   2021-10-26 [2] Bioconductor
 # GenomicRanges        * 1.46.1   2021-11-18 [2] Bioconductor
-# glue                   1.5.1    2021-11-30 [2] CRAN (R 4.1.2)
+# glue                   1.6.0    2021-12-17 [2] CRAN (R 4.1.2)
 # googledrive            2.0.0    2021-07-08 [2] CRAN (R 4.1.0)
 # HDF5Array              1.22.1   2021-11-14 [2] Bioconductor
 # here                 * 1.0.1    2020-12-13 [2] CRAN (R 4.1.2)
@@ -174,7 +224,6 @@ session_info()
 # lattice                0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
 # lifecycle              1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
 # limma                  3.50.0   2021-10-26 [2] Bioconductor
-# lobstr                 1.1.1    2019-07-02 [2] CRAN (R 4.1.0)
 # locfit                 1.5-9.4  2020-03-25 [2] CRAN (R 4.1.0)
 # magrittr               2.0.1    2020-11-17 [2] CRAN (R 4.1.0)
 # Matrix                 1.4-0    2021-12-08 [3] CRAN (R 4.1.2)
@@ -220,5 +269,4 @@ session_info()
 # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
 # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
 # 
-# ─────────────────────────────────────────────────────────────────────────────────────────────────
-
+# ──────────────────────────────────────────────────────────────────────────────────────
