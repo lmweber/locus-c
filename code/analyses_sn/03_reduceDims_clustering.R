@@ -219,56 +219,75 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
         # end added Tran-Maynard et al. chunk ====
 
     
-    # How do these look?
+    ## How do these look?
     pdf(here("plots","snRNA-seq","LC-n3_reducedDims_GLMPCA_reducedMNN-test.pdf"), height=5, width=5)
         ## TSNE
         plotReducedDim(sce.test.approx, dimred="TSNE", colour_by="Sample",
                        point_alpha=0.3, point_size=0.8) +
             ggtitle("t-SNE on GLMPCA (top 50)")
-        plotReducedDim(sce.test.approx, dimred="TSNE", colour_by="kmeans.13",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle("t-SNE on GLMPCA (top 50)")
-        
         plotReducedDim(sce.test.mnn, dimred="TSNE", colour_by="Sample",
                        point_alpha=0.3, point_size=0.8) +
             ggtitle("t-SNE on GLMPCA-MNN (top 50)")
-        plotReducedDim(sce.test.mnn, dimred="TSNE", colour_by="kmeans.13",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle("t-SNE on GLMPCA-MNN (top 50)")
-        
         # Tran-Maynard
         plotReducedDim(sce.test, dimred="TSNE", colour_by="Sample",
                        point_alpha=0.2, point_size=0.8) +
             ggtitle("t-SNE on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
-        plotReducedDim(sce.test, dimred="TSNE", colour_by="kmeans.13",
-                       point_alpha=0.2, point_size=0.8) +
-            ggtitle("t-SNE on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
-        
         
         ## UMAP
         plotReducedDim(sce.test.approx, dimred="UMAP", colour_by="Sample",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle("UMAP on GLMPCA (top 50)")
-        plotReducedDim(sce.test.approx, dimred="UMAP", colour_by="kmeans.13",
                        point_alpha=0.2, point_size=1.5) +
             ggtitle("UMAP on GLMPCA (top 50)")
         
         plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="Sample",
                        point_alpha=0.2, point_size=1.5) +
             ggtitle("UMAP on GLMPCA-MNN (top 50)")
-        plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="kmeans.13",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle("UMAP on GLMPCA-MNN (top 50)")
-        
         # Tran-Maynard
         plotReducedDim(sce.test, dimred="UMAP", colour_by="Sample",
                        point_alpha=0.2, point_size=1.5) +
             ggtitle("UMAP on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
-        plotReducedDim(sce.test, dimred="UMAP", colour_by="kmeans.13",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle("UMAP on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
         
     dev.off()
+    
+    
+    ## A more full version with clusters and other metrics
+    list.sces <- list(GLMPCA_approx = sce.test.approx,
+                      GLMPCA_MNN = sce.test.mnn,
+                      fastMNN = sce.test)
+    
+    for (i in names(list.sces)){
+            # For some reason this is creating broken pdfs - just do manually (e.g. `i <- names(list.sces)[1]`)
+        pdf(here("plots","snRNA-seq",paste0("LC-n3_reducedDims_",i,"_kmeans13.pdf")), height=5, width=5)
+        ## TSNE
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="Sample",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="kmeans.13",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="detected",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="doubletScore",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        
+        ## UMAP
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="Sample",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="kmeans.13",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="detected",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="doubletScore",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        dev.off()
+    }
+    
+    
     
     
     ## Save these various test iterations for further exploration
