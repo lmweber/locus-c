@@ -9,6 +9,7 @@ library(scater)
 library(scran)
 library(scry)
 library(batchelor)
+library(bluster)
 library(BiocParallel)
 library(jaffelab)
 library(gridExtra)
@@ -81,6 +82,7 @@ Sys.time()
 
 ## Take the top 2000 highly-deviant genes ('HDG's) and run PCA in that space
 hdgs.lc <- rownames(sce.lc)[order(rowData(sce.lc)$binomial_deviance, decreasing=T)][1:2000]
+hdgs.symbols <- rowData(sce.lc)$gene_name[match(hdgs.lc, rowData(sce.lc)$gene_id)]
 
 Sys.time()
     #[1] "2021-12-31 16:20:14 EST"
@@ -98,9 +100,6 @@ plotReducedDim(sce.lc, dimred="GLMPCA_approx", colour_by="Sample",
 
 
 ## See how this changes with batchelor::reducedMNN ===
-sce.test <- sce.lc
-sce.test$Sample <- as.factor(sce.test$Sample)
-
 Sys.time()
     #[1] "2021-12-31 17:00:16 EST"
 glmpca.mnn <- reducedMNN(reducedDim(sce.lc, "GLMPCA_approx"),
@@ -126,16 +125,176 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
 
 
 
+### Clustering ====================
+  # Perform graph-based clustering, as in Tran-Maynard, et al. Neuron 2021
+
+  # Just perform on top 50 PCs, since for now we're assessing GLM PCA
+  # [and then with MNN on reduced dims]
+
+
+## Make some other reduced dims for visualization ===
+
+    ## Testing phase ====
+    sce.test <- sce.lc
+    
+    # Take top 50 PCs for both to quicken computation
+    reducedDim(sce.test, "glmpca_approx_50") <- reducedDim(sce.test, "GLMPCA_approx")[ ,1:50]
+    reducedDim(sce.test, "glmpca_mnn_50") <- reducedDim(sce.test, "GLMPCA_MNN")[ ,1:50]
+        # oh didn't have to use this - can just use 'n_dimred'
+    
+    ## Without MNN on GLMPCA ===
+    # UMAP
+    set.seed(109)
+    sce.test.approx <- runUMAP(sce.test, dimred="glmpca_approx_50",
+                               name="UMAP")
+    # t-SNE
+    set.seed(109)
+    sce.test.approx <- runTSNE(sce.test.approx, dimred="glmpca_approx_50",
+                               name="TSNE")
+    
+    # k-means clustering with k=13
+    #   (== average of Cell Ranger's sample-specific n graph-based clusters)
+    set.seed(109)
+    clust.kmeans <- clusterCells(sce.test.approx, use.dimred="glmpca_approx_50", 
+                                 BLUSPARAM=KmeansParam(centers=13))
+    table(clust.kmeans)
+        #   1    2    3    4    5    6    7    8    9   10   11   12   13 
+        # 196  843  635  173  656  261  194 1187  725 1234 4177 4442  919
+    sce.test.approx$kmeans.13 <- clust.kmeans
+    
+    ## WITH MNN on GLMPCA ===
+    # UMAP
+    set.seed(109)
+    sce.test.mnn <- runUMAP(sce.test, dimred="glmpca_mnn_50",
+                            name="UMAP")
+    # t-SNE
+    set.seed(109)
+    sce.test.mnn <- runTSNE(sce.test.mnn, dimred="glmpca_mnn_50",
+                            name="TSNE")
+    
+    # k-means (with k=13)
+    set.seed(109)
+    clust.kmeans <- clusterCells(sce.test.approx, use.dimred="glmpca_mnn_50", 
+                                 BLUSPARAM=KmeansParam(centers=13))
+    table(clust.kmeans)
+        #   1    2    3    4    5    6    7    8    9   10   11   12   13 
+        #1064  259  654 1674  637  268  190  121  973 1245  179 8103  275 
+    sce.test.mnn$kmeans.13 <- clust.kmeans
+
+    ## Add Tran-Maynard, et al. method (just use HDGs from above) =====
+        sce.test <- multiBatchNorm(sce.test, batch=sce.test$Sample)
+        set.seed(109)
+        mnn.hold <-  fastMNN(sce.test, batch=as.factor(sce.test$Sample),
+                             merge.order=c("Br8079_LC", "Br2701_LC", "Br6522_LC"),
+                             subset.row=hdgs.lc, d=100,
+                             correct.all=TRUE, get.variance=TRUE,
+                             BSPARAM=BiocSingular::IrlbaParam())
+
+        table(colnames(mnn.hold) == colnames(sce.test))  # all TRUE
+        table(mnn.hold$batch == sce.test$Sample) # all TRUE
+        
+        # Add them to the SCE
+        reducedDim(sce.test, "PCA_corrected") <- reducedDim(mnn.hold, "corrected") # 100 components
+        metadata(sce.test) <- metadata(mnn.hold)
+        
+        # UMAP
+        set.seed(109)
+        sce.test <- runUMAP(sce.test, dimred="PCA_corrected",
+                            n_dimred=50, name="UMAP")
+        # t-SNE
+        set.seed(109)
+        sce.test <- runTSNE(sce.test, dimred="PCA_corrected",
+                                   n_dimred=50, name="TSNE")
+        
+        # k-means (with k=13)
+        reducedDim(sce.test, "PCA_corrected_50") <- reducedDim(sce.test, "PCA_corrected")[ ,1:50]
+        set.seed(109)
+        clust.kmeans <- clusterCells(sce.test, use.dimred="PCA_corrected_50",
+                                     BLUSPARAM=KmeansParam(centers=13))
+        table(clust.kmeans)
+            #   1    2    3    4    5    6    7    8    9   10   11   12   13 
+            #2713  246  647  580  600  598  522 2091 4305  701  935 1292  412
+        sce.test$kmeans.13 <- clust.kmeans
+                
+        # end added Tran-Maynard et al. chunk ====
+
+    
+    # How do these look?
+    pdf(here("plots","snRNA-seq","LC-n3_reducedDims_GLMPCA_reducedMNN-test.pdf"), height=5, width=5)
+        ## TSNE
+        plotReducedDim(sce.test.approx, dimred="TSNE", colour_by="Sample",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle("t-SNE on GLMPCA (top 50)")
+        plotReducedDim(sce.test.approx, dimred="TSNE", colour_by="kmeans.13",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle("t-SNE on GLMPCA (top 50)")
+        
+        plotReducedDim(sce.test.mnn, dimred="TSNE", colour_by="Sample",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle("t-SNE on GLMPCA-MNN (top 50)")
+        plotReducedDim(sce.test.mnn, dimred="TSNE", colour_by="kmeans.13",
+                       point_alpha=0.3, point_size=0.8) +
+            ggtitle("t-SNE on GLMPCA-MNN (top 50)")
+        
+        # Tran-Maynard
+        plotReducedDim(sce.test, dimred="TSNE", colour_by="Sample",
+                       point_alpha=0.2, point_size=0.8) +
+            ggtitle("t-SNE on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
+        plotReducedDim(sce.test, dimred="TSNE", colour_by="kmeans.13",
+                       point_alpha=0.2, point_size=0.8) +
+            ggtitle("t-SNE on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
+        
+        
+        ## UMAP
+        plotReducedDim(sce.test.approx, dimred="UMAP", colour_by="Sample",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle("UMAP on GLMPCA (top 50)")
+        plotReducedDim(sce.test.approx, dimred="UMAP", colour_by="kmeans.13",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle("UMAP on GLMPCA (top 50)")
+        
+        plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="Sample",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle("UMAP on GLMPCA-MNN (top 50)")
+        plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="kmeans.13",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle("UMAP on GLMPCA-MNN (top 50)")
+        
+        # Tran-Maynard
+        plotReducedDim(sce.test, dimred="UMAP", colour_by="Sample",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle("UMAP on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
+        plotReducedDim(sce.test, dimred="UMAP", colour_by="kmeans.13",
+                       point_alpha=0.2, point_size=1.5) +
+            ggtitle("UMAP on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
+        
+    dev.off()
+    
+    
+    ## Save these various test iterations for further exploration
+    save(sce.test, sce.test.approx, sce.test.mnn, hdgs.lc,
+         file=here("processed_data","SCE", "sce_reducedDim-tests_LC.rda"))
+    
+    ### END TESTING ========
+
+
+
+
+
+
+
+
+
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-#[1] "2021-12-31 17:14:14 EST"
+#[1] "2022-01-03 12:28:58 EST"
 proc.time()
 #     user    system   elapsed 
-# 1078.366   340.625 11291.264
+# 2518.426    23.341 11535.588 
 options(width = 120)
 session_info()
-# ─ Session info ───────────────────────────────────────────────────────────────────
+# ─ Session info ────────────────────────────────────────────────────────────
 # setting  value
 # version  R version 4.1.2 Patched (2021-11-04 r81138)
 # os       CentOS Linux 7 (Core)
@@ -145,10 +304,10 @@ session_info()
 # collate  en_US.UTF-8
 # ctype    en_US.UTF-8
 # tz       US/Eastern
-# date     2021-12-31
+# date     2022-01-03
 # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
 # 
-# ─ Packages ───────────────────────────────────────────────────────────────────────
+# ─ Packages ────────────────────────────────────────────────────────────────
 # package              * version  date (UTC) lib source
 # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
 # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -156,16 +315,16 @@ session_info()
 # beeswarm               0.4.0    2021-06-01 [2] CRAN (R 4.1.2)
 # Biobase              * 2.54.0   2021-10-26 [2] Bioconductor
 # BiocGenerics         * 0.40.0   2021-10-26 [2] Bioconductor
-# BiocIO                 1.4.0    2021-10-26 [2] Bioconductor
 # BiocNeighbors          1.12.0   2021-10-26 [2] Bioconductor
 # BiocParallel         * 1.28.3   2021-12-09 [2] Bioconductor
 # BiocSingular           1.10.0   2021-10-26 [2] Bioconductor
-# Biostrings             2.62.0   2021-10-26 [2] Bioconductor
 # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
-# bluster                1.4.0    2021-10-26 [2] Bioconductor
+# bluster              * 1.4.0    2021-10-26 [2] Bioconductor
 # cli                    3.1.0    2021-10-27 [2] CRAN (R 4.1.2)
 # cluster                2.1.2    2021-04-17 [3] CRAN (R 4.1.2)
+# codetools              0.2-18   2020-11-04 [3] CRAN (R 4.1.2)
 # colorspace             2.0-2    2021-06-24 [2] CRAN (R 4.1.0)
+# cowplot                1.1.1    2020-12-30 [2] CRAN (R 4.1.2)
 # crayon                 1.4.2    2021-10-29 [2] CRAN (R 4.1.2)
 # DBI                    1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
 # DelayedArray           0.20.0   2021-10-26 [2] Bioconductor
@@ -183,7 +342,6 @@ session_info()
 # generics               0.1.1    2021-10-25 [2] CRAN (R 4.1.2)
 # GenomeInfoDb         * 1.30.0   2021-10-26 [2] Bioconductor
 # GenomeInfoDbData       1.2.7    2021-11-01 [2] Bioconductor
-# GenomicAlignments      1.30.0   2021-10-26 [2] Bioconductor
 # GenomicRanges        * 1.46.1   2021-11-18 [2] Bioconductor
 # ggbeeswarm             0.6.0    2017-08-07 [2] CRAN (R 4.1.2)
 # ggplot2              * 3.3.5    2021-06-25 [2] CRAN (R 4.1.0)
@@ -219,18 +377,17 @@ session_info()
 # rafalib              * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
 # RColorBrewer           1.1-2    2014-12-07 [2] CRAN (R 4.1.0)
 # Rcpp                   1.0.7    2021-07-07 [2] CRAN (R 4.1.0)
+# RcppAnnoy              0.0.19   2021-07-30 [2] CRAN (R 4.1.2)
 # RCurl                  1.98-1.5 2021-09-17 [2] CRAN (R 4.1.2)
 # ResidualMatrix         1.4.0    2021-10-26 [1] Bioconductor
-# restfulr               0.0.13   2017-08-06 [2] CRAN (R 4.1.0)
 # rhdf5                  2.38.0   2021-10-26 [2] Bioconductor
 # rhdf5filters           1.6.0    2021-10-26 [2] Bioconductor
 # Rhdf5lib               1.16.0   2021-10-26 [2] Bioconductor
-# rjson                  0.2.20   2018-06-08 [2] CRAN (R 4.1.0)
 # rlang                  0.4.12   2021-10-18 [2] CRAN (R 4.1.2)
 # rprojroot              2.0.2    2020-11-15 [2] CRAN (R 4.1.0)
-# Rsamtools              2.10.0   2021-10-26 [2] Bioconductor
+# RSpectra               0.16-0   2019-12-01 [2] CRAN (R 4.1.0)
 # rsvd                   1.0.5    2021-04-16 [2] CRAN (R 4.1.2)
-# rtracklayer          * 1.54.0   2021-10-26 [2] Bioconductor
+# Rtsne                  0.15     2018-11-10 [2] CRAN (R 4.1.2)
 # S4Vectors            * 0.32.3   2021-11-21 [2] Bioconductor
 # ScaledMatrix           1.2.0    2021-10-26 [2] Bioconductor
 # scales                 1.1.1    2020-05-11 [2] CRAN (R 4.1.0)
@@ -247,19 +404,18 @@ session_info()
 # tibble                 3.1.6    2021-11-07 [2] CRAN (R 4.1.2)
 # tidyselect             1.1.1    2021-04-30 [2] CRAN (R 4.1.0)
 # utf8                   1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
+# uwot                   0.1.11   2021-12-02 [2] CRAN (R 4.1.2)
 # vctrs                  0.3.8    2021-04-29 [2] CRAN (R 4.1.0)
 # vipor                  0.4.5    2017-03-22 [2] CRAN (R 4.1.2)
 # viridis                0.6.2    2021-10-13 [2] CRAN (R 4.1.2)
 # viridisLite            0.4.0    2021-04-13 [2] CRAN (R 4.1.0)
 # withr                  2.4.3    2021-11-30 [2] CRAN (R 4.1.2)
-# XML                    3.99-0.8 2021-09-17 [2] CRAN (R 4.1.2)
 # XVector                0.34.0   2021-10-26 [2] Bioconductor
-# yaml                   2.2.1    2020-02-01 [2] CRAN (R 4.1.0)
 # zlibbioc               1.40.0   2021-10-26 [2] Bioconductor
 # 
 # [1] /users/ntranngu/R/4.1.x
 # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
 # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
 # 
-# ──────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────
 
