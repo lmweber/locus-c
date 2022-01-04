@@ -297,9 +297,94 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     ### END TESTING ========
 
 
+### Clustering step 1: Perform graph-based clustering in this optimal PC space ===
+  #                  - take k=20 NN to build graph
 
+## Testing phase ====
+    snn.gr.glmpcamnn <- buildSNNGraph(sce.test, k=20, use.dimred="glmpca_mnn_50")
+    clusters.glmpcamnn <- igraph::cluster_walktrap(snn.gr.glmpcamnn)
+    table(clusters.glmpcamnn$membership)
+        ## 60 prelim clusters:
+    
+        #   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18 
+        #2301   99  178  474 2560  179  189  182   73  151   69  119  114  439 3080   65  271  219 
+        #  19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36 
+        # 183  123  109 1140  127  237   66   59  159   80  108  137   47   64  104  173  148  162 
+        #  37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   53   54 
+        #  61   57  255   36  113   33   31   53   53   30  137   64   89   31   32   75   95  137 
+        #  55   56   57   58   59   60 
+        #  39   50   49   46   54   34 
+    
+    snn.gr.fastmnn <- buildSNNGraph(sce.test, k=20, use.dimred="PCA_corrected_50")
+    clusters.fastmnn <- igraph::cluster_walktrap(snn.gr.fastmnn)
+    table(clusters.fastmnn$membership)
+        # 55 prelim clusters:
+        #   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18 
+        # 134  172 2383 2405  572 2304  107  366  177  123  102  489  591  144  143  127  134   87 
+        #  19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36 
+        # 220  511   97   46   80   86   47   99   85  211   70   83   57   96  102  152  103   69 
+        #  37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   53   54 
+        # 178  148  167  201   68 1298   50   38   47   54  128  125   72   53   27   36   28   50 
+        #  55 
+        # 100 
+    
+    options(width=120)
+    print(tail(table(fastMNN = clusters.fastmnn$membership, glmpca_MNN = clusters.glmpcamnn$membership)[ ,45:60],
+               n=30), zero.print=".")
+        # Decently similar/concordant
+      
 
+    # Store both ('sce.test' has the TSNE/UMAP from fastMNN approach)
+    sce.test.mnn$clusters.glmcpcamnn <- factor(clusters.glmpcamnn$membership)
+    sce.test.mnn$clusters.fastmnn <- factor(clusters.fastmnn$membership)
+    
+    sce.test$clusters.glmcpcamnn <- factor(clusters.glmpcamnn$membership)
+    sce.test$clusters.fastmnn <- factor(clusters.fastmnn$membership)
+    
+    # Print
+    list.sces <- list(clusters.glmcpcamnn = sce.test.mnn,
+                      clusters.fastmnn = sce.test)
+    
+    for (i in names(list.sces)){
+      # For some reason this is creating broken pdfs - just do manually (e.g. `i <- names(list.sces)[1]`)
+      pdf(here("plots","snRNA-seq",paste0("LC-n3_reducedDims_",i,"_graphClusters.pdf")), height=5, width=5)
+        ## UMAP
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="Sample",
+                       point_alpha=0.2, point_size=1.2) +
+          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by=i,
+                       point_alpha=0.2, point_size=1.2,
+                       text_by=i, text_size=2) +
+          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="detected",
+                       point_alpha=0.2, point_size=1.2) +
+          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="doubletScore",
+                       point_alpha=0.2, point_size=1.2) +
+          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
+        
+        ## TSNE
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="Sample",
+                       point_alpha=0.3, point_size=0.8) +
+          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by=i,
+                       point_alpha=0.3, point_size=0.8,
+                       text_by=i, text_size=2) +
+          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="detected",
+                       point_alpha=0.3, point_size=0.8) +
+          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="doubletScore",
+                       point_alpha=0.3, point_size=0.8) +
+          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
+      
+      dev.off()
+    }
+    
 
+    ## Save these various test iterations for further exploration
+    save(sce.test, sce.test.approx, sce.test.mnn, hdgs.lc,
+         file=here("processed_data","SCE", "sce_reducedDim-tests_LC.rda"))
 
 
 
@@ -307,13 +392,13 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-#[1] "2022-01-03 12:28:58 EST"
+#[1] "2022-01-04 17:07:48 EST"
 proc.time()
 #     user    system   elapsed 
-# 2518.426    23.341 11535.588 
+# 3304.835    63.480 11392.332
 options(width = 120)
 session_info()
-# ─ Session info ────────────────────────────────────────────────────────────
+# ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────
 # setting  value
 # version  R version 4.1.2 Patched (2021-11-04 r81138)
 # os       CentOS Linux 7 (Core)
@@ -323,10 +408,10 @@ session_info()
 # collate  en_US.UTF-8
 # ctype    en_US.UTF-8
 # tz       US/Eastern
-# date     2022-01-03
+# date     2022-01-04
 # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
 # 
-# ─ Packages ────────────────────────────────────────────────────────────────
+# ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────
 # package              * version  date (UTC) lib source
 # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
 # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -341,7 +426,6 @@ session_info()
 # bluster              * 1.4.0    2021-10-26 [2] Bioconductor
 # cli                    3.1.0    2021-10-27 [2] CRAN (R 4.1.2)
 # cluster                2.1.2    2021-04-17 [3] CRAN (R 4.1.2)
-# codetools              0.2-18   2020-11-04 [3] CRAN (R 4.1.2)
 # colorspace             2.0-2    2021-06-24 [2] CRAN (R 4.1.0)
 # cowplot                1.1.1    2020-12-30 [2] CRAN (R 4.1.2)
 # crayon                 1.4.2    2021-10-29 [2] CRAN (R 4.1.2)
@@ -396,7 +480,6 @@ session_info()
 # rafalib              * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
 # RColorBrewer           1.1-2    2014-12-07 [2] CRAN (R 4.1.0)
 # Rcpp                   1.0.7    2021-07-07 [2] CRAN (R 4.1.0)
-# RcppAnnoy              0.0.19   2021-07-30 [2] CRAN (R 4.1.2)
 # RCurl                  1.98-1.5 2021-09-17 [2] CRAN (R 4.1.2)
 # ResidualMatrix         1.4.0    2021-10-26 [1] Bioconductor
 # rhdf5                  2.38.0   2021-10-26 [2] Bioconductor
@@ -404,9 +487,7 @@ session_info()
 # Rhdf5lib               1.16.0   2021-10-26 [2] Bioconductor
 # rlang                  0.4.12   2021-10-18 [2] CRAN (R 4.1.2)
 # rprojroot              2.0.2    2020-11-15 [2] CRAN (R 4.1.0)
-# RSpectra               0.16-0   2019-12-01 [2] CRAN (R 4.1.0)
 # rsvd                   1.0.5    2021-04-16 [2] CRAN (R 4.1.2)
-# Rtsne                  0.15     2018-11-10 [2] CRAN (R 4.1.2)
 # S4Vectors            * 0.32.3   2021-11-21 [2] Bioconductor
 # ScaledMatrix           1.2.0    2021-10-26 [2] Bioconductor
 # scales                 1.1.1    2020-05-11 [2] CRAN (R 4.1.0)
@@ -423,7 +504,6 @@ session_info()
 # tibble                 3.1.6    2021-11-07 [2] CRAN (R 4.1.2)
 # tidyselect             1.1.1    2021-04-30 [2] CRAN (R 4.1.0)
 # utf8                   1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
-# uwot                   0.1.11   2021-12-02 [2] CRAN (R 4.1.2)
 # vctrs                  0.3.8    2021-04-29 [2] CRAN (R 4.1.0)
 # vipor                  0.4.5    2017-03-22 [2] CRAN (R 4.1.2)
 # viridis                0.6.2    2021-10-13 [2] CRAN (R 4.1.2)
@@ -436,5 +516,5 @@ session_info()
 # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
 # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
 # 
-# ───────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
