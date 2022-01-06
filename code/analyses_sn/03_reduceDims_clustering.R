@@ -19,6 +19,7 @@ library(sessioninfo)
 here()
     # [1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
 
+source("/dcl01/lieber/ajaffe/Matt/MNT_thesis/snRNAseq/10x_pilot_FINAL/plotExpressionCustom.R")
 
 
 ### Feature selection with deviance residuals =====
@@ -332,6 +333,8 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     print(tail(table(fastMNN = clusters.fastmnn$membership, glmpca_MNN = clusters.glmpcamnn$membership)[ ,45:60],
                n=30), zero.print=".")
         # Decently similar/concordant
+    pairwiseRand(sce.test$clusters.glmcpcamnn, sce.test$clusters.fastmnn, mode="index")
+        #[1] 0.4555515
       
 
     # Store both ('sce.test' has the TSNE/UMAP from fastMNN approach)
@@ -386,19 +389,195 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     save(sce.test, sce.test.approx, sce.test.mnn, hdgs.lc,
          file=here("processed_data","SCE", "sce_reducedDim-tests_LC.rda"))
 
+    
+    
+    
+    ## Some marker expression ===
+    ne.markers <- c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1")
+    ne.markers <- rowData(sce.test)$gene_id[match(ne.markers, rowData(sce.test)$gene_name)]
+    names(ne.markers) <-  c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1")
+    
+    ## approx. GLMPCA>MNN - just use the multiBatchNorm logcounts from the fastMNN input:
+    assay(sce.test.mnn, "logcounts") <- assay(sce.test, "logcounts")
+    
+    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_GLMPCA-MNN_UMAP-graphClusters.pdf")), height=5, width=5)
+    for(i in 1:length(ne.markers)){
+      print(
+        plotReducedDim(sce.test.mnn, dimred="UMAP",
+                       colour_by=ne.markers[i], by_exprs_values="logcounts",
+                       point_alpha=0.2, point_size=1.2, theme_size=7) +
+          ggtitle(paste0("Clustering on approx. GLM-PCA-MNN PCs \nLog counts for ", ne.markers[i],": ",names(ne.markers)[i]))
+      )
+    }
+    dev.off()
+    
+    ## fastMNN
+    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_fastMNN-UMAP-graphClusters.pdf")), height=5, width=5)
+    for(i in 1:length(ne.markers)){
+      print(
+        plotReducedDim(sce.test, dimred="UMAP",
+                       colour_by=ne.markers[i], by_exprs_values="logcounts",
+                       point_alpha=0.2, point_size=1.2, theme_size=7) +
+          ggtitle(paste0("Clustering on fastMNN PCs \nLog counts for ", ne.markers[i],": ",names(ne.markers)[i]))
+            )
+      }
+    dev.off()
+    
+    ## doubletScore distributions?
+    cellClust.idx <- splitit(sce.test$clusters.glmcpcamnn)
+    sapply(cellClust.idx, function(x){quantile(sce.test$doubletScore[x])})
+    
+    ## For sake of filtering, compute some median expression info across graph-based clusters
+    medianNon0.lc <- lapply(cellClust.idx, function(x){
+      apply(as.matrix(assay(sce.test, "logcounts")), 1, function(y){
+        median(y[x]) > 0
+      })
+    })
+    
+    head(medianNon0.lc[[1]])
+        # Good it kept the gene names
+    
+    # Save for future reference
+    medianNon0.glmpcamnn <- medianNon0.lc
+    save(medianNon0.glmpcamnn, file=here("processed_data","SCE", "medianNon0_Booleans_glmpcamnn-graphClusters.rda"))
+    
+    markers.neurons <- c("SYT1", "SLC17A7", "SLC17A6","GAD2")
+    markers.neurons <- rowData(sce.test)$gene_id[match(markers.neurons, rowData(sce.test)$gene_name)]
+    names(markers.neurons) <- c("SYT1", "SLC17A7", "SLC17A6","GAD2")
+    
+    sapply(medianNon0.glmpcamnn, function(x){
+      x[markers.neurons] == TRUE
+    })
+        # ~half (+) for pan-neuronal marker SYT1 (this usually is captured better than SNAP25)
+    neuron.clusters <- which(sapply(medianNon0.glmpcamnn, function(x){ x[markers.neurons["SYT1"]] == TRUE }))
+        # So actually 41/60 clusters
+    
+    table(sce.test$clusters.glmcpcamnn %in% neuron.clusters)["TRUE"] / ncol(sce.test) # 0.8554533
+         # Looks like ~86% of these nuclei are putatively neuronal
+    
+    sce.test$SYT1 <- ifelse(sce.test$clusters.glmcpcamnn %in% neuron.clusters, "neuronal", "nonNeuronal")
+    sce.test.mnn$SYT1 <- ifelse(sce.test.mnn$clusters.glmcpcamnn %in% neuron.clusters, "neuronal", "nonNeuronal")
+    
+    
+    
+    # Re-print with the above NE neuron markers
+    markers.neurons <- c(markers.neurons, ne.markers)
+    
+    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_GLMPCA-MNN_UMAP-graphClusters.pdf")), height=5, width=5)
+    # Cluster annotations
+    print(
+      plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="clusters.glmcpcamnn",
+                   point_alpha=0.2, point_size=1.2,
+                   text_by="clusters.glmcpcamnn", text_size=2, theme_size=8) +
+      ggtitle(paste0("UMAP on GLM-PCA-MNN (top 50 PCs)"))
+      )
+    # Putative neuronal clusters
+    print(
+      plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="SYT1",
+                      point_alpha=0.2, point_size=1.2, theme_size=8)
+      )
+    # Neuronal markers
+    for(i in 1:length(markers.neurons)){
+      print(
+        plotReducedDim(sce.test.mnn, dimred="UMAP",
+                       colour_by=markers.neurons[i], by_exprs_values="logcounts",
+                       point_alpha=0.2, point_size=1.2, theme_size=8) +
+          ggtitle(paste0("Clustering on approx. GLM-PCA-MNN PCs \nLog counts for ",
+                         markers.neurons[i],": ",names(markers.neurons)[i]))
+      )
+    }
+    dev.off()
+    
+    
+    ## And expression violin plots - subset those neuronal
+    sce.neuron.mnn <- sce.test.mnn[ ,sce.test.mnn$SYT1=="neuronal"]
+    sce.neuron.mnn$clusters.glmcpcamnn <- droplevels(sce.neuron.mnn$clusters.glmcpcamnn)
+
+    # Change names of features so they're more interpretable
+    rownames(sce.neuron.mnn) <- rowData(sce.neuron.mnn)$gene_name
+    
+    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers-NEneuron_GLMPCA-MNN-graphClusters.pdf")),
+        height=6, width=12)
+    plotExpressionCustom(sce = sce.neuron.mnn,
+                         exprs_values = "logcounts",
+                         features = names(markers.neurons),
+                         features_name = "",
+                         anno_name = "clusters.glmcpcamnn",
+                         ncol=2, point_alpha=0.4, scales="free_y") +  
+      ggtitle(label=paste0("LC-n3 41 neuronal (/60) clusters: NE-neuron markers")) +
+      theme(plot.title = element_text(size = 12),
+            axis.text.x = element_text(size=7))
+    dev.off()
+    
+        # Looks like [GLM-PCA>MNN] clusters 31 &/or 40 are the putative NE neurons (maybe some of 36)
+        # Indeed these come from the two donors with more evidence of containing NE neurons:
+        
+    table(sce.neuron.mnn$clusters.glmcpcamnn, sce.neuron.mnn$Sample)
+    # ====
+    #    Br2701_LC Br6522_LC Br8079_LC
+    # 1        791       685       825
+    # 2         16        45        38
+    # 3         77         1       100
+    # 5        556       120      1884
+    # 8         26        66        90
+    # 9          3        57        13
+    # 10         4         3       144
+    # 12        13        27        79
+    # 13         9         0       105
+    # 14       127       257        55
+    # 15       546       460      2074
+    # 17       178         0        93
+    # 18        86        31       102
+    # 19        50         0       133
+    # 20        27         2        94
+    # 22       874        85       181
+    # 23         0       127         0
+    # 26         1        32        26
+    # 27        43         6       110
+    # 28         0        17        63
+    # 31        14        28         5  **
+    # 35        85         9        54
+    # 36        38         1       123  *
+    # 39        13         0       242
+    # 40        12         0        24  ***
+    # 41         2       111         0
+    # 43        23         0         8
+    # 47        52         0        85
+    # 48        56         3         5
+    # 49        65         0        24
+    # 50        19         0        12
+    # 51        15         3        14
+    # 52         0         0        75
+    # 53         0         0        95
+    # 54        59         1        77
+    # 55        22         0        17
+    # 56        18         1        31
+    # 57         0        49         0
+    # 58         0        46         0
+    # 59         0         1        53
+    # 60        21         1        12
+    
+    # ====
+
+
+
+
+
+
+
 
 
 
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-#[1] "2022-01-04 17:07:48 EST"
+#[1] "2022-01-05 21:59:27 EST"
 proc.time()
 #     user    system   elapsed 
-# 3304.835    63.480 11392.332
+# 2600.322   571.665 15194.725 
 options(width = 120)
 session_info()
-# ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────
+# ─ Session info ─────────────────────────────────────────────────────────────────
 # setting  value
 # version  R version 4.1.2 Patched (2021-11-04 r81138)
 # os       CentOS Linux 7 (Core)
@@ -408,10 +587,10 @@ session_info()
 # collate  en_US.UTF-8
 # ctype    en_US.UTF-8
 # tz       US/Eastern
-# date     2022-01-04
+# date     2022-01-05
 # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
 # 
-# ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────
+# ─ Packages ─────────────────────────────────────────────────────────────────────
 # package              * version  date (UTC) lib source
 # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
 # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -455,7 +634,7 @@ session_info()
 # gtable                 0.3.0    2019-03-25 [2] CRAN (R 4.1.0)
 # HDF5Array              1.22.1   2021-11-14 [2] Bioconductor
 # here                 * 1.0.1    2020-12-13 [2] CRAN (R 4.1.2)
-# igraph                 1.2.10   2021-12-15 [2] CRAN (R 4.1.2)
+# igraph                 1.2.11   2022-01-04 [2] CRAN (R 4.1.2)
 # IRanges              * 2.28.0   2021-10-26 [2] Bioconductor
 # irlba                  2.3.5    2021-12-06 [2] CRAN (R 4.1.2)
 # jaffelab             * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
@@ -516,5 +695,5 @@ session_info()
 # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
 # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
 # 
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
 
