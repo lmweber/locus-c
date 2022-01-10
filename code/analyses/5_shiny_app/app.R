@@ -12,20 +12,11 @@ library(here)
 ## spatialLIBD uses golem
 options("golem.app.prod" = TRUE)
 
-## You need this to enable shinyapps to install Bioconductor packages
+## Required to enable shinyapps to install Bioconductor packages
 options(repos = BiocManager::repositories())
 
-## Load the data
-## Comment out to deploy app on shinyapps.io
-# load(here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.RData"))
-
-## Path to documentation files
-## Comment out to deploy app on shinyapps.io
-# docs_path <- here("code", "analyses", "5_shiny_app", "www")
-
-## Create a soft link to the data, otherwise rsconnect::deployApp doesn't work
-## Delete if already exists
-## Comment out to deploy app on shinyapps.io
+## Create a soft link to data file
+## Comment out if already created previously
 # system("rm LCrounds1to3_SPE_shiny.RData")
 # system("ln -s ../../../processed_data/SPE/LCrounds1to3_SPE_shiny.RData LCrounds1to3_SPE_shiny.RData")
 
