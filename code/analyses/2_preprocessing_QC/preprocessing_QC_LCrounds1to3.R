@@ -79,7 +79,7 @@ ggplot(df, aes(x = x, y = y, color = sum < 100)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_sum"), ".png"), width = 12, height = 6.5)
 
 # detected genes
@@ -95,7 +95,7 @@ ggplot(df, aes(x = x, y = y, color = detected < 100)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".png"), width = 12, height = 6.5)
 
 # cell count
@@ -111,7 +111,7 @@ ggplot(df, aes(x = x, y = y, color = count > 10)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_count"), ".png"), width = 12, height = 6.5)
 
 # expression of TH
@@ -130,7 +130,7 @@ ggplot(df, aes(x = x, y = y, color = TH_expr)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_TH_expr"), ".png"), width = 12, height = 6.5)
 
 
@@ -147,7 +147,7 @@ ggplot(df, aes(x = x, y = y, color = TH_expr > 0)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_0"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_0"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_0"), ".png"), width = 12, height = 6.5)
 
 ggplot(df, aes(x = x, y = y, color = TH_expr > 1)) + 
@@ -162,7 +162,7 @@ ggplot(df, aes(x = x, y = y, color = TH_expr > 1)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_1"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_1"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_1"), ".png"), width = 12, height = 6.5)
 
 ggplot(df, aes(x = x, y = y, color = TH_expr > 2)) + 
@@ -177,7 +177,7 @@ ggplot(df, aes(x = x, y = y, color = TH_expr > 2)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
-ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_2"), ".pdf"), width = 12, height = 6.5)
+#ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_2"), ".pdf"), width = 12, height = 6.5)
 ggsave(paste0(here("plots", "QC", "QC_samples_TH_thresh_2"), ".png"), width = 12, height = 6.5)
 
 
@@ -238,7 +238,7 @@ for (s in seq_along(sample_ids)) {
   
   fn <- here("plots", "summary", sample_ids[s], 
              paste0(sample_ids[s], "_sum"))
-  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  #ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
   ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
   
@@ -258,7 +258,7 @@ for (s in seq_along(sample_ids)) {
   
   fn <- here("plots", "summary", sample_ids[s], 
              paste0(sample_ids[s], "_detected"))
-  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  #ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
   ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
   
@@ -278,7 +278,7 @@ for (s in seq_along(sample_ids)) {
   
   fn <- here("plots", "summary", sample_ids[s], 
              paste0(sample_ids[s], "_TH"))
-  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  #ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
   ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
   
@@ -298,7 +298,7 @@ for (s in seq_along(sample_ids)) {
   
   fn <- here("plots", "summary", sample_ids[s], 
              paste0(sample_ids[s], "_SNAP25"))
-  ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
+  #ggsave(paste0(fn, ".pdf"), plot = p, width = 5.25, height = 4)
   ggsave(paste0(fn, ".png"), plot = p, width = 5.25, height = 4)
   
 }
