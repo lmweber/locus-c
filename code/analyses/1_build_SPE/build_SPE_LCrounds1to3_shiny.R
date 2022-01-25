@@ -158,7 +158,7 @@ saveRDS(spe, fn_out)
 
 ## Spot info
 
-colData(spe)$key <- paste(colData(spe)$sample_id, colData(spe)$barcode, sep = "_")
+colData(spe)$key <- paste(colData(spe)$sample_id, rownames(colData(spe)), sep = "_")
 colData(spe)$sum_umi <- colSums(counts(spe))
 colData(spe)$sum_gene <- colSums(counts(spe) > 0)
 
