@@ -1,8 +1,10 @@
 ####################################################################
 # LC project
 # Script to build SpatialExperiment object (with info for Shiny app)
-# Lukas Weber, Dec 2021
+# Lukas Weber, Jan 2022
 ####################################################################
+
+# note: using SpatialExperiment version 1.5.2
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -119,11 +121,27 @@ for (i in seq_along(df_samples$sample_id)) {
 vistoseg_all <- do.call("rbind", list_vs)
 
 stopifnot(ncol(spe) == nrow(vistoseg_all))
-stopifnot(all(rownames(colData(spe)) == vistoseg_all$barcode))
+
+
+# check and ignore duplicated columns
+all(rownames(colData(spe)) == vistoseg_all$barcode)
+all(colData(spe)$in_tissue == as.logical(vistoseg_all$tissue))
+all(colData(spe)$array_row == vistoseg_all$row)
+all(colData(spe)$array_col == vistoseg_all$col)
+
+# some spatialCoords are off by one pixel, likely due to rounding
+# since the difference is a maximum of one pixel this is okay
+all(spatialCoords(spe)[, "pxl_row_in_fullres"] == vistoseg_all$imagerow)
+table(spatialCoords(spe)[, "pxl_row_in_fullres"] == vistoseg_all$imagerow)
+max(abs(spatialCoords(spe)[, "pxl_row_in_fullres"] - vistoseg_all$imagerow))
+
+all(spatialCoords(spe)[, "pxl_col_in_fullres"] == vistoseg_all$imagecol)
+table(spatialCoords(spe)[, "pxl_col_in_fullres"] == vistoseg_all$imagecol)
+max(abs(spatialCoords(spe)[, "pxl_col_in_fullres"] - vistoseg_all$imagecol))
+
 
 # store in SpatialExperiment object
-# note there is some redundancy with columns in spatialData but will leave this as a check
-colData(spe) <- cbind(colData(spe), vistoseg_all)
+colData(spe)$cell_count <- vistoseg_all$count
 
 
 # -----------
@@ -210,7 +228,7 @@ dim(spe)
 
 ## Spots over tissue
 ## Keep only spots over tissue
-spe <- spe[, spatialData(spe)$in_tissue]
+spe <- spe[, colData(spe)$in_tissue]
 dim(spe)
 
 
