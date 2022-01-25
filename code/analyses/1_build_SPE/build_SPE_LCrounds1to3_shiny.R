@@ -80,9 +80,6 @@ spe <- read10xVisium(
   load = TRUE
 )
 
-# update column names in spatialCoords
-# colnames(spatialCoords(spe)) <- c("x", "y")
-
 
 # -----------------------------------------
 # add additional sample metadata in colData
@@ -144,12 +141,12 @@ max(abs(spatialCoords(spe)[, "pxl_col_in_fullres"] - vistoseg_all$imagecol))
 colData(spe)$cell_count <- vistoseg_all$count
 
 
-# -----------
-# save object
-# -----------
+# ---------------
+# save raw object
+# ---------------
 
-# fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
-# saveRDS(spe, fn_out)
+fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
+saveRDS(spe, fn_out)
 
 
 # -----------------------------
@@ -247,6 +244,7 @@ colData(spe)$ManualAnnotation <- "NA"
 colData(spe)$TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
 colData(spe)$DBH <- counts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
 colData(spe)$SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
+colData(spe)$SLC6A4 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A4"), ]
 colData(spe)$SLC18A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), ]
 colData(spe)$DDC <- counts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
 colData(spe)$GCH1 <- counts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
@@ -321,6 +319,7 @@ assayNames(spe)
 colData(spe)$TH_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"), ]
 colData(spe)$DBH_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
 colData(spe)$SLC6A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
+colData(spe)$SLC6A4_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A4"), ]
 colData(spe)$SLC18A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), ]
 colData(spe)$DDC_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
 colData(spe)$GCH1_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
