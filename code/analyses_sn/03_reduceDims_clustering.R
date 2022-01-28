@@ -393,9 +393,12 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     
     
     ## Some marker expression ===
-    ne.markers <- c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1")
+    ne.markers <- c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
+                    "SLC6A3", "SLC6A4", "TPH1", "TPH2")
+                  # DAT, dopamine transporter; SERT, serotonin T (aka 5-HTT); 
     ne.markers <- rowData(sce.test)$gene_id[match(ne.markers, rowData(sce.test)$gene_name)]
-    names(ne.markers) <-  c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1")
+    names(ne.markers) <-  c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
+                            "SLC6A3", "SLC6A4", "TPH1", "TPH2")
     
     ## approx. GLMPCA>MNN - just use the multiBatchNorm logcounts from the fastMNN input:
     assay(sce.test.mnn, "logcounts") <- assay(sce.test, "logcounts")
@@ -497,10 +500,11 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     rownames(sce.neuron.mnn) <- rowData(sce.neuron.mnn)$gene_name
     
     pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers-NEneuron_GLMPCA-MNN-graphClusters.pdf")),
-        height=6, width=12)
+        height=10, width=12)
     plotExpressionCustom(sce = sce.neuron.mnn,
                          exprs_values = "logcounts",
                          features = names(markers.neurons),
+                         #features = c("SLC6A2", "SLC6A3", "SLC6A4", "TPH1", "TPH2"),
                          features_name = "",
                          anno_name = "clusters.glmcpcamnn",
                          ncol=2, point_alpha=0.4, scales="free_y") +  
@@ -558,8 +562,52 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     # 60        21         1        12
     
     # ====
+    
+    
+    ## Some non-neuronal markers:
+    markers.mathys.tran = list(
+      'neurons' = c('SYT1', 'SNAP25', 'GRIN1'),
+      'excitatory_neuron' = c('CAMK2A', 'NRGN','SLC17A7', 'SLC17A6', 'SLC17A8'),
+      'inhibitory_neuron' = c('GAD1', 'GAD2', 'SLC32A1'),
+      'oligodendrocyte' = c('MBP', 'MOBP', 'PLP1'),
+      'oligodendrocyte_precursor' = c('PDGFRA', 'VCAN', 'CSPG4'),
+      'microglia' = c('CD74', 'CSF1R', 'C3'),
+      'astrocytes' = c('GFAP', 'TNC', 'AQP4', 'SLC1A2'),
+      'endothelial' = c('CLDN5', 'FLT1', 'VTN'),
+      # MSN markers
+      'MSNs.pan' = c("PPP1R1B","BCL11B"),# "CTIP2")
+      'MSNs.D1' = c("DRD1", "PDYN", "TAC1"),
+      'MSNs.D2' = c("DRD2", "PENK"),
+      # Post-hoc from Tran-Maynard, et al. Neuron 2021
+      'differn_committed_OPC' = c("SOX4", "BCAN", "GPR17", "TNS3"),
+      'Tcell' = c('SKAP1', 'ITK', 'CD247'),
+      'Mural' = c('COL1A2', 'TBX18', 'RBPMS'),
+      'Macro' = c('CD163', 'SIGLEC1', 'F13A1')
+    )
 
-
+    ## And expression violin plots - subset those neuronal
+    sce.nonNeuron.mnn <- sce.test.mnn[ ,sce.test.mnn$SYT1=="nonNeuronal"]
+    sce.nonNeuron.mnn$clusters.glmcpcamnn <- droplevels(sce.nonNeuron.mnn$clusters.glmcpcamnn)
+    
+    # Change names of features so they're more interpretable
+    rownames(sce.nonNeuron.mnn) <- rowData(sce.nonNeuron.mnn)$gene_name
+    
+    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers-nonNeuronal_GLMPCA-MNN-graphClusters.pdf")),
+        height=6, width=12)
+    for(i in 1:length(markers.mathys.tran)){
+      print(
+        plotExpressionCustom(sce = sce.nonNeuron.mnn,
+                             exprs_values = "logcounts",
+                             features = markers.mathys.tran[[i]], 
+                             features_name = names(markers.mathys.tran)[[i]], 
+                             anno_name = "clusters.glmcpcamnn",
+                             ncol=2, point_alpha=0.4, point_size=0.9,
+                             scales="free_y") +  
+          theme(plot.title = element_text(size = 12),
+                axis.text.x = element_text(size=7))
+      )
+    }
+    dev.off()
 
 
 
