@@ -131,321 +131,103 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
 
   # Just perform on top 50 PCs, since for now we're assessing GLM PCA
   # [and then with MNN on reduced dims]
+  # MNT update 27Jan2022: Proceed with the GLM-PCA > MNN approach, based off of 1/13 project mtg
+  #                       -> Clean up approximate-only method & fastMNN comparisons
 
 
 ## Make some other reduced dims for visualization ===
-
-    ## Testing phase ====
-    sce.test <- sce.lc
+sce.test <- sce.lc
     
-    # Take top 50 PCs for both to quicken computation
-    reducedDim(sce.test, "glmpca_approx_50") <- reducedDim(sce.test, "GLMPCA_approx")[ ,1:50]
-    reducedDim(sce.test, "glmpca_mnn_50") <- reducedDim(sce.test, "GLMPCA_MNN")[ ,1:50]
-        # oh didn't have to use this - can just use 'n_dimred'
-    
-    ## Without MNN on GLMPCA ===
-    # UMAP
-    set.seed(109)
-    sce.test.approx <- runUMAP(sce.test, dimred="glmpca_approx_50",
-                               name="UMAP")
-    # t-SNE
-    set.seed(109)
-    sce.test.approx <- runTSNE(sce.test.approx, dimred="glmpca_approx_50",
-                               name="TSNE")
-    
-    # k-means clustering with k=13
-    #   (== average of Cell Ranger's sample-specific n graph-based clusters)
-    set.seed(109)
-    clust.kmeans <- clusterCells(sce.test.approx, use.dimred="glmpca_approx_50", 
-                                 BLUSPARAM=KmeansParam(centers=13))
-    table(clust.kmeans)
-        #   1    2    3    4    5    6    7    8    9   10   11   12   13 
-        # 196  843  635  173  656  261  194 1187  725 1234 4177 4442  919
-    sce.test.approx$kmeans.13 <- clust.kmeans
-    
-    ## WITH MNN on GLMPCA ===
-    # UMAP
-    set.seed(109)
-    sce.test.mnn <- runUMAP(sce.test, dimred="glmpca_mnn_50",
-                            name="UMAP")
-    # t-SNE
-    set.seed(109)
-    sce.test.mnn <- runTSNE(sce.test.mnn, dimred="glmpca_mnn_50",
-                            name="TSNE")
-    
-    # k-means (with k=13)
-    set.seed(109)
-    clust.kmeans <- clusterCells(sce.test.approx, use.dimred="glmpca_mnn_50", 
-                                 BLUSPARAM=KmeansParam(centers=13))
-    table(clust.kmeans)
-        #   1    2    3    4    5    6    7    8    9   10   11   12   13 
-        #1064  259  654 1674  637  268  190  121  973 1245  179 8103  275 
-    sce.test.mnn$kmeans.13 <- clust.kmeans
-
-    ## Add Tran-Maynard, et al. method (just use HDGs from above) =====
-        sce.test <- multiBatchNorm(sce.test, batch=sce.test$Sample)
-        set.seed(109)
-        mnn.hold <-  fastMNN(sce.test, batch=as.factor(sce.test$Sample),
-                             merge.order=c("Br8079_LC", "Br2701_LC", "Br6522_LC"),
-                             subset.row=hdgs.lc, d=100,
-                             correct.all=TRUE, get.variance=TRUE,
-                             BSPARAM=BiocSingular::IrlbaParam())
-
-        table(colnames(mnn.hold) == colnames(sce.test))  # all TRUE
-        table(mnn.hold$batch == sce.test$Sample) # all TRUE
-        
-        # Add them to the SCE
-        reducedDim(sce.test, "PCA_corrected") <- reducedDim(mnn.hold, "corrected") # 100 components
-        metadata(sce.test) <- metadata(mnn.hold)
-        
-        # UMAP
-        set.seed(109)
-        sce.test <- runUMAP(sce.test, dimred="PCA_corrected",
-                            n_dimred=50, name="UMAP")
-        # t-SNE
-        set.seed(109)
-        sce.test <- runTSNE(sce.test, dimred="PCA_corrected",
-                                   n_dimred=50, name="TSNE")
-        
-        # k-means (with k=13)
-        reducedDim(sce.test, "PCA_corrected_50") <- reducedDim(sce.test, "PCA_corrected")[ ,1:50]
-        set.seed(109)
-        clust.kmeans <- clusterCells(sce.test, use.dimred="PCA_corrected_50",
-                                     BLUSPARAM=KmeansParam(centers=13))
-        table(clust.kmeans)
-            #   1    2    3    4    5    6    7    8    9   10   11   12   13 
-            #2713  246  647  580  600  598  522 2091 4305  701  935 1292  412
-        sce.test$kmeans.13 <- clust.kmeans
-                
-        # end added Tran-Maynard et al. chunk ====
-
-    
-    ## How do these look?
-    pdf(here("plots","snRNA-seq","LC-n3_reducedDims_GLMPCA_reducedMNN-test.pdf"), height=5, width=5)
-        ## TSNE
-        plotReducedDim(sce.test.approx, dimred="TSNE", colour_by="Sample",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle("t-SNE on GLMPCA (top 50)")
-        plotReducedDim(sce.test.mnn, dimred="TSNE", colour_by="Sample",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle("t-SNE on GLMPCA-MNN (top 50)")
-        # Tran-Maynard
-        plotReducedDim(sce.test, dimred="TSNE", colour_by="Sample",
-                       point_alpha=0.2, point_size=0.8) +
-            ggtitle("t-SNE on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
-        
-        ## UMAP
-        plotReducedDim(sce.test.approx, dimred="UMAP", colour_by="Sample",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle("UMAP on GLMPCA (top 50)")
-        
-        plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="Sample",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle("UMAP on GLMPCA-MNN (top 50)")
-        # Tran-Maynard
-        plotReducedDim(sce.test, dimred="UMAP", colour_by="Sample",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle("UMAP on fastMNN-corrected (top 50) PCs\nfrom log-norm. counts")
-        
-    dev.off()
-    
-    
-    ## A more full version with clusters and other metrics
-    list.sces <- list(GLMPCA_approx = sce.test.approx,
-                      GLMPCA_MNN = sce.test.mnn,
-                      fastMNN = sce.test)
-    
-    for (i in names(list.sces)){
-            # For some reason this is creating broken pdfs - just do manually (e.g. `i <- names(list.sces)[1]`)
-        pdf(here("plots","snRNA-seq",paste0("LC-n3_reducedDims_",i,"_kmeans13.pdf")), height=5, width=5)
-        ## TSNE
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="Sample",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="kmeans.13",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="detected",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="doubletScore",
-                       point_alpha=0.3, point_size=0.8) +
-            ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        
-        ## UMAP
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="Sample",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="kmeans.13",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="detected",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="doubletScore",
-                       point_alpha=0.2, point_size=1.5) +
-            ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        dev.off()
-    }
-    
-    
-    
-    
-    ## Save these various test iterations for further exploration
-    save(sce.test, sce.test.approx, sce.test.mnn, hdgs.lc,
-         file=here("processed_data","SCE", "sce_reducedDim-tests_LC.rda"))
-    
-    ### END TESTING ========
+# Take top 50 PCs to quicken computation
+reducedDim(sce.test, "glmpca_mnn_50") <- reducedDim(sce.test, "GLMPCA_MNN")[ ,1:50]
+    # oh didn't have to use this - can just use 'n_dimred'
 
 
-### Clustering step 1: Perform graph-based clustering in this optimal PC space ===
-  #                  - take k=20 NN to build graph
+# UMAP
+set.seed(109)
+sce.test.mnn <- runUMAP(sce.test, dimred="glmpca_mnn_50",
+                        name="UMAP")
+# t-SNE
+set.seed(109)
+sce.test.mnn <- runTSNE(sce.test.mnn, dimred="glmpca_mnn_50",
+                        name="TSNE")
 
-## Testing phase ====
-    snn.gr.glmpcamnn <- buildSNNGraph(sce.test, k=20, use.dimred="glmpca_mnn_50")
-    clusters.glmpcamnn <- igraph::cluster_walktrap(snn.gr.glmpcamnn)
-    table(clusters.glmpcamnn$membership)
-        ## 60 prelim clusters:
-    
-        #   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18 
-        #2301   99  178  474 2560  179  189  182   73  151   69  119  114  439 3080   65  271  219 
-        #  19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36 
-        # 183  123  109 1140  127  237   66   59  159   80  108  137   47   64  104  173  148  162 
-        #  37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   53   54 
-        #  61   57  255   36  113   33   31   53   53   30  137   64   89   31   32   75   95  137 
-        #  55   56   57   58   59   60 
-        #  39   50   49   46   54   34 
-    
-    snn.gr.fastmnn <- buildSNNGraph(sce.test, k=20, use.dimred="PCA_corrected_50")
-    clusters.fastmnn <- igraph::cluster_walktrap(snn.gr.fastmnn)
-    table(clusters.fastmnn$membership)
-        # 55 prelim clusters:
-        #   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18 
-        # 134  172 2383 2405  572 2304  107  366  177  123  102  489  591  144  143  127  134   87 
-        #  19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36 
-        # 220  511   97   46   80   86   47   99   85  211   70   83   57   96  102  152  103   69 
-        #  37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   53   54 
-        # 178  148  167  201   68 1298   50   38   47   54  128  125   72   53   27   36   28   50 
-        #  55 
-        # 100 
-    
-    options(width=120)
-    print(tail(table(fastMNN = clusters.fastmnn$membership, glmpca_MNN = clusters.glmpcamnn$membership)[ ,45:60],
-               n=30), zero.print=".")
-        # Decently similar/concordant
-    pairwiseRand(sce.test$clusters.glmcpcamnn, sce.test$clusters.fastmnn, mode="index")
-        #[1] 0.4555515
-      
+# For logcounts
+sce.test <- multiBatchNorm(sce.test, batch=sce.test$Sample)
 
-    # Store both ('sce.test' has the TSNE/UMAP from fastMNN approach)
-    sce.test.mnn$clusters.glmcpcamnn <- factor(clusters.glmpcamnn$membership)
-    sce.test.mnn$clusters.fastmnn <- factor(clusters.fastmnn$membership)
-    
-    sce.test$clusters.glmcpcamnn <- factor(clusters.glmpcamnn$membership)
-    sce.test$clusters.fastmnn <- factor(clusters.fastmnn$membership)
-    
-    # Print
-    list.sces <- list(clusters.glmcpcamnn = sce.test.mnn,
-                      clusters.fastmnn = sce.test)
-    
-    for (i in names(list.sces)){
-      # For some reason this is creating broken pdfs - just do manually (e.g. `i <- names(list.sces)[1]`)
-      pdf(here("plots","snRNA-seq",paste0("LC-n3_reducedDims_",i,"_graphClusters.pdf")), height=5, width=5)
-        ## UMAP
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="Sample",
-                       point_alpha=0.2, point_size=1.2) +
-          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by=i,
-                       point_alpha=0.2, point_size=1.2,
-                       text_by=i, text_size=2) +
-          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="detected",
-                       point_alpha=0.2, point_size=1.2) +
-          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="UMAP", colour_by="doubletScore",
-                       point_alpha=0.2, point_size=1.2) +
-          ggtitle(paste0("UMAP on ", i, " (top 50 PCs)"))
-        
-        ## TSNE
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="Sample",
-                       point_alpha=0.3, point_size=0.8) +
-          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by=i,
-                       point_alpha=0.3, point_size=0.8,
-                       text_by=i, text_size=2) +
-          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="detected",
-                       point_alpha=0.3, point_size=0.8) +
-          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-        plotReducedDim(list.sces[[i]], dimred="TSNE", colour_by="doubletScore",
-                       point_alpha=0.3, point_size=0.8) +
-          ggtitle(paste0("t-SNE on ", i, " (top 50 PCs)"))
-      
-      dev.off()
-    }
+
+## Save these various test iterations for further exploration
+save(sce.test, sce.test.approx, sce.test.mnn, hdgs.lc,
+     file=here("processed_data","SCE", "sce_reducedDim-tests_LC.rda"))
     
 
-    ## Save these various test iterations for further exploration
-    save(sce.test, sce.test.approx, sce.test.mnn, hdgs.lc,
-         file=here("processed_data","SCE", "sce_reducedDim-tests_LC.rda"))
 
-    
-    
-    
-    ## Some marker expression ===
-    ne.markers <- c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
-                    "SLC6A3", "SLC6A4", "TPH1", "TPH2")
-                  # DAT, dopamine transporter; SERT, serotonin T (aka 5-HTT); 
-    ne.markers <- rowData(sce.test)$gene_id[match(ne.markers, rowData(sce.test)$gene_name)]
-    names(ne.markers) <-  c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
-                            "SLC6A3", "SLC6A4", "TPH1", "TPH2")
-    
-    ## approx. GLMPCA>MNN - just use the multiBatchNorm logcounts from the fastMNN input:
-    assay(sce.test.mnn, "logcounts") <- assay(sce.test, "logcounts")
-    
-    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_GLMPCA-MNN_UMAP-graphClusters.pdf")), height=5, width=5)
-    for(i in 1:length(ne.markers)){
-      print(
-        plotReducedDim(sce.test.mnn, dimred="UMAP",
-                       colour_by=ne.markers[i], by_exprs_values="logcounts",
-                       point_alpha=0.2, point_size=1.2, theme_size=7) +
-          ggtitle(paste0("Clustering on approx. GLM-PCA-MNN PCs \nLog counts for ", ne.markers[i],": ",names(ne.markers)[i]))
-      )
-    }
-    dev.off()
-    
-    ## fastMNN
-    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_fastMNN-UMAP-graphClusters.pdf")), height=5, width=5)
-    for(i in 1:length(ne.markers)){
-      print(
-        plotReducedDim(sce.test, dimred="UMAP",
-                       colour_by=ne.markers[i], by_exprs_values="logcounts",
-                       point_alpha=0.2, point_size=1.2, theme_size=7) +
-          ggtitle(paste0("Clustering on fastMNN PCs \nLog counts for ", ne.markers[i],": ",names(ne.markers)[i]))
-            )
-      }
-    dev.off()
-    
-    ## doubletScore distributions?
-    cellClust.idx <- splitit(sce.test$clusters.glmcpcamnn)
-    sapply(cellClust.idx, function(x){quantile(sce.test$doubletScore[x])})
-    
-    ## For sake of filtering, compute some median expression info across graph-based clusters
-    medianNon0.lc <- lapply(cellClust.idx, function(x){
-      apply(as.matrix(assay(sce.test, "logcounts")), 1, function(y){
-        median(y[x]) > 0
-      })
-    })
-    
-    head(medianNon0.lc[[1]])
-        # Good it kept the gene names
-    
-    # Save for future reference
-    medianNon0.glmpcamnn <- medianNon0.lc
-    save(medianNon0.glmpcamnn, file=here("processed_data","SCE", "medianNon0_Booleans_glmpcamnn-graphClusters.rda"))
-    
+### Clustering (step 1?): Perform graph-based clustering in this optimal PC space ===
+  #                    - take k=20 NN to build graph
+
+snn.gr.glmpcamnn <- buildSNNGraph(sce.test.mnn, k=20, use.dimred="glmpca_mnn_50")
+clusters.glmpcamnn <- igraph::cluster_walktrap(snn.gr.glmpcamnn)
+table(clusters.glmpcamnn$membership)
+    ## 60 prelim clusters:
+
+    #   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18 
+    #2301   99  178  474 2560  179  189  182   73  151   69  119  114  439 3080   65  271  219 
+    #  19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36 
+    # 183  123  109 1140  127  237   66   59  159   80  108  137   47   64  104  173  148  162 
+    #  37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   53   54 
+    #  61   57  255   36  113   33   31   53   53   30  137   64   89   31   32   75   95  137 
+    #  55   56   57   58   59   60 
+    #  39   50   49   46   54   34 
+
+
+
+## Some marker expression ===
+ne.markers <- c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
+                "SLC6A3", "SLC6A4", "TPH1", "TPH2")
+              # DAT, dopamine transporter; SERT, serotonin T (aka 5-HTT); 
+                                    # TPH1/2 catalyze the first step in converting tryptophan > 5-HT
+ne.markers <- rowData(sce.test.mnn)$gene_id[match(ne.markers, rowData(sce.test.mnn)$gene_name)]
+names(ne.markers) <-  c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
+                        "SLC6A3", "SLC6A4", "TPH1", "TPH2")
+
+## approx. GLMPCA>MNN - just use the multiBatchNorm logcounts from the fastMNN input:
+assay(sce.test.mnn, "logcounts") <- assay(sce.test, "logcounts")
+
+# Exploratory:
+    # pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_GLMPCA-MNN_UMAP-graphClusters.pdf")), height=5, width=5)
+    # for(i in 1:length(ne.markers)){
+    #   print(
+    #     plotReducedDim(sce.test.mnn, dimred="UMAP",
+    #                    colour_by=ne.markers[i], by_exprs_values="logcounts",
+    #                    point_alpha=0.2, point_size=1.2, theme_size=7) +
+    #       ggtitle(paste0("Clustering on approx. GLM-PCA-MNN PCs \nLog counts for ", ne.markers[i],": ",names(ne.markers)[i]))
+    #   )
+    # }
+    # dev.off()
+
+
+## doubletScore distributions?
+cellClust.idx <- splitit(sce.test.mnn$clusters.glmcpcamnn)
+sapply(cellClust.idx, function(x){quantile(sce.test.mnn$doubletScore[x])})
+
+## For sake of filtering, compute some median expression info across graph-based clusters
+medianNon0.lc <- lapply(cellClust.idx, function(x){
+  apply(as.matrix(assay(sce.test, "logcounts")), 1, function(y){
+    median(y[x]) > 0
+  })
+})
+
+head(medianNon0.lc[[1]])
+    # Good it kept the gene names
+
+# Save for future reference
+medianNon0.glmpcamnn <- medianNon0.lc
+save(medianNon0.glmpcamnn, file=here("processed_data","SCE", "medianNon0_Booleans_glmpcamnn-graphClusters.rda"))
+
+
+# With so many clusters, can we predict neuron vs non-neuronal by marker genes?
     markers.neurons <- c("SYT1", "SLC17A7", "SLC17A6","GAD2")
-    markers.neurons <- rowData(sce.test)$gene_id[match(markers.neurons, rowData(sce.test)$gene_name)]
+    markers.neurons <- rowData(sce.test.mnn)$gene_id[match(markers.neurons, rowData(sce.test.mnn)$gene_name)]
     names(markers.neurons) <- c("SYT1", "SLC17A7", "SLC17A6","GAD2")
     
     sapply(medianNon0.glmpcamnn, function(x){
@@ -455,10 +237,9 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     neuron.clusters <- which(sapply(medianNon0.glmpcamnn, function(x){ x[markers.neurons["SYT1"]] == TRUE }))
         # So actually 41/60 clusters
     
-    table(sce.test$clusters.glmcpcamnn %in% neuron.clusters)["TRUE"] / ncol(sce.test) # 0.8554533
+    table(sce.test.mnn$clusters.glmcpcamnn %in% neuron.clusters)["TRUE"] / ncol(sce.test.mnn) # 0.8554533
          # Looks like ~86% of these nuclei are putatively neuronal
     
-    sce.test$SYT1 <- ifelse(sce.test$clusters.glmcpcamnn %in% neuron.clusters, "neuronal", "nonNeuronal")
     sce.test.mnn$SYT1 <- ifelse(sce.test.mnn$clusters.glmcpcamnn %in% neuron.clusters, "neuronal", "nonNeuronal")
     
     
@@ -610,9 +391,18 @@ save(sce.lc, file=here("processed_data","SCE", "sce_working_LC.rda"))
     dev.off()
 
 
+# MNT 27Jan2022 add: once happy, clean up:
+sce.lc <- sce.test.mnn
+sce.lc$kmeans.13 <- NULL
+sce.lc$clusters.fastmnn <- NULL
+# Reduced dims
+reducedDim(sce.lc, "glmpca_approx_50") <- NULL
+# Not sure why had to re-name to something longer - change back:
+medianNon0.lc <- medianNon0.glmpcamnn
 
-
-
+# Then save
+save(sce.lc, medianNon0.lc, hdgs.lc,
+     file=here("processed_data","SCE", "sce_updated_LC.rda"))
 
 
 
