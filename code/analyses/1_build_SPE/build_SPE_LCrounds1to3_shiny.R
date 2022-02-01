@@ -80,6 +80,9 @@ spe <- read10xVisium(
   load = TRUE
 )
 
+# rename columns of spatial coordinates
+colnames(spatialCoords(spe)) <- c("x", "y")
+
 
 # -----------------------------------------
 # add additional sample metadata in colData
@@ -128,13 +131,13 @@ all(colData(spe)$array_col == vistoseg_all$col)
 
 # some spatialCoords are off by one pixel, likely due to rounding
 # since the difference is a maximum of one pixel this is okay
-all(spatialCoords(spe)[, "pxl_row_in_fullres"] == vistoseg_all$imagerow)
-table(spatialCoords(spe)[, "pxl_row_in_fullres"] == vistoseg_all$imagerow)
-max(abs(spatialCoords(spe)[, "pxl_row_in_fullres"] - vistoseg_all$imagerow))
+all(spatialCoords(spe)[, "y"] == vistoseg_all$imagerow)
+table(spatialCoords(spe)[, "y"] == vistoseg_all$imagerow)
+max(abs(spatialCoords(spe)[, "y"] - vistoseg_all$imagerow))
 
-all(spatialCoords(spe)[, "pxl_col_in_fullres"] == vistoseg_all$imagecol)
-table(spatialCoords(spe)[, "pxl_col_in_fullres"] == vistoseg_all$imagecol)
-max(abs(spatialCoords(spe)[, "pxl_col_in_fullres"] - vistoseg_all$imagecol))
+all(spatialCoords(spe)[, "x"] == vistoseg_all$imagecol)
+table(spatialCoords(spe)[, "x"] == vistoseg_all$imagecol)
+max(abs(spatialCoords(spe)[, "x"] - vistoseg_all$imagecol))
 
 
 # store in SpatialExperiment object
