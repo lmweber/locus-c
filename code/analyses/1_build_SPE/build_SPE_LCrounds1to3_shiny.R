@@ -46,7 +46,7 @@ paths_spaceranger <- here(
 )
 
 paths_vistoseg <- here(
-  "processed_data", 
+  "inputs", 
   "VistoSeg", 
   c(rep("round1", n_round1), 
     rep("round2", n_round2), 
