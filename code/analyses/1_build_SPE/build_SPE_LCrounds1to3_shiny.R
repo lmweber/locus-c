@@ -17,19 +17,23 @@ library(SpatialExperiment)
 library(here)
 
 
-# ---------------
-# set up metadata
-# ---------------
+# -------------------
+# experiment metadata
+# -------------------
 
-n_round1 <- 2
-n_round2 <- 3
-n_round3 <- 4
+# sample IDs, additional sample info, paths to input files, other metadata
 
+# sample IDs
 sample_ids <- c(
   "Br6522_LC_1_round1", "Br6522_LC_2_round1", 
   "Br8153_LC_round2", "Br5459_LC_round2", "Br2701_LC_round2", 
   "Br6522_LC_round3", "Br8079_LC_round3", "Br2701_LC_round3", "Br8153_LC_round3"
 )
+
+# number of samples per round
+n_round1 <- 2
+n_round2 <- 3
+n_round3 <- 4
 
 rounds <- c(
   rep("round1", n_round1), 
@@ -37,6 +41,7 @@ rounds <- c(
   rep("round3", n_round3)
 )
 
+# paths to Space Ranger input files
 paths_spaceranger <- here(
   "processed_data", 
   "spaceranger", 
@@ -45,6 +50,7 @@ paths_spaceranger <- here(
     rep("KMay_2021-07-09", n_round3))
 )
 
+# paths to VistoSeg input files (number of cells per spot)
 paths_vistoseg <- here(
   "inputs", 
   "VistoSeg", 
@@ -53,13 +59,35 @@ paths_vistoseg <- here(
     rep("round3", n_round3))
 )
 
+# number and names of parts per sample
+part_ids <- list(
+  Br6522_LC_1_round1 = "single", 
+  Br6522_LC_2_round1 = "single", 
+  Br8153_LC_round2 = c("left", "right"), 
+  Br5459_LC_round2 = c("left", "right"), 
+  Br2701_LC_round2 = c("top", "bottom"), 
+  Br6522_LC_round3 = c("lefttop", "leftbottom", "right"), 
+  Br8079_LC_round3 = c("left", "right"), 
+  Br2701_LC_round3 = c("left", "right"), 
+  Br8153_LC_round3 = c("left", "right")
+)
+
+n_parts <- unname(sapply(part_ids, length))
+
+
 stopifnot(length(sample_ids) == length(rounds))
 stopifnot(length(sample_ids) == length(paths_spaceranger))
 stopifnot(length(sample_ids) == length(paths_vistoseg))
+stopifnot(length(sample_ids) == length(part_ids))
+stopifnot(all(sample_ids == names(part_ids)))
+stopifnot(length(sample_ids) == length(n_parts))
 
+
+# combined data frame
 df_samples <- data.frame(
   sample_id = sample_ids, 
   round_id = rounds, 
+  n_parts = n_parts, 
   path_spaceranger = paths_spaceranger, 
   path_vistoseg = paths_vistoseg
 )
@@ -84,22 +112,30 @@ spe <- read10xVisium(
 colnames(spatialCoords(spe)) <- c("x", "y")
 
 
-# -----------------------------------------
-# add additional sample metadata in colData
-# -----------------------------------------
+# -------------------------------------
+# add additional sample info in colData
+# -------------------------------------
 
-# number of spots per sample (with samples in correct order)
+# round IDs
+
+# get number of spots per sample (with samples in correct order)
 n_spots <- table(colData(spe)$sample_id)[sample_ids]
 n_spots
-
 stopifnot(length(rounds) == length(n_spots))
 
-# round IDs for each spot
+# repeat round IDs for each spot
 rep_rounds <- rep(rounds, times = n_spots)
-
 stopifnot(length(rep_rounds) == ncol(spe))
 
 colData(spe)$round_id <- rep_rounds
+
+
+# key IDs (unique combination of sample IDs and barcode IDs)
+
+key_ids <- paste(colData(spe)$sample_id, rownames(colData(spe)), sep = "_")
+
+colData(spe)$key_id <- key_ids
+rownames(colData(spe)) <- key_ids
 
 
 # -------------------------------
@@ -140,8 +176,43 @@ table(spatialCoords(spe)[, "x"] == vistoseg_all$imagecol)
 max(abs(spatialCoords(spe)[, "x"] - vistoseg_all$imagecol))
 
 
-# store in SpatialExperiment object
+# store in SPE object
 colData(spe)$cell_count <- vistoseg_all$count
+
+
+# ---------------------------------
+# add manual annotations in colData
+# ---------------------------------
+
+# load .csv files containing manual annotations and stack into one column for 
+# region-level annotations and one column for spot-level annotations
+
+dir_annot <- here("inputs", "annotations")
+
+colData(spe)$annot_region <- as.logical(NA)
+colData(spe)$annot_spot <- as.logical(NA)
+
+for (i in seq_along(part_ids)) {
+  # samples with a single part
+  if (n_parts[i] == 1) {
+    df <- read.csv(file.path(dir_annot, sample_ids[i], 
+                             paste0(sample_ids[i], "_lasso_spots.csv")))
+    # check that annotation names are as expected, i.e. sample_name_lasso and 
+    # sample_name_lasso_spots (check this manually for each sample)
+    table(df$ManualAnnotation)
+    # drop NAs
+    df <- df[!is.na(df$ManualAnnotation), ]
+    # store key IDs in rownames
+    rownames(df) <- paste(df$sample_id, df$spot_name, sep = "_")
+    # get key IDs and store annotations in colData columns
+    # combined region
+    keys_region <- rownames(df)[!is.na(df$ManualAnnotation)]
+    colData(spe)[keys_region, "annot_region"] <- TRUE
+    # individual spots
+    keys_spot <- rownames(df)[df$ManualAnnotation == paste0(sample_ids[i], "_lasso_spots")]
+    colData(spe)[keys_spot, "annot_spot"] <- TRUE
+  }
+}
 
 
 # ---------------
