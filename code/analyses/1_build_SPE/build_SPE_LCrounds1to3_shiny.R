@@ -73,7 +73,7 @@ files_annot <- list(
   Br2701_LC_round3 = c(here("inputs", "annotations", "Br2701_LC_round3", "Br2701_LC_round3_left_lasso_spots.csv"), 
                        here("inputs", "annotations", "Br2701_LC_round3", "Br2701_LC_round3_right_lasso_spots.csv")), 
   Br8153_LC_round3 = c(here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"), 
-                       here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"))
+                       here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_right_lasso_spots.csv"))
 )
 
 # number of parts per sample
