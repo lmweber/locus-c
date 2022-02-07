@@ -42,45 +42,50 @@ rounds <- c(
 )
 
 # paths to Space Ranger input files
-paths_spaceranger <- here(
-  "processed_data", 
-  "spaceranger", 
+paths_spaceranger <- here("processed_data", "spaceranger", 
   c(rep("NextSeqMiSeq", n_round1), 
     rep("Linda_2021-05-21", n_round2), 
     rep("KMay_2021-07-09", n_round3))
 )
 
 # paths to VistoSeg input files (number of cells per spot)
-paths_vistoseg <- here(
-  "inputs", 
-  "VistoSeg", 
+paths_vistoseg <- here("inputs", "VistoSeg", 
   c(rep("round1", n_round1), 
     rep("round2", n_round2), 
     rep("round3", n_round3))
 )
 
-# number and names of parts per sample
-part_ids <- list(
-  Br6522_LC_1_round1 = "single", 
-  Br6522_LC_2_round1 = "single", 
-  Br8153_LC_round2 = c("left", "right"), 
-  Br5459_LC_round2 = c("left", "right"), 
-  Br2701_LC_round2 = c("top", "bottom"), 
-  Br6522_LC_round3 = c("lefttop", "leftbottom", "right"), 
-  Br8079_LC_round3 = c("left", "right"), 
-  Br2701_LC_round3 = c("left", "right"), 
-  Br8153_LC_round3 = c("left", "right")
+# paths and filenames for manual annotation files
+# note: multiple files per sample for samples containing multiple parts
+files_annot <- list(
+  Br6522_LC_1_round1 = here("inputs", "annotations", "Br6522_LC_1_round1", "Br6522_LC_1_round1_lasso_spots.csv"), 
+  Br6522_LC_2_round1 = here("inputs", "annotations", "Br6522_LC_2_round1", "Br6522_LC_2_round1_lasso_spots.csv"), 
+  Br8153_LC_round2 = c(here("inputs", "annotations", "Br8153_LC_round2", "Br8153_LC_round2_left_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br8153_LC_round2", "Br8153_LC_round2_right_lasso_spots.csv")), 
+  Br5459_LC_round2 = c(here("inputs", "annotations", "Br5459_LC_round2", "Br5459_LC_round2_left_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br5459_LC_round2", "Br5459_LC_round2_right_lasso_spots.csv")), 
+  Br2701_LC_round2 = c(here("inputs", "annotations", "Br2701_LC_round2", "Br2701_LC_round2_top_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br2701_LC_round2", "Br2701_LC_round2_bottom_lasso_spots.csv")), 
+  Br6522_LC_round3 = c(here("inputs", "annotations", "Br6522_LC_round3", "Br6522_LC_round3_left_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br6522_LC_round3", "Br6522_LC_round3_right_lasso_spots.csv")), 
+  Br8079_LC_round3 = c(here("inputs", "annotations", "Br8079_LC_round3", "Br8079_LC_round3_left_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br8079_LC_round3", "Br8079_LC_round3_right_lasso_spots.csv")), 
+  Br2701_LC_round3 = c(here("inputs", "annotations", "Br2701_LC_round3", "Br2701_LC_round3_left_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br2701_LC_round3", "Br2701_LC_round3_right_lasso_spots.csv")), 
+  Br8153_LC_round3 = c(here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"), 
+                       here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"))
 )
 
-n_parts <- unname(sapply(part_ids, length))
+# number of parts per sample
+n_parts <- unname(sapply(files_annot, length))
 
 
 stopifnot(length(sample_ids) == length(rounds))
 stopifnot(length(sample_ids) == length(paths_spaceranger))
 stopifnot(length(sample_ids) == length(paths_vistoseg))
-stopifnot(length(sample_ids) == length(part_ids))
-stopifnot(all(sample_ids == names(part_ids)))
+stopifnot(length(sample_ids) == length(files_annot))
 stopifnot(length(sample_ids) == length(n_parts))
+stopifnot(all(sample_ids == names(files_annot)))
 
 
 # combined data frame
