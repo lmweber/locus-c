@@ -72,8 +72,7 @@ files_annot <- list(
                        here("inputs", "annotations", "Br8079_LC_round3", "Br8079_LC_round3_right_lasso_spots.csv")), 
   Br2701_LC_round3 = c(here("inputs", "annotations", "Br2701_LC_round3", "Br2701_LC_round3_left_lasso_spots.csv"), 
                        here("inputs", "annotations", "Br2701_LC_round3", "Br2701_LC_round3_right_lasso_spots.csv")), 
-  Br8153_LC_round3 = c(here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"), 
-                       here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_right_lasso_spots.csv"))
+  Br8153_LC_round3 = c(here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"))
 )
 
 # part IDs per sample
@@ -86,7 +85,7 @@ part_ids <- list(
   Br6522_LC_round3 = c("left", "right"), 
   Br8079_LC_round3 = c("left", "right"), 
   Br2701_LC_round3 = c("left", "right"), 
-  Br8153_LC_round3 = c("left", "right")
+  Br8153_LC_round3 = "left"
 )
 
 # number of parts per sample
@@ -210,55 +209,34 @@ colData(spe)$cell_count <- vistoseg_all$count
 # - one column identifying parts of sample
 
 colData(spe)$annot_region <- as.logical(NA)
-colData(spe)$annot_spot <- as.logical(NA)
 colData(spe)$part_id <- as.character(NA)
+colData(spe)$annot_spot <- as.logical(NA)
 
+# loop over samples
 for (i in seq_along(files_annot)) {
-  # samples with a single part
-  if (n_parts[i] == 1) {
-    fn <- files_annot[[i]]
-    df <- read.csv(fn)
+  fns <- files_annot[[i]]
+  # loop over parts per sample
+  for (k in seq_along(fns)) {
+    df <- read.csv(fns[k])
     # check that annotation names are as expected, i.e. sample_name_lasso and 
     # sample_name_lasso_spots (check this manually for each sample)
-    table(df$ManualAnnotation)
+    print(table(df$ManualAnnotation))
     # drop NAs
     df <- df[!is.na(df$ManualAnnotation), ]
+    print(dim(df))
     # store key IDs in rownames
     rownames(df) <- paste(df$sample_id, df$spot_name, sep = "_")
     # get key IDs and store annotations in colData columns
     # combined region(s)
-    keys_region <- rownames(df)[!is.na(df$ManualAnnotation)]
+    keys_region <- rownames(df)[grepl("lasso", df$ManualAnnotation)]
+    print(length(keys_region))
     colData(spe)[keys_region, "annot_region"] <- TRUE
     # part IDs
-    colData(spe)[keys_region, "part_id"] <- "single"
+    colData(spe)[keys_region, "part_id"] <- part_ids[[i]][k]
     # individual spots
-    keys_spot <- rownames(df)[df$ManualAnnotation == paste0(sample_ids[i], "_lasso_spots")]
+    keys_spot <- rownames(df)[grepl("spot", df$ManualAnnotation)]
+    print(length(keys_spot))
     colData(spe)[keys_spot, "annot_spot"] <- TRUE
-  }
-  
-  # samples with multiple parts
-  if (n_parts[i] > 1) {
-    fns <- files_annot[[i]]
-    # load file for each part
-    for (i in seq_along(fns)) {
-      df <- read.csv(fns[k])
-      # check that annotation names are as expected, i.e. sample_name_lasso and 
-      # sample_name_lasso_spots (check this manually for each sample)
-      table(df$ManualAnnotation)
-      # drop NAs
-      df <- df[!is.na(df$ManualAnnotation), ]
-      # store key IDs in rownames
-      rownames(df) <- paste(df$sample_id, df$spot_name, sep = "_")
-      # get key IDs and store annotations in colData columns
-      # combined region(s)
-      keys_region <- rownames(df)[!is.na(df$ManualAnnotation)]
-      colData(spe)[keys_region, "annot_region"] <- TRUE
-      # part IDs
-      colData(spe)[keys_region, "part_id"] <- part_ids[[i]][k]
-      # individual spots
-      keys_spot <- rownames(df)[df$ManualAnnotation == paste0(sample_ids[i], "_lasso_spots")]
-      colData(spe)[keys_spot, "annot_spot"] <- TRUE
-    }
   }
 }
 
