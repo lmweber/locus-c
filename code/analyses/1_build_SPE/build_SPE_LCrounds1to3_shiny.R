@@ -165,7 +165,7 @@ stopifnot(ncol(spe) == nrow(vistoseg_all))
 
 
 # check and ignore duplicated columns
-all(rownames(colData(spe)) == vistoseg_all$barcode)
+all(gsub("^.*_", "", rownames(colData(spe))) == vistoseg_all$barcode)
 all(colData(spe)$in_tissue == as.logical(vistoseg_all$tissue))
 all(colData(spe)$array_row == vistoseg_all$row)
 all(colData(spe)$array_col == vistoseg_all$col)
