@@ -153,7 +153,7 @@ list_vs <- as.list(rep(NA, length(df_samples$sample_id)))
 for (i in seq_along(df_samples$sample_id)) {
   fn <- file.path(df_samples$path_vistoseg[i], df_samples$sample_id[i], "tissue_spot_counts.csv")
   spot_counts <- read.csv(fn)
-  barcodes_ord <- rownames(colData(spe[, colData(spe)$sample_id == df_samples$sample_id[i]]))
+  barcodes_ord <- gsub("^.*_", "", rownames(colData(spe[, colData(spe)$sample_id == df_samples$sample_id[i]])))
   spot_counts_ord <- spot_counts[match(barcodes_ord, spot_counts$barcode), ]
   rownames(spot_counts_ord) <- NULL
   list_vs[[i]] <- spot_counts_ord
