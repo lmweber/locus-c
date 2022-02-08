@@ -396,3 +396,83 @@ ggplot(df_sub, aes(x = cell_count)) +
 fn <- here("plots", "annot", "ncells_annot_spot")
 ggsave(paste0(fn, ".png"), width = 7, height = 5.25)
 
+
+# --------------------------------------------
+# summary plots for NE neurons and 5HT neurons
+# --------------------------------------------
+
+# expression plots for some key markers identifying NE neurons and 5HT neurons
+
+# using logcounts
+fn_spe <- here("processed_data", "SPE", "LCrounds1to3_SPE_shiny.rds")
+spe <- readRDS(fn_spe)
+
+colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
+
+ix_TH <- which(toupper(rowData(spe)$gene_name) == "TH")
+ix_SLC6A4 <- which(toupper(rowData(spe)$gene_name) == "SLC6A4")
+ix_TPH2 <- which(toupper(rowData(spe)$gene_name) == "TPH2")
+
+colData(spe)$logcounts_TH <- logcounts(spe)[ix_TH, ]
+colData(spe)$logcounts_SLC6A4 <- logcounts(spe)[ix_SLC6A4, ]
+colData(spe)$logcounts_TPH2 <- logcounts(spe)[ix_TPH2, ]
+
+df <- cbind.data.frame(colData(spe), spatialCoords(spe))
+
+# convert NA to FALSE
+df$annot_region[is.na(df$annot_region)] <- FALSE
+df$annot_spot[is.na(df$annot_spot)] <- FALSE
+
+
+# expression plots
+
+ggplot(df, aes(x = x, y = y, color = logcounts_TH)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_gradient(low = "gray90", high = "darkgreen") + 
+  ggtitle("Expression of TH") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "logcounts_TH")
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
+
+
+ggplot(df, aes(x = x, y = y, color = logcounts_SLC6A4)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_gradient(low = "gray90", high = "black") + 
+  ggtitle("Expression of SLC6A4") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "logcounts_SLC6A4")
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
+
+
+ggplot(df, aes(x = x, y = y, color = logcounts_TPH2)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_gradient(low = "gray90", high = "black") + 
+  ggtitle("Expression of TPH2") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "logcounts_TPH2")
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
+
