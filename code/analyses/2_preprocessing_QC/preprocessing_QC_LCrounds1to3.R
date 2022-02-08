@@ -1,7 +1,7 @@
 #################################
 # LC project
 # Script for preprocessing and QC
-# Lukas Weber, Oct 2021
+# Lukas Weber, Feb 2022
 #################################
 
 # module load conda_R/4.1.x
@@ -36,8 +36,11 @@ sample_ids <- c(
 )
 colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
 
+# add sample IDs with parts
+colData(spe)$sample_part_ids <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
+
 # keep only spots over tissue
-spe <- spe[, spatialData(spe)$in_tissue == TRUE]
+spe <- spe[, colData(spe)$in_tissue == TRUE]
 dim(spe)
 
 
@@ -45,7 +48,7 @@ dim(spe)
 # spot-level quality control (QC)
 # -------------------------------
 
-# apply spot-level QC across all samples
+# spot-level QC across all samples
 
 # identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$symbol)
@@ -60,11 +63,11 @@ par(mfrow = c(1, 4))
 hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
 hist(colData(spe)$detected, xlab = "detected", main = "Genes per spot")
 hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "Percent mito UMIs")
-hist(colData(spe)$count, xlab = "number of cells", main = "No. cells per spot")
+hist(colData(spe)$cell_count, xlab = "number of cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
 
 # plot QC metrics using code from ggspavis
-df <- cbind.data.frame(colData(spe), spatialData(spe), spatialCoords(spe))
+df <- cbind.data.frame(colData(spe), spatialCoords(spe))
 
 # sum UMIs
 ggplot(df, aes(x = x, y = y, color = sum < 100)) + 
@@ -99,7 +102,7 @@ ggplot(df, aes(x = x, y = y, color = detected < 100)) +
 ggsave(paste0(here("plots", "QC", "QC_samples_detected"), ".png"), width = 12, height = 6.5)
 
 # cell count
-ggplot(df, aes(x = x, y = y, color = count > 10)) + 
+ggplot(df, aes(x = x, y = y, color = cell_count > 10)) + 
   facet_wrap(~ sample_id, nrow = 2) + 
   geom_point(size = 0.1) + 
   coord_fixed() + 
@@ -207,7 +210,7 @@ sample_ids
 
 for (s in seq_along(sample_ids)) {
   spe_sub <- spe[, colData(spe)$sample_id == sample_ids[s] & colData(spe)$tissue == 1]
-  df <- as.data.frame(cbind(colData(spe_sub), spatialData(spe_sub), spatialCoords(spe_sub)))
+  df <- as.data.frame(cbind(colData(spe_sub), spatialCoords(spe_sub)))
   
   ix_TH <- which(toupper(rowData(spe_sub)$symbol) == "TH")
   stopifnot(length(ix_TH) == 1)
