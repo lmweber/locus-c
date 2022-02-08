@@ -450,7 +450,7 @@ ggplot(df, aes(x = x, y = y, color = logcounts_TH)) +
   scale_color_gradient(low = "gray90", high = "red") + 
   geom_point(data = df[df$annot_spot == TRUE, ], 
              pch = 21, size = 0.5, alpha = 0.2, color = "black") + 
-  ggtitle("Expression of TH") + 
+  ggtitle("Expression of TH / manually annotated spots") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
@@ -458,7 +458,26 @@ ggplot(df, aes(x = x, y = y, color = logcounts_TH)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- here("plots", "annot", "logcounts_TH_overlap")
+fn <- here("plots", "annot", "logcounts_TH_overlap_spots")
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
+
+
+ggplot(df, aes(x = x, y = y, color = logcounts_TH)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_gradient(low = "gray90", high = "red") + 
+  geom_point(data = df[df$annot_region == TRUE, ], 
+             pch = 21, size = 0.35, alpha = 0.15, color = "black") + 
+  ggtitle("Expression of TH / manually annotated regions") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "logcounts_TH_overlap_regions")
 ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
 
 
@@ -466,7 +485,7 @@ ggplot(df, aes(x = x, y = y, color = logcounts_SLC6A4)) +
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_y_reverse() + 
-  scale_color_gradient(low = "gray90", high = "black") + 
+  scale_color_gradient(low = "gray90", high = "red") + 
   ggtitle("Expression of SLC6A4") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
@@ -483,7 +502,7 @@ ggplot(df, aes(x = x, y = y, color = logcounts_TPH2)) +
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_y_reverse() + 
-  scale_color_gradient(low = "gray90", high = "black") + 
+  scale_color_gradient(low = "gray90", high = "red") + 
   ggtitle("Expression of TPH2") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
