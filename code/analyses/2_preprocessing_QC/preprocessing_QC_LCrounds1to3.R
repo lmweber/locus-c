@@ -306,3 +306,50 @@ for (s in seq_along(sample_ids)) {
   
 }
 
+
+# ----------------------------------------
+# QC / summary plots for manual annotation
+# ----------------------------------------
+
+df <- cbind.data.frame(colData(spe), spatialCoords(spe))
+
+# convert NA to FALSE
+df$annot_region[is.na(df$annot_region)] <- FALSE
+df$annot_spot[is.na(df$annot_spot)] <- FALSE
+
+
+# lasso regions
+ggplot(df, aes(x = x, y = y, color = annot_region)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("Manual annotation: lasso regions") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "annot_region")
+ggsave(paste0(fn, ".png"), width = 12, height = 6.5)
+
+
+# individual spots
+ggplot(df, aes(x = x, y = y, color = annot_spot)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("Manual annotation: individual spots") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "annot_spot")
+ggsave(paste0(fn, ".png"), width = 12, height = 6.5)
+
