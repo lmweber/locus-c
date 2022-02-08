@@ -443,6 +443,25 @@ fn <- here("plots", "annot", "logcounts_TH")
 ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
 
 
+ggplot(df, aes(x = x, y = y, color = logcounts_TH)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_y_reverse() + 
+  scale_color_gradient(low = "gray90", high = "red") + 
+  geom_point(data = df[df$annot_spot == TRUE, ], 
+             pch = 21, size = 0.5, alpha = 0.2, color = "black") + 
+  ggtitle("Expression of TH") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- here("plots", "annot", "logcounts_TH_overlap")
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
+
+
 ggplot(df, aes(x = x, y = y, color = logcounts_SLC6A4)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
