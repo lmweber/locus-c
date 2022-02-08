@@ -333,7 +333,7 @@ ggplot(df, aes(x = x, y = y, color = annot_region)) +
         axis.ticks = element_blank())
 
 fn <- here("plots", "annot", "annot_region")
-ggsave(paste0(fn, ".png"), width = 12, height = 6.5)
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
 
 
 # individual spots
@@ -351,5 +351,48 @@ ggplot(df, aes(x = x, y = y, color = annot_spot)) +
         axis.ticks = element_blank())
 
 fn <- here("plots", "annot", "annot_spot")
-ggsave(paste0(fn, ".png"), width = 12, height = 6.5)
+ggsave(paste0(fn, ".png"), width = 12, height = 5.25)
+
+
+# number of cells per spot: all spots
+
+ggplot(df, aes(x = cell_count)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_histogram(color = "black", fill = "navy") + 
+  ggtitle("Number of cells per spot: all spots") + 
+  theme_bw()
+
+fn <- here("plots", "annot", "ncells_all")
+ggsave(paste0(fn, ".png"), width = 11.5, height = 5.25)
+
+
+# number of cells per spot: manually annotated regions
+
+# skip round 2 since spot counting failed for this round
+df_rounds13 <- df[df$round_id %in% c("round1", "round3"), ]
+
+df_sub <- df_rounds13[df_rounds13$annot_region == TRUE, ]
+
+ggplot(df_sub, aes(x = cell_count)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_histogram(color = "black", fill = "navy") + 
+  ggtitle("Number of cells per spot: manually annotated regions") + 
+  theme_bw()
+
+fn <- here("plots", "annot", "ncells_annot_region")
+ggsave(paste0(fn, ".png"), width = 7, height = 5.25)
+
+
+# number of cells per spot: manually annotated spots
+
+df_sub <- df_rounds13[df_rounds13$annot_spot == TRUE, ]
+
+ggplot(df_sub, aes(x = cell_count)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_histogram(color = "black", fill = "navy") + 
+  ggtitle("Number of cells per spot: manually annotated individual spots") + 
+  theme_bw()
+
+fn <- here("plots", "annot", "ncells_annot_spot")
+ggsave(paste0(fn, ".png"), width = 7, height = 5.25)
 
