@@ -27,10 +27,6 @@ load("LCrounds1to3_SPE_shiny.RData", verbose = TRUE)
 docs_path <- "www"
 
 
-## Update spatialCoords column names for shiny app
-spatialCoordsNames(spe) <- c("pxl_row_in_fullres", "pxl_col_in_fullres")
-
-
 ## Deploy the website
 spatialLIBD::run_app(
   spe = spe, 

@@ -1,10 +1,10 @@
 ###############################################################################
 # LC project
 # Script to build SpatialExperiment object (with additional info for Shiny app)
-# Lukas Weber, Feb 2022
+# Lukas Weber, Mar 2022
 ###############################################################################
 
-# note: using SpatialExperiment version 1.5.2 (from Bioconductor version 3.15)
+# note: using SpatialExperiment version 1.5.3 (from Bioconductor version 3.15)
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -126,9 +126,6 @@ spe <- read10xVisium(
   images = c("hires", "lowres"), 
   load = TRUE
 )
-
-# rename columns of spatial coordinates
-colnames(spatialCoords(spe)) <- c("x", "y")
 
 
 # -------------------------------------
