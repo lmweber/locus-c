@@ -369,7 +369,7 @@ par(mfrow = c(1, 4))
 hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
 hist(colData(spe)$detected, xlab = "detected", main = "Genes per spot")
 hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "Percent mito UMIs")
-hist(colData(spe)$count, xlab = "number of cells", main = "No. cells per spot")
+hist(colData(spe)$cell_count, xlab = "number of cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
 
 # to do: QC plots using ggspavis and check QC thresholds
