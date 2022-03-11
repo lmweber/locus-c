@@ -181,31 +181,6 @@ table(clusters.glmpcamnn$membership)
 
 
 
-## Some marker expression ===
-ne.markers <- c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
-                "SLC6A3", "SLC6A4", "TPH1", "TPH2")
-              # DAT, dopamine transporter; SERT, serotonin T (aka 5-HTT); 
-                                    # TPH1/2 catalyze the first step in converting tryptophan > 5-HT
-ne.markers <- rowData(sce.test.mnn)$gene_id[match(ne.markers, rowData(sce.test.mnn)$gene_name)]
-names(ne.markers) <-  c("TH","DBH", "SLC6A2", "SLC18A2", "DDC", "GCH1", "MAOA", "MAOB", "COMT",
-                        "SLC6A3", "SLC6A4", "TPH1", "TPH2")
-
-## approx. GLMPCA>MNN - just use the multiBatchNorm logcounts from the fastMNN input:
-assay(sce.test.mnn, "logcounts") <- assay(sce.test, "logcounts")
-
-# Exploratory:
-    # pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_GLMPCA-MNN_UMAP-graphClusters.pdf")), height=5, width=5)
-    # for(i in 1:length(ne.markers)){
-    #   print(
-    #     plotReducedDim(sce.test.mnn, dimred="UMAP",
-    #                    colour_by=ne.markers[i], by_exprs_values="logcounts",
-    #                    point_alpha=0.2, point_size=1.2, theme_size=7) +
-    #       ggtitle(paste0("Clustering on approx. GLM-PCA-MNN PCs \nLog counts for ", ne.markers[i],": ",names(ne.markers)[i]))
-    #   )
-    # }
-    # dev.off()
-
-
 ## doubletScore distributions?
 cellClust.idx <- splitit(sce.test.mnn$clusters.glmcpcamnn)
 sapply(cellClust.idx, function(x){quantile(sce.test.mnn$doubletScore[x])})
@@ -243,60 +218,8 @@ save(medianNon0.glmpcamnn, file=here("processed_data","SCE", "medianNon0_Boolean
     sce.test.mnn$SYT1 <- ifelse(sce.test.mnn$clusters.glmcpcamnn %in% neuron.clusters, "neuronal", "nonNeuronal")
     
     
-    
-    # Re-print with the above NE neuron markers
-    markers.neurons <- c(markers.neurons, ne.markers)
-    
-    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression_markers-NEneuron_GLMPCA-MNN_UMAP-graphClusters.pdf")), height=5, width=5)
-    # Cluster annotations
-    print(
-      plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="clusters.glmcpcamnn",
-                   point_alpha=0.2, point_size=1.2,
-                   text_by="clusters.glmcpcamnn", text_size=2, theme_size=8) +
-      ggtitle(paste0("UMAP on GLM-PCA-MNN (top 50 PCs)"))
-      )
-    # Putative neuronal clusters
-    print(
-      plotReducedDim(sce.test.mnn, dimred="UMAP", colour_by="SYT1",
-                      point_alpha=0.2, point_size=1.2, theme_size=8)
-      )
-    # Neuronal markers
-    for(i in 1:length(markers.neurons)){
-      print(
-        plotReducedDim(sce.test.mnn, dimred="UMAP",
-                       colour_by=markers.neurons[i], by_exprs_values="logcounts",
-                       point_alpha=0.2, point_size=1.2, theme_size=8) +
-          ggtitle(paste0("Clustering on approx. GLM-PCA-MNN PCs \nLog counts for ",
-                         markers.neurons[i],": ",names(markers.neurons)[i]))
-      )
-    }
-    dev.off()
-    
-    
-    ## And expression violin plots - subset those neuronal
-    sce.neuron.mnn <- sce.test.mnn[ ,sce.test.mnn$SYT1=="neuronal"]
-    sce.neuron.mnn$clusters.glmcpcamnn <- droplevels(sce.neuron.mnn$clusters.glmcpcamnn)
 
-    # Change names of features so they're more interpretable
-    rownames(sce.neuron.mnn) <- rowData(sce.neuron.mnn)$gene_name
-    
-    pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers-NEneuron_GLMPCA-MNN-graphClusters.pdf")),
-        height=10, width=12)
-    plotExpressionCustom(sce = sce.neuron.mnn,
-                         exprs_values = "logcounts",
-                         features = names(markers.neurons),
-                         #features = c("SLC6A2", "SLC6A3", "SLC6A4", "TPH1", "TPH2"),
-                         features_name = "",
-                         anno_name = "clusters.glmcpcamnn",
-                         ncol=2, point_alpha=0.4, scales="free_y") +  
-      ggtitle(label=paste0("LC-n3 41 neuronal (/60) clusters: NE-neuron markers")) +
-      theme(plot.title = element_text(size = 12),
-            axis.text.x = element_text(size=7))
-    dev.off()
-    
-        # Looks like [GLM-PCA>MNN] clusters 31 &/or 40 are the putative NE neurons (maybe some of 36)
-        # Indeed these come from the two donors with more evidence of containing NE neurons:
-        
+    # Cluster x donor distribution:
     table(sce.neuron.mnn$clusters.glmcpcamnn, sce.neuron.mnn$Sample)
     # ====
     #    Br2701_LC Br6522_LC Br8079_LC
@@ -372,6 +295,11 @@ save(medianNon0.glmpcamnn, file=here("processed_data","SCE", "medianNon0_Boolean
       'Macro' = c('CD163', 'SIGLEC1', 'F13A1')
     )
 
+    ## Since we're happy with the  approx. GLMPCA>MNN approach, just use the multiBatchNorm 
+     #    logcounts from the fastMNN input:
+    assay(sce.test.mnn, "logcounts") <- assay(sce.test, "logcounts")
+    
+    
     ## And expression violin plots - subset those neuronal
     sce.nonNeuron.mnn <- sce.test.mnn[ ,sce.test.mnn$SYT1=="nonNeuronal"]
     sce.nonNeuron.mnn$clusters.glmcpcamnn <- droplevels(sce.nonNeuron.mnn$clusters.glmcpcamnn)
