@@ -242,8 +242,10 @@ for (i in seq_along(files_annot)) {
 # save raw object
 # ---------------
 
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
-saveRDS(spe, fn_out)
+# save as .rds and .RData
+fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw")
+saveRDS(spe, paste0(fn_out, ".rds"))
+save(spe, file = paste0(fn_out, ".RData"))
 
 
 # -----------------------------
@@ -427,7 +429,7 @@ colData(spe)$MAOA_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "M
 # save object for Shiny app
 # -------------------------
 
-# save as both .rds and .RData
+# save as .rds and .RData
 fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_shiny")
 saveRDS(spe, paste0(fn_out, ".rds"))
 save(spe, file = paste0(fn_out, ".RData"))
