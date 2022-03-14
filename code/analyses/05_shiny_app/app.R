@@ -17,11 +17,11 @@ options(repos = BiocManager::repositories())
 
 ## Create a soft link to data file
 ## Comment out if already created previously
-# system("rm LCrounds1to3_SPE_shiny.RData")
-# system("ln -s ../../../processed_data/SPE/LCrounds1to3_SPE_shiny.RData LCrounds1to3_SPE_shiny.RData")
+# system("rm LC_Shiny.RData")
+# system("ln -s ../../../processed_data/SPE/LC_Shiny.RData LC_Shiny.RData")
 
 ## Load data from soft link
-load("LCrounds1to3_SPE_shiny.RData", verbose = TRUE)
+load("LC_Shiny.RData", verbose = TRUE)
 
 ## Path to documentation files
 docs_path <- "www"
