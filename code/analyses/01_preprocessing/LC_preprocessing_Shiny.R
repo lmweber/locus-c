@@ -1,10 +1,10 @@
-###############################################################################
+####################################################
 # LC project
-# Script to build SpatialExperiment object (with additional info for Shiny app)
+# Preprocessing (with additional info for Shiny app)
 # Lukas Weber, Mar 2022
-###############################################################################
+####################################################
 
-# note: using SpatialExperiment version 1.5.3 (from Bioconductor version 3.15)
+# note: using SpatialExperiment version 1.5.4 (Bioconductor version 3.15)
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -15,6 +15,8 @@
 
 library(SpatialExperiment)
 library(here)
+library(scater)
+library(scran)
 
 
 # -------------------
@@ -127,6 +129,10 @@ spe <- read10xVisium(
   load = TRUE
 )
 
+spe
+dim(spe)
+head(spatialCoords(spe))
+
 
 # -------------------------------------
 # add additional sample info in colData
@@ -238,16 +244,6 @@ for (i in seq_along(files_annot)) {
 }
 
 
-# ---------------
-# save raw object
-# ---------------
-
-# save as .rds and .RData
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw")
-saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
-
-
 # -----------------------------
 # additional info for Shiny app
 # -----------------------------
@@ -350,33 +346,14 @@ colData(spe)$GCH1 <- counts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
 colData(spe)$MAOA <- counts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
 
 
-# ---------------------------------
-# preprocessing and quality control
-# ---------------------------------
+# --------------------
+# quality control (QC)
+# --------------------
 
-library(scater)
+# using scater package
 
-# spot-level QC across all samples
-
-# identify mitochondrial genes
-is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
-table(is_mito)
-rowData(spe)$gene_name[is_mito]
-
-# calculate QC metrics using scater package
-spe <- addPerCellQC(spe, subsets = list(mito = is_mito))
-
-# plot histograms of QC metrics
-par(mfrow = c(1, 4))
-hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
-hist(colData(spe)$detected, xlab = "detected", main = "Genes per spot")
-hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "Percent mito UMIs")
-hist(colData(spe)$cell_count, xlab = "number of cells", main = "No. cells per spot")
-par(mfrow = c(1, 1))
-
-# to do: QC plots using ggspavis and check QC thresholds
-
-# note: cell counting did not work properly for some samples
+# note: keep all spots for Shiny app
+# additional QC for downstream analyses is performed in next script
 
 # keep all spots
 colData(spe)$discard <- FALSE
@@ -387,7 +364,7 @@ colData(spe)
 # normalization and logcounts
 # ---------------------------
 
-library(scran)
+# using scran package
 
 # quick clustering for pool-based size factors
 # with blocks by sample
@@ -430,7 +407,7 @@ colData(spe)$MAOA_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "M
 # -------------------------
 
 # save as .rds and .RData
-fn_out <- here("processed_data", "SPE", "LCrounds1to3_SPE_shiny")
+fn_out <- here("processed_data", "SPE", "LC_Shiny")
 saveRDS(spe, paste0(fn_out, ".rds"))
 save(spe, file = paste0(fn_out, ".RData"))
 
