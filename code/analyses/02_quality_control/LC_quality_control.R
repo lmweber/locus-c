@@ -1,7 +1,7 @@
 #################################
 # LC project
-# Script for preprocessing and QC
-# Lukas Weber, Feb 2022
+# Script for quality control (QC)
+# Lukas Weber, Mar 2022
 #################################
 
 # module load conda_R/4.1.x
@@ -21,9 +21,9 @@ library(ggplot2)
 # load data
 # ---------
 
-# load SpatialExperiment object
+# load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LCrounds1to3_SPE_raw.rds")
+fn_spe <- here("processed_data", "SPE", "LC_Shiny.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
