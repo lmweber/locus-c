@@ -243,6 +243,11 @@ for (i in seq_along(files_annot)) {
   }
 }
 
+# combined sample IDs and part IDs
+is_nas <- is.na(colData(spe)$part_id)
+colData(spe)$sample_part_id <- as.character(NA)
+colData(spe)[!is_nas, "sample_part_id"] <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")[!is_nas]
+
 
 # -----------------------------
 # additional info for Shiny app

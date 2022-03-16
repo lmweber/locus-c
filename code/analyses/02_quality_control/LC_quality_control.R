@@ -41,9 +41,6 @@ sample_ids <- c(
 )
 colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
 
-# add sample IDs with parts
-colData(spe)$sample_part_ids <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
-
 
 # check SPE object contains only spots over tissue
 table(colData(spe)$in_tissue)
