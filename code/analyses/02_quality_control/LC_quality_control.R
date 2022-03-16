@@ -17,6 +17,10 @@ library(scater)
 library(ggplot2)
 
 
+# directory to save plots
+dir_plots <- here("plots")
+
+
 # ---------
 # load data
 # ---------
@@ -49,6 +53,20 @@ all(colData(spe)$in_tissue)
 dim(spe)
 
 
+# -------------------------------------------------------
+# split into 2 SPE objects for LC region and white matter
+# -------------------------------------------------------
+
+# spots in manually annotated LC region
+table(colData(spe)$annot_region)
+
+spe_LC <- spe[, colData(spe)$annot_region]
+spe_WM <- spe[, !colData(spe)$annot_region]
+
+dim(spe_LC)
+dim(spe_WM)
+
+
 # -------------------------------
 # spot-level quality control (QC)
 # -------------------------------
@@ -56,20 +74,28 @@ dim(spe)
 # spot-level QC across all samples
 
 # identify mitochondrial genes
-is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$symbol)
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
 table(is_mito)
-rowData(spe)$symbol[is_mito]
+rowData(spe)$gene_name[is_mito]
 
 # calculate QC metrics using scater package
 spe <- addPerCellQC(spe, subsets = list(mito = is_mito))
+# note duplicate columns from previously
+all(colData(spe)$sum == colData(spe)$sum_umi)
+all(colData(spe)$detected == colData(spe)$sum_gene)
+all(colData(spe)$subsets_mito_sum == colData(spe)$expr_chrM)
+all(colData(spe)$subsets_mito_percent == colData(spe)$expr_chrM_ratio * 100)
 
 # plot histograms of QC metrics
+fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_allSamples.pdf")
+pdf(fn, width = 8, height = 2.5)
 par(mfrow = c(1, 4))
 hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
 hist(colData(spe)$detected, xlab = "detected", main = "Genes per spot")
-hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "Percent mito UMIs")
-hist(colData(spe)$cell_count, xlab = "number of cells", main = "No. cells per spot")
+hist(colData(spe)$subsets_mito_percent, xlab = "percent mito", main = "Percent mito UMIs")
+hist(colData(spe)$cell_count, xlab = "no. cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
+dev.off()
 
 # plot QC metrics using code from ggspavis
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
