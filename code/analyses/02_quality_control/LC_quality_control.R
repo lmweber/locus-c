@@ -67,9 +67,9 @@ dim(spe_LC)
 dim(spe_WM)
 
 
-# -------------------------------
-# spot-level quality control (QC)
-# -------------------------------
+# ------------------------
+# spot-level QC: all spots
+# ------------------------
 
 # spot-level QC across all samples
 
@@ -86,8 +86,13 @@ all(colData(spe)$detected == colData(spe)$sum_gene)
 all(colData(spe)$subsets_mito_sum == colData(spe)$expr_chrM)
 all(colData(spe)$subsets_mito_percent == colData(spe)$expr_chrM_ratio * 100)
 
+# note wide range of values in combined object
+summary(colData(spe)$sum)
+summary(colData(spe)$detected)
+
+
 # plot histograms of QC metrics
-fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_allSamples.pdf")
+fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_allSpots.pdf")
 pdf(fn, width = 8, height = 2.5)
 par(mfrow = c(1, 4))
 hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
@@ -96,6 +101,67 @@ hist(colData(spe)$subsets_mito_percent, xlab = "percent mito", main = "Percent m
 hist(colData(spe)$cell_count, xlab = "no. cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
 dev.off()
+
+
+# -------------------------
+# spot-level QC: LC regions
+# -------------------------
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe_LC)$gene_name)
+table(is_mito)
+rowData(spe_LC)$gene_name[is_mito]
+
+# calculate QC metrics using scater package
+spe_LC <- addPerCellQC(spe_LC, subsets = list(mito = is_mito))
+
+summary(colData(spe_LC)$sum)
+summary(colData(spe_LC)$detected)
+
+
+# plot histograms of QC metrics
+fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_LCregions.pdf")
+pdf(fn, width = 8, height = 2.5)
+par(mfrow = c(1, 4))
+hist(colData(spe_LC)$sum, xlab = "sum", main = "UMIs per spot")
+hist(colData(spe_LC)$detected, xlab = "detected", main = "Genes per spot")
+hist(colData(spe_LC)$subsets_mito_percent, xlab = "percent mito", main = "Percent mito UMIs")
+hist(colData(spe_LC)$cell_count, xlab = "no. cells", main = "No. cells per spot")
+par(mfrow = c(1, 1))
+dev.off()
+
+
+# -------------------------
+# spot-level QC: WM regions
+# -------------------------
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe_WM)$gene_name)
+table(is_mito)
+rowData(spe_WM)$gene_name[is_mito]
+
+# calculate QC metrics using scater package
+spe_WM <- addPerCellQC(spe_WM, subsets = list(mito = is_mito))
+
+summary(colData(spe_WM)$sum)
+summary(colData(spe_WM)$detected)
+
+
+# plot histograms of QC metrics
+fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_WMregions.pdf")
+pdf(fn, width = 8, height = 2.5)
+par(mfrow = c(1, 4))
+hist(colData(spe_WM)$sum, xlab = "sum", main = "UMIs per spot")
+hist(colData(spe_WM)$detected, xlab = "detected", main = "Genes per spot")
+hist(colData(spe_WM)$subsets_mito_percent, xlab = "percent mito", main = "Percent mito UMIs")
+hist(colData(spe_WM)$cell_count, xlab = "no. cells", main = "No. cells per spot")
+par(mfrow = c(1, 1))
+dev.off()
+
+
+# --------------
+# generate plots
+# --------------
 
 # plot QC metrics using code from ggspavis
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
