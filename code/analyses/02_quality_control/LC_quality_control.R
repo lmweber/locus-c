@@ -1,8 +1,8 @@
-#################################
+######################################################
 # LC project
-# Script for quality control (QC)
+# Script for quality control (QC) and batch correction
 # Lukas Weber, Mar 2022
-#################################
+######################################################
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -28,7 +28,12 @@ spe <- readRDS(fn_spe)
 
 dim(spe)
 
-# convert sample IDs to factor
+
+# -------------------
+# check preprocessing
+# -------------------
+
+# convert sample IDs to factor for easier plotting
 sample_ids <- c(
   "Br6522_LC_1_round1", "Br6522_LC_2_round1", 
   "Br8153_LC_round2", "Br5459_LC_round2", "Br2701_LC_round2", 
@@ -39,8 +44,11 @@ colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
 # add sample IDs with parts
 colData(spe)$sample_part_ids <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
 
-# keep only spots over tissue
-spe <- spe[, colData(spe)$in_tissue == TRUE]
+
+# check SPE object contains only spots over tissue
+table(colData(spe)$in_tissue)
+all(colData(spe)$in_tissue)
+
 dim(spe)
 
 
