@@ -243,6 +243,10 @@ for (i in seq_along(files_annot)) {
   }
 }
 
+# replace NA values with FALSE
+colData(spe)$annot_region[is.na(colData(spe)$annot_region)] <- FALSE
+colData(spe)$annot_spot[is.na(colData(spe)$annot_spot)] <- FALSE
+
 # combined sample IDs and part IDs
 is_nas <- is.na(colData(spe)$part_id)
 colData(spe)$sample_part_id <- as.character(NA)
