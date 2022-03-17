@@ -363,11 +363,7 @@ colData(spe)$MAOA <- counts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
 # using scater package
 
 # note: keep all spots for Shiny app
-# additional QC for downstream analyses is performed in next script
-
-# keep all spots
-colData(spe)$discard <- FALSE
-colData(spe)
+# QC for downstream analyses is performed in next script
 
 
 # ---------------------------
