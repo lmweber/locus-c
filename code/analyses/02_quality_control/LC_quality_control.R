@@ -1,8 +1,8 @@
-######################################################
+#################################
 # LC project
-# Script for quality control (QC) and batch correction
+# Script for quality control (QC)
 # Lukas Weber, Mar 2022
-######################################################
+#################################
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -14,7 +14,6 @@
 library(SpatialExperiment)
 library(here)
 library(scater)
-library(harmony)
 library(ggplot2)
 library(ggnewscale)
 
