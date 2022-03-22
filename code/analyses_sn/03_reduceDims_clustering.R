@@ -315,7 +315,8 @@ save(medianNon0.glmpcamnn, file=here("processed_data","SCE", "medianNon0_Boolean
                              exprs_values = "logcounts",
                              features = markers.mathys.tran[[i]], 
                              features_name = names(markers.mathys.tran)[[i]], 
-                             anno_name = "clusters.glmcpcamnn",
+                             #anno_name = "clusters.glmcpcamnn",
+                             anno_name = "cellType",
                              ncol=2, point_alpha=0.4, point_size=0.9,
                              scales="free_y") +  
           ggtitle(label=paste0("LC-n3 24 non-neuronal (/60) clusters: ",
@@ -361,7 +362,8 @@ for(i in 1:length(markers.mathys.tran)){
                          exprs_values = "logcounts",
                          features = markers.mathys.tran[[i]], 
                          features_name = names(markers.mathys.tran)[[i]], 
-                         anno_name = "clusters.glmcpcamnn",
+                         #anno_name = "clusters.glmcpcamnn",
+                         anno_name = "cellType",
                          ncol=2, point_alpha=0.4, scales="free_y") +  
       ggtitle(label=paste0("LC-n3 36 neuronal (/60) clusters: ",
                            names(markers.mathys.tran)[[i]], " markers")) +
@@ -458,11 +460,29 @@ table(sce.lc$cellType)
 #          Oligo_H          Oligo_I            OPC_A            OPC_B            OPC_C 
 #              173               61              119               64               53
 
+# Fix typo
+sce.lc$clusters.glmpcamnn <- sce.lc$clusters.glmcpcamnn
+sce.lc$clusters.glmcpcamnn <- NULL
+colData(sce.lc) <- colData(sce.lc)[ ,c(1:9, 13, 10:12)]
 
 # Then save
 save(sce.lc, medianNon0.lc, hdgs.lc, annotationTab.lc,
      file=here("processed_data","SCE", "sce_updated_LC.rda"))
 
+
+
+## Re-print broad marker plots with the cluster annotations
+sce.neuron <- sce.lc[ ,sce.lc$neuron == "neuronal"]
+sce.neuron$cellType <- droplevels(sce.neuron$cellType)
+
+sce.nonNeuron <- sce.lc[ ,sce.lc$neuron=="nonNeuronal"]
+sce.nonNeuron$cellType <- droplevels(sce.nonNeuron$cellType)
+
+# Change names of features so they're more interpretable
+rownames(sce.nonNeuron) <- rowData(sce.nonNeuron)$gene_name
+rownames(sce.neuron) <- rowData(sce.neuron)$gene_name
+
+    # --> re-print from above
 
 
 
