@@ -14,6 +14,7 @@
 library(SpatialExperiment)
 library(here)
 library(scater)
+library(harmony)
 library(ggplot2)
 
 
@@ -53,11 +54,11 @@ all(colData(spe)$in_tissue)
 dim(spe)
 
 
-# -------------------------------------------------------
-# split into 2 SPE objects for LC region and white matter
-# -------------------------------------------------------
+# --------------------------------------------------------
+# split into 2 SPE objects for LC regions and white matter
+# --------------------------------------------------------
 
-# spots in manually annotated LC region
+# spots in manually annotated LC regions
 table(colData(spe)$annot_region)
 
 spe_LC <- spe[, colData(spe)$annot_region]
@@ -70,8 +71,6 @@ dim(spe_WM)
 # ------------------------
 # spot-level QC: all spots
 # ------------------------
-
-# spot-level QC across all samples
 
 # identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
@@ -129,6 +128,24 @@ hist(colData(spe_LC)$subsets_mito_percent, xlab = "percent mito", main = "Percen
 hist(colData(spe_LC)$cell_count, xlab = "no. cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
 dev.off()
+
+
+# select adaptive thresholds using 3 MAD methodology from OSCA
+reasons <- perCellQCFilters(perCellQCMetrics(spe_LC, subsets = list(mito = is_mito)), 
+                            sub.fields = "subsets_mito_percent")
+colSums(as.matrix(reasons))
+
+# check thresholds
+thresh_low_lib_size <- attr(reasons$low_lib_size, "thresholds")["lower"]
+thresh_low_lib_size  ## 37.1
+thresh_low_n_features <- attr(reasons$low_n_features, "thresholds")["lower"]
+thresh_low_n_features ## 25.2
+thresh_high_subsets_mito_percent <- attr(reasons$high_subsets_mito_percent, "thresholds")["higher"]
+thresh_high_subsets_mito_percent  ## 63.4
+
+# store in SPE object
+stopifnot(nrow(reasons) == nrow(colData(spe_LC)))
+colData(spe_LC) <- cbind(colData(spe_LC), reasons)
 
 
 # -------------------------
