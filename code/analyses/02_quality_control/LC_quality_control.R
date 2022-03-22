@@ -54,9 +54,9 @@ all(colData(spe)$in_tissue)
 dim(spe)
 
 
-# --------------------------------------------------------
-# split into 2 SPE objects for LC regions and white matter
-# --------------------------------------------------------
+# ------------------------------------------------------
+# split into 2 SPE objects for LC regions and WM regions
+# ------------------------------------------------------
 
 # spots in manually annotated LC regions
 table(colData(spe)$annot_region)
@@ -71,6 +71,8 @@ dim(spe_WM)
 # ------------------------
 # spot-level QC: all spots
 # ------------------------
+
+# note: for checking only; perform separate QC in LC vs. WM regions below
 
 # identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
@@ -106,6 +108,11 @@ dev.off()
 # spot-level QC: LC regions
 # -------------------------
 
+# check number of spots
+dim(spe_LC)
+table(colData(spe_LC)$sample_id)
+table(colData(spe_LC)$sample_part_id)
+
 # identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe_LC)$gene_name)
 table(is_mito)
@@ -114,8 +121,13 @@ rowData(spe_LC)$gene_name[is_mito]
 # calculate QC metrics using scater package
 spe_LC <- addPerCellQC(spe_LC, subsets = list(mito = is_mito))
 
+
+# check summaries and compare with combined object
 summary(colData(spe_LC)$sum)
+summary(colData(spe)$sum)
+
 summary(colData(spe_LC)$detected)
+summary(colData(spe)$detected)
 
 
 # plot histograms of QC metrics
@@ -146,6 +158,30 @@ thresh_high_subsets_mito_percent  ## 63.4
 # store in SPE object
 stopifnot(nrow(reasons) == nrow(colData(spe_LC)))
 colData(spe_LC) <- cbind(colData(spe_LC), reasons)
+
+
+# plot discarded spots
+
+table(colData(spe_LC)$sample_part_id, colData(spe_LC)$discard)
+
+df <- cbind.data.frame(colData(spe_LC), spatialCoords(spe_LC))
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = discard)) + 
+  facet_wrap(~ sample_id, nrow = 2) + 
+  geom_point(size = 0.1) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("Spot-level QC") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_discard_LCregions")
+ggsave(paste0(fn, ".pdf"), width = 12, height = 6.5)
+ggsave(paste0(fn, ".pnf"), width = 12, height = 6.5)
 
 
 # -------------------------
