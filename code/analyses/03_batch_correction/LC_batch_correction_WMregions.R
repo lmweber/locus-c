@@ -193,3 +193,12 @@ fn <- file.path(dir_plots, "WMregions_harmonyBatchCorrected_clustering")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
 ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
+
+# -----------
+# save object
+# -----------
+
+fn_out <- here("processed_data", "SPE", "LC_batchCorrected_WMregions")
+saveRDS(spe, paste0(fn_out, ".rds"))
+save(spe, file = paste0(fn_out, ".RData"))
+
