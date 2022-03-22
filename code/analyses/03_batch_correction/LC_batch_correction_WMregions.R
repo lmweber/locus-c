@@ -49,10 +49,9 @@ dim(spe)
 # run standard clustering pipeline from OSTA
 
 # normalization and logcounts
+# note: use library size normalization
 set.seed(123)
-qclus <- quickCluster(spe)
-table(qclus)
-spe <- computeSumFactors(spe, cluster = qclus)
+spe <- computeSumFactors(spe)
 spe <- logNormCounts(spe)
 
 # feature selection
@@ -95,20 +94,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "noBatchCorrection_sampleIDs")
-ggsave(paste0(fn, ".pdf"), width = 6.5, height = 5)
-ggsave(paste0(fn, ".png"), width = 6.5, height = 5)
-
-
-# sample and part IDs
-ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_part_id)) + 
-  geom_point(size = 0.2, alpha = 0.5) + 
-  ggtitle("Sample and part IDs: no batch correction") + 
-  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) + 
-  theme_bw() + 
-  theme(panel.grid = element_blank())
-
-fn <- file.path(dir_plots, "noBatchCorrection_samplePartIDs")
+fn <- file.path(dir_plots, "WMregions_noBatchCorrection_sampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
 ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
@@ -121,9 +107,9 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "noBatchCorrection_clustering")
-ggsave(paste0(fn, ".pdf"), width = 5.75, height = 5)
-ggsave(paste0(fn, ".png"), width = 5.75, height = 5)
+fn <- file.path(dir_plots, "WMregions_noBatchCorrection_clustering")
+ggsave(paste0(fn, ".pdf"), width = 8, height = 5)
+ggsave(paste0(fn, ".png"), width = 8, height = 5)
 
 
 # ----------------------------------
@@ -190,7 +176,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "harmonyEmbeddings_sampleIDs")
+fn <- file.path(dir_plots, "WMregions_harmonyEmbeddings_sampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 6.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.5, height = 5)
 
@@ -203,7 +189,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "harmonyBatchCorrected_clustering")
-ggsave(paste0(fn, ".pdf"), width = 5.75, height = 5)
-ggsave(paste0(fn, ".png"), width = 5.75, height = 5)
+fn <- file.path(dir_plots, "WMregions_harmonyBatchCorrected_clustering")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
+ggsave(paste0(fn, ".png"), width = 7, height = 5)
 

@@ -95,7 +95,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "noBatchCorrection_sampleIDs")
+fn <- file.path(dir_plots, "LCregions_noBatchCorrection_sampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 6.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.5, height = 5)
 
@@ -108,7 +108,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_part_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "noBatchCorrection_samplePartIDs")
+fn <- file.path(dir_plots, "LCregions_noBatchCorrection_samplePartIDs")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
 ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
@@ -121,7 +121,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "noBatchCorrection_clustering")
+fn <- file.path(dir_plots, "LCregions_noBatchCorrection_clustering")
 ggsave(paste0(fn, ".pdf"), width = 5.75, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.75, height = 5)
 
@@ -190,7 +190,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "harmonyEmbeddings_sampleIDs")
+fn <- file.path(dir_plots, "LCregions_harmonyEmbeddings_sampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 6.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.5, height = 5)
 
@@ -203,7 +203,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "harmonyBatchCorrected_clustering")
+fn <- file.path(dir_plots, "LCregions_harmonyBatchCorrected_clustering")
 ggsave(paste0(fn, ".pdf"), width = 5.75, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.75, height = 5)
 
