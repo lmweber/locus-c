@@ -295,7 +295,7 @@ ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 # save object
 # -----------
 
-fn_out <- here("processed_data", "SPE", "LC_preprocessed_QC")
+fn_out <- here("processed_data", "SPE", "LC_qualityControlled")
 saveRDS(spe, paste0(fn_out, ".rds"))
 save(spe, file = paste0(fn_out, ".RData"))
 
