@@ -80,25 +80,25 @@ table(is_mito)
 rowData(spe)$gene_name[is_mito]
 
 # calculate QC metrics using scater package
-spe <- addPerCellQC(spe, subsets = list(mito = is_mito))
+reasons <- perCellQCMetrics(spe, subsets = list(mito = is_mito))
 # note duplicate columns from previously
-all(colData(spe)$sum == colData(spe)$sum_umi)
-all(colData(spe)$detected == colData(spe)$sum_gene)
-all(colData(spe)$subsets_mito_sum == colData(spe)$expr_chrM)
-all(colData(spe)$subsets_mito_percent == colData(spe)$expr_chrM_ratio * 100)
+all(reasons$sum == colData(spe)$sum_umi)
+all(reasons$detected == colData(spe)$sum_gene)
+all(reasons$subsets_mito_sum == colData(spe)$expr_chrM)
+all(reasons$subsets_mito_percent == colData(spe)$expr_chrM_ratio * 100)
 
 # note wide range of values in combined object
-summary(colData(spe)$sum)
-summary(colData(spe)$detected)
+summary(reasons$sum)
+summary(reasons$detected)
 
 
 # plot histograms of QC metrics
 fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_allSpots.pdf")
 pdf(fn, width = 8, height = 2.5)
 par(mfrow = c(1, 4))
-hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
-hist(colData(spe)$detected, xlab = "detected", main = "Genes per spot")
-hist(colData(spe)$subsets_mito_percent, xlab = "percent mito", main = "Percent mito UMIs")
+hist(reasons$sum, xlab = "sum", main = "UMIs per spot")
+hist(reasons$detected, xlab = "detected", main = "Genes per spot")
+hist(reasons$subsets_mito_percent, xlab = "percent mito", main = "Percent mito UMIs")
 hist(colData(spe)$cell_count, xlab = "no. cells", main = "No. cells per spot")
 par(mfrow = c(1, 1))
 dev.off()
@@ -122,12 +122,9 @@ rowData(spe_LC)$gene_name[is_mito]
 spe_LC <- addPerCellQC(spe_LC, subsets = list(mito = is_mito))
 
 
-# check summaries and compare with combined object
+# check summaries and compare with combined object above
 summary(colData(spe_LC)$sum)
-summary(colData(spe)$sum)
-
 summary(colData(spe_LC)$detected)
-summary(colData(spe)$detected)
 
 
 # plot histograms of QC metrics
@@ -143,30 +140,37 @@ dev.off()
 
 
 # select adaptive thresholds using 3 MAD methodology from OSCA
-reasons <- perCellQCFilters(perCellQCMetrics(spe_LC, subsets = list(mito = is_mito)), 
+reasons_LC <- perCellQCFilters(perCellQCMetrics(spe_LC, subsets = list(mito = is_mito)), 
                             sub.fields = "subsets_mito_percent")
-colSums(as.matrix(reasons))
+colSums(as.matrix(reasons_LC))
 
 # check thresholds
-thresh_low_lib_size <- attr(reasons$low_lib_size, "thresholds")["lower"]
+thresh_low_lib_size <- attr(reasons_LC$low_lib_size, "thresholds")["lower"]
 thresh_low_lib_size  ## 37.1
-thresh_low_n_features <- attr(reasons$low_n_features, "thresholds")["lower"]
+thresh_low_n_features <- attr(reasons_LC$low_n_features, "thresholds")["lower"]
 thresh_low_n_features ## 25.2
-thresh_high_subsets_mito_percent <- attr(reasons$high_subsets_mito_percent, "thresholds")["higher"]
+thresh_high_subsets_mito_percent <- attr(reasons_LC$high_subsets_mito_percent, "thresholds")["higher"]
 thresh_high_subsets_mito_percent  ## 63.4
 
 # store in subsetted SPE object
-stopifnot(nrow(reasons) == nrow(colData(spe_LC)))
-colData(spe_LC) <- cbind(colData(spe_LC), reasons)
+stopifnot(nrow(reasons_LC) == nrow(colData(spe_LC)))
+colData(spe_LC) <- cbind(colData(spe_LC), reasons_LC)
 
 # store in main SPE object
+colData(spe)$low_lib_size <- FALSE
+colData(spe)$low_n_features <- FALSE
+colData(spe)$high_subsets_mito_percent <- FALSE
 colData(spe)$discard <- FALSE
+colData(spe)[colData(spe_LC)$key_id, "low_lib_size"] <- colData(spe_LC)$low_lib_size
+colData(spe)[colData(spe_LC)$key_id, "low_n_features"] <- colData(spe_LC)$low_n_features
+colData(spe)[colData(spe_LC)$key_id, "high_subsets_mito_percent"] <- colData(spe_LC)$high_subsets_mito_percent
 colData(spe)[colData(spe_LC)$key_id, "discard"] <- colData(spe_LC)$discard
 
 # check
-table(colData(spe_LC)$discard)
-table(colData(spe)$discard)
-
+rbind(table(colData(spe_LC)$low_lib_size), table(colData(spe)$low_lib_size))
+rbind(table(colData(spe_LC)$low_n_features), table(colData(spe)$low_n_features))
+rbind(table(colData(spe_LC)$high_subsets_mito_percent), table(colData(spe)$high_subsets_mito_percent))
+rbind(table(colData(spe_LC)$discard), table(colData(spe)$discard))
 
 # -------------------------
 # spot-level QC: WM regions
@@ -185,14 +189,9 @@ rowData(spe_WM)$gene_name[is_mito]
 spe_WM <- addPerCellQC(spe_WM, subsets = list(mito = is_mito))
 
 
-# check summaries and compare with combined object
+# check summaries and compare with combined object above
 summary(colData(spe_WM)$sum)
-summary(colData(spe_LC)$sum)
-summary(colData(spe)$sum)
-
 summary(colData(spe_WM)$detected)
-summary(colData(spe_LC)$detected)
-summary(colData(spe)$detected)
 
 
 # plot histograms of QC metrics
@@ -208,16 +207,16 @@ dev.off()
 
 
 # select adaptive thresholds using 3 MAD methodology from OSCA
-reasons <- perCellQCFilters(perCellQCMetrics(spe_WM, subsets = list(mito = is_mito)), 
+reasons_WM <- perCellQCFilters(perCellQCMetrics(spe_WM, subsets = list(mito = is_mito)), 
                             sub.fields = "subsets_mito_percent")
-colSums(as.matrix(reasons))
+colSums(as.matrix(reasons_WM))
 
 # check thresholds
-thresh_low_lib_size <- attr(reasons$low_lib_size, "thresholds")["lower"]
+thresh_low_lib_size <- attr(reasons_WM$low_lib_size, "thresholds")["lower"]
 thresh_low_lib_size  ## 1.3
-thresh_low_n_features <- attr(reasons$low_n_features, "thresholds")["lower"]
+thresh_low_n_features <- attr(reasons_WM$low_n_features, "thresholds")["lower"]
 thresh_low_n_features ## 1.4
-thresh_high_subsets_mito_percent <- attr(reasons$high_subsets_mito_percent, "thresholds")["higher"]
+thresh_high_subsets_mito_percent <- attr(reasons_WM$high_subsets_mito_percent, "thresholds")["higher"]
 thresh_high_subsets_mito_percent  ## 69.6
 
 # adaptive thresholds are too low for lib_size and n_features
@@ -230,7 +229,7 @@ low_n_features <- colData(spe_WM)$detected < 10
 table(low_lib_size)
 table(low_n_features)
 
-high_subsets_mito_percent <- reasons$high_subsets_mito_percent
+high_subsets_mito_percent <- reasons_WM$high_subsets_mito_percent
 table(high_subsets_mito_percent)
 
 discard <- low_lib_size | low_n_features | high_subsets_mito_percent
@@ -246,7 +245,16 @@ colData(spe_WM) <- cbind(
 )
 
 # store in main SPE object (in correct rows of colData)
+colData(spe)[colData(spe_WM)$key_id, "low_lib_size"] <- colData(spe_WM)$low_lib_size
+colData(spe)[colData(spe_WM)$key_id, "low_n_features"] <- colData(spe_WM)$low_n_features
+colData(spe)[colData(spe_WM)$key_id, "high_subsets_mito_percent"] <- colData(spe_WM)$high_subsets_mito_percent
 colData(spe)[colData(spe_WM)$key_id, "discard"] <- colData(spe_WM)$discard
+
+# check
+rbind(table(colData(spe_WM)$low_lib_size))
+rbind(table(colData(spe_WM)$low_n_features))
+rbind(table(colData(spe_WM)$high_subsets_mito_percent))
+rbind(table(colData(spe_WM)$discard))
 
 # check
 table(colData(spe_WM)$discard)
