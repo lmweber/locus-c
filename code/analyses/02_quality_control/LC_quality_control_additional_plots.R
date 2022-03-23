@@ -1,8 +1,8 @@
-#################################
+##################################################
 # LC project
-# Script for quality control (QC)
+# Script for additional quality control (QC) plots
 # Lukas Weber, Mar 2022
-#################################
+##################################################
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -28,83 +28,140 @@ dir_plots <- here("plots")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_preprocessed_QC.rds")
+fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
 spe <- readRDS(fn_spe)
 
 
-# --------------
-# generate plots
-# --------------
+# ---------------
+# plot QC metrics
+# ---------------
 
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
 
 # sum UMIs
-ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = sum < 100)) + 
-  facet_wrap(~ sample_id, nrow = 3) + 
-  geom_point(size = 0.1) + 
-  coord_fixed() + 
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85") + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70") + 
+  new_scale_color() + 
+  geom_point(data = df[df$low_lib_size, , drop = FALSE], 
+             aes(color = low_lib_size), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
   scale_y_reverse() + 
-  scale_color_manual(values = c("gray85", "darkorange")) + 
-  ggtitle("Spot-level QC") + 
+  ggtitle("Spot-level QC: sum UMIs") + 
   theme_bw() + 
-  theme(panel.grid = element_blank(), 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMI")
+fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMIs_combinedSampleMetrics")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
 # detected genes
-ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = detected < 100)) + 
-  facet_wrap(~ sample_id, nrow = 3) + 
-  geom_point(size = 0.1) + 
-  coord_fixed() + 
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85") + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70") + 
+  new_scale_color() + 
+  geom_point(data = df[df$low_n_features, , drop = FALSE], 
+             aes(color = low_n_features), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
   scale_y_reverse() + 
-  scale_color_manual(values = c("gray85", "darkorange")) + 
-  ggtitle("Spot-level QC") + 
+  ggtitle("Spot-level QC: detected genes") + 
   theme_bw() + 
-  theme(panel.grid = element_blank(), 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_detectedGenes")
+fn <- file.path(dir_plots, "01_quality_control", "QC_detectedGenes_combinedSampleMetrics")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# mitochondrial proportion
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85") + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70") + 
+  new_scale_color() + 
+  geom_point(data = df[df$high_subsets_mito_percent, , drop = FALSE], 
+             aes(color = high_subsets_mito_percent), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
+  scale_y_reverse() + 
+  ggtitle("Spot-level QC: mitochondrial proportion") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_mito_combinedSampleMetrics")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
 # cell count
-ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = cell_count > 10)) + 
-  facet_wrap(~ sample_id, nrow = 3) + 
-  geom_point(size = 0.1) + 
-  coord_fixed() + 
+df$high_cell_count <- df$cell_count > 10
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85") + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70") + 
+  new_scale_color() + 
+  geom_point(data = df[df$high_cell_count, , drop = FALSE], 
+             aes(color = high_cell_count), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
   scale_y_reverse() + 
-  scale_color_manual(values = c("gray85", "darkorange")) + 
-  ggtitle("Spot-level QC") + 
+  ggtitle("Spot-level QC: cell count") + 
   theme_bw() + 
-  theme(panel.grid = element_blank(), 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_cellCount")
+fn <- file.path(dir_plots, "01_quality_control", "QC_cellCount_combinedSampleMetrics")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
-# expression of TH
+# ---------------
+# plot expression
+# ---------------
+
+# TH expression
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = TH)) + 
-  facet_wrap(~ sample_id, nrow = 3) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(size = 0.1) + 
-  coord_fixed() + 
-  scale_y_reverse() + 
   scale_color_gradient(low = "gray85", high = "darkgreen") + 
+  scale_y_reverse() + 
   ggtitle("TH expression") + 
   theme_bw() + 
-  theme(panel.grid = element_blank(), 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
@@ -115,15 +172,15 @@ ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
 # thresholding on TH
-ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = TH > 0)) + 
-  facet_wrap(~ sample_id, nrow = 3) + 
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = TH > 1)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(size = 0.1) + 
-  coord_fixed() + 
-  scale_y_reverse() + 
   scale_color_manual(values = c("gray85", "darkgreen")) + 
+  scale_y_reverse() + 
   ggtitle("TH thresholding") + 
   theme_bw() + 
-  theme(panel.grid = element_blank(), 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
