@@ -220,11 +220,32 @@ thresh_low_n_features ## 1.4
 thresh_high_subsets_mito_percent <- attr(reasons$high_subsets_mito_percent, "thresholds")["higher"]
 thresh_high_subsets_mito_percent  ## 69.6
 
-# store in subsetted SPE object
-stopifnot(nrow(reasons) == nrow(colData(spe_WM)))
-colData(spe_WM) <- cbind(colData(spe_WM), reasons)
+# adaptive thresholds are too low for lib_size and n_features
+quantile(colData(spe_WM)$sum, seq(0, 1, by = 0.1))
+quantile(colData(spe_WM)$detected, seq(0, 1, by = 0.1))
 
-# store in main SPE object
+# cut at arbitrary low value instead
+low_lib_size <- colData(spe_WM)$sum < 10
+low_n_features <- colData(spe_WM)$detected < 10
+table(low_lib_size)
+table(low_n_features)
+
+high_subsets_mito_percent <- reasons$high_subsets_mito_percent
+table(high_subsets_mito_percent)
+
+discard <- low_lib_size | low_n_features | high_subsets_mito_percent
+table(discard)
+
+# store in subsetted SPE object
+colData(spe_WM) <- cbind(
+  colData(spe_WM), 
+  low_lib_size = low_lib_size, 
+  low_n_features = low_n_features, 
+  high_subsets_mito_percent = high_subsets_mito_percent, 
+  discard = discard
+)
+
+# store in main SPE object (in correct rows of colData)
 colData(spe)[colData(spe_WM)$key_id, "discard"] <- colData(spe_WM)$discard
 
 # check
