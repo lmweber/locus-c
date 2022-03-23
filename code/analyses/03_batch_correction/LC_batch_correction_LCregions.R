@@ -1,8 +1,8 @@
-#############################
+#########################################
 # LC project
-# Script for batch correction
+# Script for batch correction: LC regions
 # Lukas Weber, Mar 2022
-#############################
+#########################################
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -30,7 +30,7 @@ dir_plots <- here("plots", "02_batch_correction", "LCregions")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_preprocessed_QC.rds")
+fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
