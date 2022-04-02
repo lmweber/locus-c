@@ -225,7 +225,7 @@ pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
          main="Modularity ratio for 30 HC-merged clusters in LC (n=3)",
          fontsize_row=7, fontsize_col=7, angle_col=90,
          display_numbers=T, number_format="%.1f", na_col="darkgrey")
-grid::grid.text(label="log2(ratio)",x=0.96,y=0.65, gp=grid::gpar(fontsize=7))
+grid::grid.text(label="log2(ratio)",x=0.97,y=0.64, gp=grid::gpar(fontsize=7))
 dev.off()
     # Observations: overall, honestly this isn't too bad.
     #   - 18 and 7 share edge weights - this makes sense based on their HC
@@ -234,28 +234,55 @@ dev.off()
     #     (not really showing shared 'lineages' in the HC)
 
 
+table(sce.lc$cellType, sce.lc$mergedCluster.HC)
 
 
 
 ### Cluster agglomeration with `cut_at()` ================================
   # - This function relies on a user-defined k (number of clusters desired)
 
+sce.test <- sce.lc
 
+# Input n=30 (to start; from above)
+sce.test$merged.cut_at30 <- factor(igraph::cut_at(clusters.glmpcamnn, n=30))
+table(sce.test$cellType, sce.test$merged.cut_at30)
+    # wow cluster 3 really swallows everything, pretty indiscriminately...
 
+# How do these look?
+plotReducedDim(sce.test, dimred="UMAP", colour_by="merged.cut_at30", text_by="merged.cut_at30")
+    # a biiiig blob in the middle that cluster 3 becomes
 
+# Compared to the HC method, above
+plotReducedDim(sce.test, dimred="UMAP", colour_by="mergedCluster.HC", text_by="mergedCluster.HC")
+    # less bad
 
+mod.ratio.merged.cutat30 <- pairwiseModularity(graph = snn.gr.glmpcamnn,
+                                          clusters = sce.test$merged.cut_at30,
+                                          as.ratio=TRUE)
 
+# Plot
+pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_30collapsedClusters-with-cut_at.pdf"))
+pheatmap(log2(mod.ratio.merged.cutat30+1), cluster_rows=FALSE, cluster_cols=FALSE,
+         color=colorRampPalette(c("white", "blue"))(100),
+         main="Modularity ratio for 30 cut_at-merged clusters in LC (n=3)",
+         fontsize_row=7, fontsize_col=7, angle_col=90,
+         display_numbers=T, number_format="%.1f", na_col="darkgrey")
+grid::grid.text(label="log2(ratio)",x=0.96,y=0.65, gp=grid::gpar(fontsize=7))
+dev.off()
+    # Unsurprisingly cluster 3 getes a really low self score, but ootherwise
+    # it's kind of hard to figure out what looks 'good', b/tw this and the HC method,
+    # just based on this PW modularity ratio heatmap
 
-
+    # --> not saving into the colData bc this attempt is just no good...
 
 
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    #[1] "2022-04-02 00:35:28 EDT"
+    #[1] "2022-04-02 01:30:00 EDT"
 proc.time()
     #     user    system   elapsed 
-    #  513.439    17.001 34705.539 
+    #  545.345    20.278 37977.545 
 options(width = 120)
 session_info()
     # ─ Session info ──────────────────────────────────────────────────────────────
@@ -287,11 +314,13 @@ session_info()
     # cli                    3.2.0    2022-02-14 [2] CRAN (R 4.1.2)
     # cluster                2.1.3    2022-03-28 [3] CRAN (R 4.1.2)
     # colorspace             2.0-3    2022-02-21 [2] CRAN (R 4.1.2)
+    # cowplot                1.1.1    2020-12-30 [2] CRAN (R 4.1.2)
     # crayon                 1.5.1    2022-03-26 [2] CRAN (R 4.1.2)
     # DBI                    1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
     # DelayedArray           0.20.0   2021-10-26 [2] Bioconductor
     # DelayedMatrixStats     1.16.0   2021-10-26 [2] Bioconductor
     # dendextend             1.15.2   2021-10-28 [2] CRAN (R 4.1.2)
+    # digest                 0.6.29   2021-12-01 [2] CRAN (R 4.1.2)
     # dplyr                  1.0.8    2022-02-08 [2] CRAN (R 4.1.2)
     # dqrng                  0.3.0    2021-05-01 [2] CRAN (R 4.1.2)
     # DropletUtils         * 1.14.2   2022-01-09 [2] Bioconductor
@@ -299,6 +328,7 @@ session_info()
     # edgeR                  3.36.0   2021-10-26 [2] Bioconductor
     # ellipsis               0.3.2    2021-04-29 [2] CRAN (R 4.1.0)
     # fansi                  1.0.3    2022-03-24 [2] CRAN (R 4.1.2)
+    # farver                 2.1.0    2021-02-28 [2] CRAN (R 4.1.0)
     # fs                     1.5.2    2021-12-08 [2] CRAN (R 4.1.2)
     # gargle                 1.2.0    2021-07-02 [2] CRAN (R 4.1.0)
     # generics               0.1.2    2022-01-31 [2] CRAN (R 4.1.2)
@@ -318,6 +348,7 @@ session_info()
     # IRanges              * 2.28.0   2021-10-26 [2] Bioconductor
     # irlba                  2.3.5    2021-12-06 [2] CRAN (R 4.1.2)
     # jaffelab             * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
+    # labeling               0.4.2    2020-10-20 [2] CRAN (R 4.1.0)
     # lattice                0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
     # lifecycle              1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
     # limma                  3.50.1   2022-02-17 [2] Bioconductor
