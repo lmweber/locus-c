@@ -20,9 +20,20 @@ library(gridExtra)
 library(here)
 library(sessioninfo)
 
+
+### Palette taken from `scater`
+tableau10medium = c("#729ECE", "#FF9E4A", "#67BF5C", "#ED665D",
+                    "#AD8BC9", "#A8786E", "#ED97CA", "#A2A2A2",
+                    "#CDCC5D", "#6DCCDA")
+tableau20 = c("#1F77B4", "#AEC7E8", "#FF7F0E", "#FFBB78", "#2CA02C",
+              "#98DF8A", "#D62728", "#FF9896", "#9467BD", "#C5B0D5",
+              "#8C564B", "#C49C94", "#E377C2", "#F7B6D2", "#7F7F7F",
+              "#C7C7C7", "#BCBD22", "#DBDB8D", "#17BECF", "#9EDAE5")
+
 here()
 # [1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
 
+## ===
 
 
 ## Load SCE
@@ -54,16 +65,183 @@ dev.off()
 
 
 
+
+
+### Tran-Maynard et al. Neuron 2021 method ================================
+
+## Preliminary cluster index for pseudo-bulking
+clusIndexes = splitit(sce.lc$cellType)
+cluster.PBcounts <- sapply(clusIndexes, function(ii){
+  rowSums(assays(sce.lc)$counts[ ,ii])
+}
+)
+
+# Btw - total N transcripts / cluster:
+sapply(clusIndexes, function(x){quantile(sce.lc$sum[x])}) # collapse chunk ====
+#           Astro_A Astro_B Astro_C Astro_D Astro_E    Endo Endo_RBPMS   Excit_A
+# 0%         239.00   461.0  1699.0    3365    5274    2223  662.00       2772   4765.00
+# 25%        447.75   923.5  2279.5    4030    6898    4021 1176.25       4730  19503.00
+# 50%        676.00  1311.0  2720.5    4508    7580    5570 1582.00       8336  29254.00
+# 75%       1120.00  1716.5  3039.5    5010    9217    8722 2178.25      15046  46196.25
+# 100%     25442.00 10876.0  4367.0   10198   13260   27657 4919.00      43741 133387.00
+
+#       Excit_B Excit_C   Excit_D  Excit_E  Excit_F Excit_G Excit_H Excit_I  Excit_J
+# 0%    4936.00    6596   6460.00   1116.0  11638.0    8808   32203   12266  29569.0
+# 25%  14316.75   15758  17894.25  10081.0  21738.0   28633   42111   27552  48452.5
+# 50%  23391.50   21552  24639.00  22227.0  30554.0   38305   53206   40118  58725.0
+# 75%  37051.25   29348  37863.50  37291.5  42491.5   49491   67837   56779  81222.0
+# 100% 90617.00   99198 120749.00 128727.0 142023.0  106030  182780  117807 133646.0
+
+#      Excit_K Excit_L  Excit_M Inhib_A  Inhib_B Inhib_C   Inhib_D Inhib_E Inhib_F
+# 0%    8771.0  9426.0  1353.00  4450.0  14333.0    4071   4869.00   647.0    4047
+# 25%  18266.5 18836.0  2053.75 11127.5  40492.5   11582  14700.75  1515.0    9357
+# 50%  27073.5 23634.0  3051.00 16461.0  52043.0   19354  23123.00  2253.0   15461
+# 75%  38486.0 32343.5  4242.00 22221.0  62016.0   30800  34026.25  3670.5   25945
+# 100% 73021.0 52988.0 21886.00 74217.0 101398.0  109878 167360.00 10652.0   94071
+
+#        Inhib_G Inhib_H Inhib_I Micro_A Micro_B Micro_C Micro_CD163 Neuron.5HT
+# 0%    13076.00   29538 16811.0    1959   810.0  465.00     5533.00    14002.0
+# 25%   33978.75   37949 28339.5    3031  1438.0  815.75     8276.75    43467.5
+# 50%   43282.00   44892 38143.5    3527  1815.0  991.00     9767.00    56183.0
+# 75%   76209.25   58259 46867.5    4713  2089.5 1606.75    12005.00    66372.0
+# 100% 124649.00   84401 94607.0   24246 37667.0 4255.00    18780.00   134968.0
+
+#      Neuron.5HT_noDDC Neuron.ambig_A Neuron.ambig_B Neuron.ambig_C Neuron.ambig_D
+# 0%            1375.00          276.0            692            886          578.0
+# 25%           2971.25         1915.5           1616           2475         1422.0
+# 50%           4548.50         3053.5           1978           3919         2220.0
+# 75%           8243.75         5355.5           2824           6221         4688.5
+# 100%         38921.00       107202.0          23414          55227        19594.0
+
+#      Neuron.ambig_E Neuron.ambig_F Neuron.ambig_G Neuron.ambig_H Neuron.ambig_I
+# 0%          1023.00           1813          823.0         1592.0        1920.00
+# 25%         2167.75           3920         2042.5         2680.5        2742.75
+# 50%         3334.50           6219         3180.0         4455.0        5752.00
+# 75%         5444.25           8291         4761.5         7578.5       43216.25
+# 100%       79135.00          36528        16659.0        20806.0      150106.00
+
+#      Neuron.mixed_A Neuron.mixed_B Neuron.NE Oligo_A Oligo_B Oligo_C Oligo_D  Oligo_E
+# 0%              885           2689  15101.00   892.0    3431   15554    8173   240.00
+# 25%           13711           6744  24208.75  1342.5    4438   21327    9679   759.25
+# 50%           26142          12224  32792.50  1651.5    5192   24410   11918  1195.50
+# 75%           41504          23154  53717.50  2211.5    6372   31306   13646  2475.50
+# 100%         146018          70563 161314.00 30386.0   37604   50182   24920 49835.00
+
+#      Oligo_F Oligo_G Oligo_H Oligo_I   OPC_A   OPC_B OPC_C
+# 0%      1883    4148    1967    7628   627.0  7125.0  3744
+# 25%     2498    5579    2800    8944  1612.5 10102.0  5012
+# 50%     2926    6523    3371   10432  2651.0 13224.5  5828
+# 75%     3327    7759    4165   12197  3559.5 17257.5  6858
+# 100%   43087   13975   97039   17725 46062.0 28898.0 21933
+# end collapse chunk ====
+
+# Compute LSFs at this level
+sizeFactors.PB  <- librarySizeFactors(cluster.PBcounts)
+
+# Normalize with these LSFs
+geneExprs.temp <- t(apply(cluster.PBcounts, 1, function(x) {log2(x/sizeFactors.PB + 1)}))
+
+
+## Perform hierarchical clustering
+dist.clusCollapsed <- dist(t(geneExprs.temp))
+tree.clusCollapsed <- hclust(dist.clusCollapsed, "ward.D2")
+
+dend <- as.dendrogram(tree.clusCollapsed, hang=0.2)
+
+# Just for observation
+myplclust(tree.clusCollapsed, main="LC (n=3) SNN-cluster relationships (60 clusters)",
+          cex.main=1, cex.lab=0.8, cex=0.6)
+
+clust.treeCut <- cutreeDynamic(tree.clusCollapsed, distM=as.matrix(dist.clusCollapsed),
+                               minClusterSize=2, deepSplit=1, cutHeight=210)
+
+
+table(clust.treeCut)
+unname(clust.treeCut[order.dendrogram(dend)])
+    ## Cutting at 210 looks good for the main neuronal branch, but a lot of glial
+    #    prelim clusters are dropped off (0's)
+
+    # Cut at 400 for broad glia branch (will manually merge remaining dropped off)    
+    glia.treeCut <- cutreeDynamic(tree.clusCollapsed, distM=as.matrix(dist.clusCollapsed),
+                                  minClusterSize=2, deepSplit=1, cutHeight=400)
+    unname(glia.treeCut[order.dendrogram(dend)])
+    
+    # Take those and re-assign to the first assignments
+    clust.treeCut[order.dendrogram(dend)][c(38:60)] <- ifelse(glia.treeCut[order.dendrogram(dend)][c(38:60)] == 0,
+                                                              0, glia.treeCut[order.dendrogram(dend)][c(38:60)] + max(clust.treeCut))
+
+    unname(clust.treeCut[order.dendrogram(dend)])
+
+# Add new labels to those prelimClusters cut off
+clustersStill0 <- which(clust.treeCut[order.dendrogram(dend)]==0)
+clust.treeCut[order.dendrogram(dend)][clustersStill0] <- max(clust.treeCut) +
+  #c(1:length(clustersStill0))
+  c(1,1, 2:11, 12,12, 13,13, 14:18)
+  # 'repeating' bc some of these branches are just pairs/would be merged at a lower cut height
+
+# 'Re-write', since there are missing numbers
+clust.treeCut[order.dendrogram(dend)] <- as.numeric(as.factor(clust.treeCut[order.dendrogram(dend)]))
+
+## Define color pallet
+cluster_colors <- unique(c(tableau20, tableau10medium)[clust.treeCut[order.dendrogram(dend)]])
+names(cluster_colors) <- unique(clust.treeCut[order.dendrogram(dend)])
+dendextend::labels_colors(dend) <- cluster_colors[as.character(clust.treeCut[order.dendrogram(dend)])]
+
+# Print for future reference
+pdf(here("plots","snRNA-seq","hierarchicalClustering_LC-n3_SNNcluster-relationships.pdf"))
+par(cex=0.7, font=2, mar=c(6,4,4,2))
+plot(dend, cex.main=2,
+     main="LC (n=3) prelim-SNN-cluster relationships \nby hierarchical clustering")
+dev.off()
+
+
+# Make reference for new cluster assignment
+clusterRefTab.lc <- data.frame(graphClust = labels(dend),
+                               merged = clust.treeCut[order.dendrogram(dend)])
+# Add this to the annotationTab to this
+annotationTab.lc$merged <- clusterRefTab.lc$merged[match(annotationTab.lc$cellType,
+                                                         clusterRefTab.lc$graphClust)]
+
+
+# Assign as 'mergedCluster.HC'
+sce.lc$mergedCluster.HC <- factor(annotationTab.lc$merged[match(sce.lc$cellType,
+                                                             annotationTab.lc$cellType)])
+
+# Save
+save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
+     file=here("processed_data","SCE", "sce_updated_LC.rda"))
+
+
+## Cluster modularity?
+## Assess cluster modularity (a measure of cluster separation) 
+mod.ratio.merged.HC <- pairwiseModularity(graph = snn.gr.glmpcamnn,
+                                          clusters = sce.lc$mergedCluster.HC,
+                                          as.ratio=TRUE)
+
+# Plot
+pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_30collapsedClusters-by-HC.pdf"))
+pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
+         color=colorRampPalette(c("white", "blue"))(100),
+         main="Modularity ratio for 30 HC-merged clusters in LC (n=3)",
+         fontsize_row=7, fontsize_col=7, angle_col=90,
+         display_numbers=T, number_format="%.1f", na_col="darkgrey")
+grid::grid.text(label="log2(ratio)",x=0.96,y=0.65, gp=grid::gpar(fontsize=7))
+dev.off()
+    # Observations: overall, honestly this isn't too bad.
+    #   - 18 and 7 share edge weights - this makes sense based on their HC
+    #   - 16 == Neuron.5HT  &  19 == Neuron.5HT_noDDC
+    #   - 18 <~ 24 ~> 20      Neuron.ambig_D <~ Neuron.ambig_E/_F ~> Neuron.NE
+    #     (not really showing shared 'lineages' in the HC)
+
+
+
+
+
 ### Cluster agglomeration with `cut_at()` ================================
   # - This function relies on a user-defined k (number of clusters desired)
 
 
 
-
-
-
-
-### Tran-Maynard et al. Neuron 2021 method ================================
 
 
 
@@ -74,13 +252,130 @@ dev.off()
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    #
+    #[1] "2022-04-02 00:35:28 EDT"
 proc.time()
     #     user    system   elapsed 
-    #
+    #  513.439    17.001 34705.539 
 options(width = 120)
 session_info()
-    #
+    # ─ Session info ──────────────────────────────────────────────────────────────
+    # setting  value
+    # version  R version 4.1.2 Patched (2021-11-04 r81138)
+    # os       CentOS Linux 7 (Core)
+    # system   x86_64, linux-gnu
+    # ui       X11
+    # language (EN)
+    # collate  en_US.UTF-8
+    # ctype    en_US.UTF-8
+    # tz       US/Eastern
+    # date     2022-04-02
+    # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
+    # 
+    # ─ Packages ──────────────────────────────────────────────────────────────────
+    # package              * version  date (UTC) lib source
+    # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
+    # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
+    # beachmat               2.10.0   2021-10-26 [2] Bioconductor
+    # beeswarm               0.4.0    2021-06-01 [2] CRAN (R 4.1.2)
+    # Biobase              * 2.54.0   2021-10-26 [2] Bioconductor
+    # BiocGenerics         * 0.40.0   2021-10-26 [2] Bioconductor
+    # BiocNeighbors          1.12.0   2021-10-26 [2] Bioconductor
+    # BiocParallel         * 1.28.3   2021-12-09 [2] Bioconductor
+    # BiocSingular           1.10.0   2021-10-26 [2] Bioconductor
+    # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
+    # bluster              * 1.4.0    2021-10-26 [2] Bioconductor
+    # cli                    3.2.0    2022-02-14 [2] CRAN (R 4.1.2)
+    # cluster                2.1.3    2022-03-28 [3] CRAN (R 4.1.2)
+    # colorspace             2.0-3    2022-02-21 [2] CRAN (R 4.1.2)
+    # crayon                 1.5.1    2022-03-26 [2] CRAN (R 4.1.2)
+    # DBI                    1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
+    # DelayedArray           0.20.0   2021-10-26 [2] Bioconductor
+    # DelayedMatrixStats     1.16.0   2021-10-26 [2] Bioconductor
+    # dendextend             1.15.2   2021-10-28 [2] CRAN (R 4.1.2)
+    # dplyr                  1.0.8    2022-02-08 [2] CRAN (R 4.1.2)
+    # dqrng                  0.3.0    2021-05-01 [2] CRAN (R 4.1.2)
+    # DropletUtils         * 1.14.2   2022-01-09 [2] Bioconductor
+    # dynamicTreeCut       * 1.63-1   2016-03-11 [1] CRAN (R 4.1.2)
+    # edgeR                  3.36.0   2021-10-26 [2] Bioconductor
+    # ellipsis               0.3.2    2021-04-29 [2] CRAN (R 4.1.0)
+    # fansi                  1.0.3    2022-03-24 [2] CRAN (R 4.1.2)
+    # fs                     1.5.2    2021-12-08 [2] CRAN (R 4.1.2)
+    # gargle                 1.2.0    2021-07-02 [2] CRAN (R 4.1.0)
+    # generics               0.1.2    2022-01-31 [2] CRAN (R 4.1.2)
+    # GenomeInfoDb         * 1.30.1   2022-01-30 [2] Bioconductor
+    # GenomeInfoDbData       1.2.7    2021-11-01 [2] Bioconductor
+    # GenomicRanges        * 1.46.1   2021-11-18 [2] Bioconductor
+    # ggbeeswarm             0.6.0    2017-08-07 [2] CRAN (R 4.1.2)
+    # ggplot2              * 3.3.5    2021-06-25 [2] CRAN (R 4.1.0)
+    # ggrepel                0.9.1    2021-01-15 [2] CRAN (R 4.1.0)
+    # glue                   1.6.2    2022-02-24 [2] CRAN (R 4.1.2)
+    # googledrive            2.0.0    2021-07-08 [2] CRAN (R 4.1.0)
+    # gridExtra            * 2.3      2017-09-09 [2] CRAN (R 4.1.0)
+    # gtable                 0.3.0    2019-03-25 [2] CRAN (R 4.1.0)
+    # HDF5Array              1.22.1   2021-11-14 [2] Bioconductor
+    # here                 * 1.0.1    2020-12-13 [2] CRAN (R 4.1.2)
+    # igraph                 1.3.0    2022-04-01 [2] CRAN (R 4.1.2)
+    # IRanges              * 2.28.0   2021-10-26 [2] Bioconductor
+    # irlba                  2.3.5    2021-12-06 [2] CRAN (R 4.1.2)
+    # jaffelab             * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
+    # lattice                0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
+    # lifecycle              1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
+    # limma                  3.50.1   2022-02-17 [2] Bioconductor
+    # locfit                 1.5-9.5  2022-03-03 [2] CRAN (R 4.1.2)
+    # magrittr               2.0.3    2022-03-30 [2] CRAN (R 4.1.2)
+    # Matrix                 1.4-1    2022-03-23 [3] CRAN (R 4.1.2)
+    # MatrixGenerics       * 1.6.0    2021-10-26 [2] Bioconductor
+    # matrixStats          * 0.61.0   2021-09-17 [2] CRAN (R 4.1.2)
+    # metapod                1.2.0    2021-10-26 [2] Bioconductor
+    # munsell                0.5.0    2018-06-12 [2] CRAN (R 4.1.0)
+    # pheatmap             * 1.0.12   2019-01-04 [2] CRAN (R 4.1.0)
+    # pillar                 1.7.0    2022-02-01 [2] CRAN (R 4.1.2)
+    # pkgconfig              2.0.3    2019-09-22 [2] CRAN (R 4.1.0)
+    # purrr                  0.3.4    2020-04-17 [2] CRAN (R 4.1.0)
+    # R.methodsS3            1.8.1    2020-08-26 [2] CRAN (R 4.1.0)
+    # R.oo                   1.24.0   2020-08-26 [2] CRAN (R 4.1.0)
+    # R.utils                2.11.0   2021-09-26 [2] CRAN (R 4.1.2)
+    # R6                     2.5.1    2021-08-19 [2] CRAN (R 4.1.2)
+    # rafalib              * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
+    # RColorBrewer           1.1-2    2014-12-07 [2] CRAN (R 4.1.0)
+    # Rcpp                   1.0.8.3  2022-03-17 [2] CRAN (R 4.1.2)
+    # RCurl                  1.98-1.6 2022-02-08 [2] CRAN (R 4.1.2)
+    # ResidualMatrix         1.4.0    2021-10-26 [1] Bioconductor
+    # rhdf5                  2.38.1   2022-03-10 [2] Bioconductor
+    # rhdf5filters           1.6.0    2021-10-26 [2] Bioconductor
+    # Rhdf5lib               1.16.0   2021-10-26 [2] Bioconductor
+    # rlang                  1.0.2    2022-03-04 [2] CRAN (R 4.1.2)
+    # rprojroot              2.0.2    2020-11-15 [2] CRAN (R 4.1.0)
+    # rsvd                   1.0.5    2021-04-16 [2] CRAN (R 4.1.2)
+    # S4Vectors            * 0.32.4   2022-03-24 [2] Bioconductor
+    # ScaledMatrix           1.2.0    2021-10-26 [2] Bioconductor
+    # scales                 1.1.1    2020-05-11 [2] CRAN (R 4.1.0)
+    # scater               * 1.22.0   2021-10-26 [2] Bioconductor
+    # scran                * 1.22.1   2021-11-14 [2] Bioconductor
+    # scry                 * 1.6.0    2021-10-26 [2] Bioconductor
+    # scuttle              * 1.4.0    2021-10-26 [2] Bioconductor
+    # segmented              1.3-4    2021-04-22 [1] CRAN (R 4.1.2)
+    # sessioninfo          * 1.2.2    2021-12-06 [2] CRAN (R 4.1.2)
+    # SingleCellExperiment * 1.16.0   2021-10-26 [2] Bioconductor
+    # sparseMatrixStats      1.6.0    2021-10-26 [2] Bioconductor
+    # statmod                1.4.36   2021-05-10 [2] CRAN (R 4.1.0)
+    # SummarizedExperiment * 1.24.0   2021-10-26 [2] Bioconductor
+    # tibble                 3.1.6    2021-11-07 [2] CRAN (R 4.1.2)
+    # tidyselect             1.1.2    2022-02-21 [2] CRAN (R 4.1.2)
+    # utf8                   1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
+    # vctrs                  0.4.0    2022-03-30 [2] CRAN (R 4.1.2)
+    # vipor                  0.4.5    2017-03-22 [2] CRAN (R 4.1.2)
+    # viridis                0.6.2    2021-10-13 [2] CRAN (R 4.1.2)
+    # viridisLite            0.4.0    2021-04-13 [2] CRAN (R 4.1.0)
+    # withr                  2.5.0    2022-03-03 [2] CRAN (R 4.1.2)
+    # XVector                0.34.0   2021-10-26 [2] Bioconductor
+    # zlibbioc               1.40.0   2021-10-26 [2] Bioconductor
+    # 
+    # [1] /users/ntranngu/R/4.1.x
+    # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
+    # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
+    # 
+    # ─────────────────────────────────────────────────────────────────────────────
 
 
 
