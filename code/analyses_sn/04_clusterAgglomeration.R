@@ -3,7 +3,7 @@
 ###    Motivation is that we want a less-resolved atlas for purposes of
 ###    spatial spot-level deconvolution; something akin to the 'step 2' from
 ###    Tran-Maynard et al. Neuron 2021 (hierarchical clustering-based)
-###     qrsh -l bluejay,mf=76G,h_vmem=80G
+###     qrsh -l bluejay,mf=92G,h_vmem=96G
 ### Initiated: MNT 01Apr2022
 
 library(SingleCellExperiment)
@@ -45,7 +45,8 @@ load(here("processed_data","SCE","graph_communities_glmpcamnn_LC.rda"), verbose=
     # snn.gr.glmpcamnn, clusters.glmpcamnn
 
 
-## Assess cluster modularity (a measure of cluster separation) 
+## Assess pairwise cluster modularity (a measure of cluster separation) for
+ #    the 60 graph-based clusters
 mod.ratio <- pairwiseModularity(graph = snn.gr.glmpcamnn,
                                 clusters = sce.lc$clusters.glmpcamnn,
                                 as.ratio=TRUE)
@@ -220,6 +221,13 @@ mod.ratio.merged.HC <- pairwiseModularity(graph = snn.gr.glmpcamnn,
 
 # Plot
 pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_30collapsedClusters-by-HC.pdf"))
+# Add UMAP to this
+print(
+  plotReducedDim(sce.lc, dimred="UMAP", colour_by="mergedCluster.HC", text_by="mergedCluster.HC") +
+    ggtitle(paste0("UMAP with 30 HC-merged clusters in LC (n=3)")) +
+    scale_color_manual(values = c(tableau20, tableau10medium)) + labs(colour="New Cluster")
+)
+# Heatmap
 pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
          color=colorRampPalette(c("white", "blue"))(100),
          main="Modularity ratio for 30 HC-merged clusters in LC (n=3)",
@@ -236,6 +244,16 @@ dev.off()
 
 table(sce.lc$cellType, sce.lc$mergedCluster.HC)
 
+# By eye and briefly looking at markers, these mergings look pretty good
+#     other than:
+table(droplevels(sce.lc$cellType[which(sce.lc$mergedCluster.HC == 1)]))
+    # Excit_D        Excit_E        Inhib_G Neuron.ambig_A Neuron.mixed_A 
+    #     114            219             50           2560           2301
+    #     (thus the self-modularity ratio is pretty low)
+
+
+
+
 
 
 ### Cluster agglomeration with `cut_at()` ================================
@@ -243,49 +261,63 @@ table(sce.lc$cellType, sce.lc$mergedCluster.HC)
 
 sce.test <- sce.lc
 
-# Input n=30 (to start; from above)
-sce.test$merged.cut_at30 <- factor(igraph::cut_at(clusters.glmpcamnn, n=30))
-table(sce.test$cellType, sce.test$merged.cut_at30)
-    # wow cluster 3 really swallows everything, pretty indiscriminately...
-
-# How do these look?
-plotReducedDim(sce.test, dimred="UMAP", colour_by="merged.cut_at30", text_by="merged.cut_at30")
-    # a biiiig blob in the middle that cluster 3 becomes
-
-# Compared to the HC method, above
-plotReducedDim(sce.test, dimred="UMAP", colour_by="mergedCluster.HC", text_by="mergedCluster.HC")
-    # less bad
-
-mod.ratio.merged.cutat30 <- pairwiseModularity(graph = snn.gr.glmpcamnn,
-                                          clusters = sce.test$merged.cut_at30,
-                                          as.ratio=TRUE)
-
-# Plot
-pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_30collapsedClusters-with-cut_at.pdf"))
-pheatmap(log2(mod.ratio.merged.cutat30+1), cluster_rows=FALSE, cluster_cols=FALSE,
-         color=colorRampPalette(c("white", "blue"))(100),
-         main="Modularity ratio for 30 cut_at-merged clusters in LC (n=3)",
-         fontsize_row=7, fontsize_col=7, angle_col=90,
-         display_numbers=T, number_format="%.1f", na_col="darkgrey")
-grid::grid.text(label="log2(ratio)",x=0.96,y=0.65, gp=grid::gpar(fontsize=7))
+pdf(here("plots","snRNA-seq","explore_iterative_LC-n3_collapsedClusters-with-cut_at.pdf"))
+for(i in seq(10,30, by=5)){
+  colData(sce.test)[paste0("merged.cut_at", i)] <- factor(igraph::cut_at(clusters.glmpcamnn, n=i))
+  table(colData(sce.test)[paste0("merged.cut_at", i)])
+  
+  # Plot on UMAP
+  print(
+    plotReducedDim(sce.test, dimred="UMAP", colour_by=paste0("merged.cut_at", i),
+                   text_by=paste0("merged.cut_at", i)) +
+      scale_color_manual(values = c(tableau20, tableau10medium)) +
+      ggtitle(paste0("UMAP with ", i, " cut_at-merged clusters in LC (n=3)")) +
+      labs(colour="New Cluster")
+  )
+  
+  ## Compute & plot pw modularity ratio
+  mod.ratio.temp  <- pairwiseModularity(graph = snn.gr.glmpcamnn,
+                                        clusters = colData(sce.test)[paste0("merged.cut_at", i)][ ,1],
+                                        as.ratio=TRUE)
+  
+  # Plot heatmap
+  pheatmap(log2(mod.ratio.temp+1), cluster_rows=FALSE, cluster_cols=FALSE,
+           color=colorRampPalette(c("white", "blue"))(100),
+           main=paste0("Modularity ratio for ", i, " cut_at-merged clusters in LC (n=3)"),
+           fontsize_row=7, fontsize_col=7, angle_col=90,
+           display_numbers=T, number_format="%.1f", na_col="darkgrey")
+  grid::grid.text(label="log2(ratio)",x=0.97,y=0.64, gp=grid::gpar(fontsize=7))
+}
 dev.off()
-    # Unsurprisingly cluster 3 getes a really low self score, but ootherwise
-    # it's kind of hard to figure out what looks 'good', b/tw this and the HC method,
-    # just based on this PW modularity ratio heatmap
 
-    # --> not saving into the colData bc this attempt is just no good...
+    ## Observations ===
+    #    - even cluster 3 (with cut_at(...,n=30) really swallows everything,
+    #      pretty indiscriminately...
+    levels(droplevels(sce.test$cellType[which(sce.test$merged.cut_at30 == 3)]))
+        # [1] "ambig.lowNTx"     "Endo.Mural_B"     "Excit_E"          "Excit_M"         
+        # [5] "Excit_N"          "Inhib_E"          "Inhib_F"          "Inhib_G"         
+        # [9] "Inhib_I"          "Micro_C"          "Neuron.5HT_noDDC" "Neuron.ambig_A"  
+        # [13] "Neuron.ambig_B"   "Neuron.ambig_C"   "Neuron.ambig_E"   "Neuron.ambig_G"  
+        # [17] "Neuron.ambig_H"   "Neuron.mixed_A"   "Oligo_A"          "Oligo_E"
+    
+    #    - Unsurprisingly cluster 3 gets a really low self score, but otherwise
+    #      it's kind of hard to figure out what looks 'good', b/tw this and the HC method,
+    #      just based on this PW modularity ratio heatmap
+
+    #     --> not saving into the colData bc this attempt is just no good...
 
 
+    
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    #[1] "2022-04-02 01:30:00 EDT"
+    # [1] "2022-04-03 12:41:47 EDT"
 proc.time()
     #     user    system   elapsed 
-    #  545.345    20.278 37977.545 
+    #  225.217   14.400 5678.962 
 options(width = 120)
 session_info()
-    # ─ Session info ──────────────────────────────────────────────────────────────
+    # ─ Session info ─────────────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -295,10 +327,10 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-04-02
+    # date     2022-04-03
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ──────────────────────────────────────────────────────────────────
+    # ─ Packages ─────────────────────────────────────────────────────────────────────────
     # package              * version  date (UTC) lib source
     # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
     # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -307,7 +339,7 @@ session_info()
     # Biobase              * 2.54.0   2021-10-26 [2] Bioconductor
     # BiocGenerics         * 0.40.0   2021-10-26 [2] Bioconductor
     # BiocNeighbors          1.12.0   2021-10-26 [2] Bioconductor
-    # BiocParallel         * 1.28.3   2021-12-09 [2] Bioconductor
+    # BiocParallel           1.28.3   2021-12-09 [2] Bioconductor
     # BiocSingular           1.10.0   2021-10-26 [2] Bioconductor
     # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
     # bluster              * 1.4.0    2021-10-26 [2] Bioconductor
@@ -376,7 +408,7 @@ session_info()
     # rhdf5filters           1.6.0    2021-10-26 [2] Bioconductor
     # Rhdf5lib               1.16.0   2021-10-26 [2] Bioconductor
     # rlang                  1.0.2    2022-03-04 [2] CRAN (R 4.1.2)
-    # rprojroot              2.0.2    2020-11-15 [2] CRAN (R 4.1.0)
+    # rprojroot              2.0.3    2022-04-02 [2] CRAN (R 4.1.2)
     # rsvd                   1.0.5    2021-04-16 [2] CRAN (R 4.1.2)
     # S4Vectors            * 0.32.4   2022-03-24 [2] Bioconductor
     # ScaledMatrix           1.2.0    2021-10-26 [2] Bioconductor
@@ -406,7 +438,6 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ─────────────────────────────────────────────────────────────────────────────
-
+    # ────────────────────────────────────────────────────────────────────────────────────
 
 
