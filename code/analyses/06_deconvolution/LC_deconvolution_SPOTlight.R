@@ -1,0 +1,190 @@
+#####################################
+# LC project
+# Script for deconvolution of ST data
+# Lukas Weber, Apr 2022
+#####################################
+
+# module load conda_R/4.1.x
+# Rscript filename.R
+
+# file location:
+# /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
+
+
+library(SpatialExperiment)
+library(SingleCellExperiment)
+library(here)
+library(SPOTlight)
+library(scater)
+library(scran)
+library(ggplot2)
+
+# directory to save plots
+dir_plots <- here("plots", "06_deconvolution")
+
+
+# ------------
+# load ST data
+# ------------
+
+# load saved SPE object from previous script
+
+fn_spe_LC <- here("processed_data", "SPE", "LC_batchCorrected_LCregions.rds")
+spe_LC <- readRDS(fn_spe_LC)
+
+fn_spe_WM <- here("processed_data", "SPE", "LC_batchCorrected_WMregions.rds")
+spe_WM <- readRDS(fn_spe_WM)
+
+dim(spe_LC)
+dim(spe_WM)
+
+# note: merging into combined SPE is difficult due to checks on sample_id; save 
+# combined SPE in previous scripts instead
+
+
+# merge objects
+all(rownames(spe_LC) == rownames(spe_WM))
+identical(rowData(spe_LC), rowData(spe_WM))
+
+all(c(colnames(spe_LC), colnames(spe_WM)) == c(rownames(colData(spe_LC)), rownames(colData(spe_WM))))
+
+spe <- SpatialExperiment(
+  assays = list(
+    counts = cbind(counts(spe_LC), counts(spe_WM)), 
+    logcounts = cbind(logcounts(spe_LC), logcounts(spe_WM))
+  ), 
+  rowData = rowData(spe_LC), 
+  colData = rbind(colData(spe_LC), colData(spe_WM))
+)
+
+dim(spe)
+
+
+# convert sample IDs to factor
+sample_ids <- c(
+  "Br6522_LC_1_round1", "Br6522_LC_2_round1", 
+  "Br8153_LC_round2", "Br5459_LC_round2", "Br2701_LC_round2", 
+  "Br6522_LC_round3", "Br8079_LC_round3", "Br2701_LC_round3", "Br8153_LC_round3"
+)
+colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
+
+
+# select a single sample
+spe <- spe[, colData(spe)$sample_id == "Br6522_LC_1_round1"]
+
+
+# -------------------
+# load snRNA-seq data
+# -------------------
+
+# SCE object containing merged clusters
+
+fn_sce <- here("processed_data", "SCE", "sce_updated_LC.rda")
+load(fn_sce)
+
+dim(sce.lc)
+table(colData(sce.lc)$cellType)
+table(colData(sce.lc)$mergedCluster.HC)
+
+
+# -------------
+# run SPOTlight
+# -------------
+
+# using code from SPOTlight vignette
+# https://marcelosua.github.io/SPOTlight/articles/SPOTlight_kidney.html
+
+
+sce <- sce.lc
+
+# feature selection: HVGs
+dec <- modelGeneVar(sce)
+plot(dec$mean, dec$total, xlab = "Mean log-expression", ylab = "Variance")
+curve(metadata(dec)$trend(x), col = "blue", add = TRUE)
+# Get the top 3000 genes.
+hvg <- getTopHVGs(dec, n = 3000)
+
+# merged cluster labels
+table(colData(sce.lc)$mergedCluster.HC)
+
+# add to SCE object
+colLabels(sce) <- colData(sce)$mergedCluster.HC
+# Get vector indicating which genes are neither ribosomal or mitochondrial
+genes <- !grepl(pattern = "^Rp[l|s]|Mt", x = rownames(sce))
+
+# Compute marker genes
+mgs <- scoreMarkers(sce, subset.row = genes)
+mgs_fil <- lapply(names(mgs), function(i) {
+  x <- mgs[[i]]
+  # Filter and keep relevant marker genes, those with AUC > 0.6
+  x <- x[x$mean.AUC > 0.6, ]
+  # Sort the genes from highest to lowest weight
+  x <- x[order(x$mean.AUC, decreasing = TRUE), ]
+  # Add gene and cluster id to the dataframe
+  x$gene <- rownames(x)
+  x$cluster <- i
+  data.frame(x)
+})
+mgs_df <- do.call(rbind, mgs_fil)
+
+# Cell Downsampling
+# split cell indices by identity
+idx <- split(seq(ncol(sce)), sce$mergedCluster.HC)
+# downsample to at most 100 per identity & subset
+n_cells <- 100
+cs_keep <- lapply(idx, function(i) {
+  n <- length(i)
+  if (n < n_cells)
+    n_cells <- n
+  sample(i, n_cells)
+})
+sce <- sce[, unlist(cs_keep)]
+
+# Deconvolution
+res <- SPOTlight(
+  x = sce,
+  y = spe,
+  groups = sce$mergedCluster.HC,
+  mgs = mgs_df,
+  hvg = hvg,
+  weight_id = "mean.AUC",
+  group_id = "cluster",
+  gene_id = "gene")
+
+# Extract deconvolution matrix
+head(mat <- res$mat)[, seq_len(3)]
+
+# Extract NMF model fit
+mod <- res$NMF
+
+
+# -------------
+# visualization
+# -------------
+
+# plot scatterpies
+
+ct <- colnames(mat)
+mat[mat < 0.1] <- 0
+
+# Define color palette
+# (here we use 'paletteMartin' from the 'colorBlindness' package)
+paletteMartin <- c(
+  "#000000", "#004949", "#009292", "#ff6db6", "#ffb6db", 
+  "#490092", "#006ddb", "#b66dff", "#6db6ff", "#b6dbff", 
+  "#920000", "#924900", "#db6d00", "#24ff24", "#ffff6d")
+
+pal <- colorRampPalette(paletteMartin)(length(ct))
+names(pal) <- ct
+
+plotSpatialScatterpie(
+  x = spe,
+  y = mat,
+  cell_types = colnames(y),
+  img = FALSE,
+  scatterpie_alpha = 1,
+  pie_scale = 0.4) +
+  scale_fill_manual(
+    values = pal,
+    breaks = names(pal))
+
