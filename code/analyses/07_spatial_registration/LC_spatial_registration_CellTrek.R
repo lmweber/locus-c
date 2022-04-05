@@ -1,7 +1,7 @@
 ###################################################
 # LC project
 # Script for spatial registration of snRNA-seq data
-# Lukas Weber, Mar 2022
+# Lukas Weber, Apr 2022
 ###################################################
 
 # module load conda_R/4.1.x
@@ -20,7 +20,7 @@ library(ggnewscale)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_spatial_registration")
+dir_plots <- here("plots", "07_spatial_registration")
 
 
 # ---------
@@ -62,6 +62,8 @@ colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
 fn_sce <- here("processed_data", "SCE", "sce_updated_LC.rda")
 load(fn_sce)
 
+# to do: merge clusters
+
 
 # -------------------------
 # convert to Seurat objects
@@ -90,6 +92,8 @@ head(seur_nuc@meta.data)
 
 
 # convert SPE object
+
+# to do: build Seurat spatial objects from raw data instead
 
 # select one sample
 spe <- spe_LC[, colData(spe_LC)$sample_id == "Br6522_LC_1_round1"]
@@ -177,4 +181,6 @@ CellTrek::celltrek_vis(
   out_celltrek@meta.data %>% dplyr::select(coord_x, coord_y, cell_type:id_new), 
   out_celltrek@images$mysample@image, 
   out_celltrek@images$mysample@scale.factors$lowres)
+
+# to do: export spatial registration results to import back to SPE
 
