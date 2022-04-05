@@ -19,7 +19,7 @@ library(sessioninfo)
 here()
     # [1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
 
-source("/dcl01/lieber/ajaffe/Matt/MNT_thesis/snRNAseq/10x_pilot_FINAL/plotExpressionCustom.R")
+source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotExpressionCustom.R")
 
 
 ### Feature selection with deviance residuals =====
