@@ -302,7 +302,28 @@ dev.off()
 
     #     --> not saving into the colData bc this attempt is just no good...
 
+
     
+    
+### Simplification just from previous 60 clusters-level annotation ======
+sce.lc$cellType.collapsed <- as.factor(ss(as.character(sce.lc$cellType), "_", 1))
+# Re-organize
+colData(sce.lc) <- colData(sce.lc)[ ,c(1:13, 15, 14)]
+
+# And then just merge microglia & macrophages together, since they're so similar
+sce.lc$cellType.collapsed <- ifelse(sce.lc$cellType.collapsed %in% c("Micro","Macrophage"),
+                                    "Micro.Macro", as.character(sce.lc$cellType.collapsed))
+
+# Oh shoot, we lost the 'noDDC' set of 5-HT-like neurons:
+sce.lc$cellType.collapsed[sce.lc$cellType == "Neuron.5HT_noDDC"] <- "Neuron.5HT_noDDC"
+
+sce.lc$cellType.collapsed <- factor(sce.lc$cellType.collapsed)
+
+
+# Save
+save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
+     file=here("processed_data","SCE", "sce_updated_LC.rda"))
+
 
 ## Reproducibility information ====
 print('Reproducibility information:')
