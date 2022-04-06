@@ -85,6 +85,16 @@ load(fn_sce)
 dim(sce.lc)
 table(colData(sce.lc)$cellType)
 table(colData(sce.lc)$mergedCluster.HC)
+table(colData(sce.lc)$cellType.collapsed)
+
+# subset high-confidence clusters only, i.e. excluding "ambig.lowNTx", "Neuron.ambig", "Neuron.mixed"
+ix_keep <- !(colData(sce.lc)$cellType.collapsed %in% c("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed"))
+sce <- sce.lc[, ix_keep]
+
+colData(sce)$cellType.collapsed <- droplevels(colData(sce)$cellType.collapsed)
+table(colData(sce)$cellType.collapsed)
+
+dim(sce)
 
 
 # -------------
@@ -95,41 +105,40 @@ table(colData(sce.lc)$mergedCluster.HC)
 # https://marcelosua.github.io/SPOTlight/articles/SPOTlight_kidney.html
 
 
-sce <- sce.lc
-
 # feature selection: HVGs
 dec <- modelGeneVar(sce)
 plot(dec$mean, dec$total, xlab = "Mean log-expression", ylab = "Variance")
 curve(metadata(dec)$trend(x), col = "blue", add = TRUE)
-# Get the top 3000 genes.
+# get the top 3000 genes
 hvg <- getTopHVGs(dec, n = 3000)
+head(hvg)
 
-# merged cluster labels
-table(colData(sce.lc)$mergedCluster.HC)
-
-# add to SCE object
-colLabels(sce) <- colData(sce)$mergedCluster.HC
-# Get vector indicating which genes are neither ribosomal or mitochondrial
+# add cluster labels to SCE object
+colLabels(sce) <- colData(sce)$cellType.collapsed
+# get vector indicating which genes are neither ribosomal or mitochondrial
 genes <- !grepl(pattern = "^Rp[l|s]|Mt", x = rownames(sce))
 
-# Compute marker genes
+# compute marker genes
 mgs <- scoreMarkers(sce, subset.row = genes)
 mgs_fil <- lapply(names(mgs), function(i) {
   x <- mgs[[i]]
-  # Filter and keep relevant marker genes, those with AUC > 0.6
+  # filter and keep relevant marker genes, those with AUC > 0.6
   x <- x[x$mean.AUC > 0.6, ]
-  # Sort the genes from highest to lowest weight
+  # sort the genes from highest to lowest weight
   x <- x[order(x$mean.AUC, decreasing = TRUE), ]
-  # Add gene and cluster id to the dataframe
+  # add gene and cluster id to the dataframe
   x$gene <- rownames(x)
   x$cluster <- i
   data.frame(x)
 })
 mgs_df <- do.call(rbind, mgs_fil)
+head(mgs_df, 2)
 
-# Cell Downsampling
+dim(sce)
+
+# cell downsampling
 # split cell indices by identity
-idx <- split(seq(ncol(sce)), sce$mergedCluster.HC)
+idx <- split(seq(ncol(sce)), sce$cellType.collapsed)
 # downsample to at most 100 per identity & subset
 n_cells <- 100
 cs_keep <- lapply(idx, function(i) {
@@ -140,21 +149,23 @@ cs_keep <- lapply(idx, function(i) {
 })
 sce <- sce[, unlist(cs_keep)]
 
-# Deconvolution
+dim(sce)
+
+# deconvolution
 res <- SPOTlight(
   x = sce,
   y = spe,
-  groups = sce$mergedCluster.HC,
+  groups = sce$cellType.collapsed,
   mgs = mgs_df,
   hvg = hvg,
   weight_id = "mean.AUC",
   group_id = "cluster",
   gene_id = "gene")
 
-# Extract deconvolution matrix
+# extract deconvolution matrix
 head(mat <- res$mat)[, seq_len(3)]
 
-# Extract NMF model fit
+# extract NMF model fit
 mod <- res$NMF
 
 
@@ -167,7 +178,7 @@ mod <- res$NMF
 ct <- colnames(mat)
 mat[mat < 0.1] <- 0
 
-# Define color palette
+# define color palette
 # (here we use 'paletteMartin' from the 'colorBlindness' package)
 paletteMartin <- c(
   "#000000", "#004949", "#009292", "#ff6db6", "#ffb6db", 
