@@ -54,9 +54,11 @@ spe <- SpatialExperiment(
     logcounts = cbind(logcounts(spe_LC), logcounts(spe_WM))
   ), 
   rowData = rowData(spe_LC), 
-  colData = rbind(colData(spe_LC), colData(spe_WM))
+  colData = rbind(colData(spe_LC), colData(spe_WM)), 
+  spatialCoords = rbind(spatialCoords(spe_LC), spatialCoords(spe_WM))
 )
 
+all(rownames(spatialCoords(spe)) == gsub("^.*_", "", rownames(colData(spe))))
 dim(spe)
 
 
