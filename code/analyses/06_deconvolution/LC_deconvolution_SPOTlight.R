@@ -193,11 +193,12 @@ names(pal) <- ct
 plotSpatialScatterpie(
   x = spe,
   y = mat,
-  cell_types = colnames(y),
+  cell_types = colnames(mat),
   img = FALSE,
   scatterpie_alpha = 1,
   pie_scale = 0.4) +
   scale_fill_manual(
     values = pal,
-    breaks = names(pal))
+    breaks = names(pal), 
+    labels = levels(colData(sce)$cellType.collapsed))
 
