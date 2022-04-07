@@ -89,14 +89,22 @@ table(colData(sce.lc)$cellType)
 table(colData(sce.lc)$mergedCluster.HC)
 table(colData(sce.lc)$cellType.collapsed)
 
-# subset high-confidence clusters only, i.e. excluding "ambig.lowNTx", "Neuron.ambig", "Neuron.mixed"
+# keep high-confidence clusters only, i.e. remove "ambig.lowNTx", "Neuron.ambig", "Neuron.mixed"
 ix_keep <- !(colData(sce.lc)$cellType.collapsed %in% c("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed"))
 sce <- sce.lc[, ix_keep]
 
+# merge 5-HT clusters ("Neuron.5HT", "Neuron.5HT_noDDC") into a single cluster
+ix_5HT_all <- colData(sce)$cellType.collapsed %in% c("Neuron.5HT", "Neuron.5HT_noDDC")
+colData(sce)$cellType.collapsed[ix_5HT_all] <- "Neuron.5HT"
+
+# remove empty factor levels
 colData(sce)$cellType.collapsed <- droplevels(colData(sce)$cellType.collapsed)
 table(colData(sce)$cellType.collapsed)
 
 dim(sce)
+
+
+# note: consider 2 objects each containing one of "Neuron.NE", "Neuron.5HT"
 
 
 # -------------
@@ -124,8 +132,8 @@ genes <- !grepl(pattern = "^Rp[l|s]|Mt", x = rownames(sce))
 mgs <- scoreMarkers(sce, subset.row = genes)
 mgs_fil <- lapply(names(mgs), function(i) {
   x <- mgs[[i]]
-  # filter and keep relevant marker genes, those with AUC > 0.6
-  x <- x[x$mean.AUC > 0.6, ]
+  # filter and keep relevant marker genes, those with AUC > 0.7
+  x <- x[x$mean.AUC > 0.7, ]
   # sort the genes from highest to lowest weight
   x <- x[order(x$mean.AUC, decreasing = TRUE), ]
   # add gene and cluster id to the dataframe
