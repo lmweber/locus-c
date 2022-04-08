@@ -283,6 +283,29 @@ for(i in names(genes.top40.t)){
 
 
 
+## Write these top 40 lists to a csv ===
+names(markerList.t.pw) <- paste0(names(markerList.t.pw),"_pw")
+names(markerList.t.1vAll) <- paste0(names(markerList.t.1vAll),"_1vAll")
+
+# Many of the PW results don't have 40 markers:
+extend.idx <- names(which(lengths(markerList.t.pw) < 40))
+for(i in extend.idx){
+  markerList.t.pw[[i]] <- c(markerList.t.pw[[i]], rep("", 40-length(markerList.t.pw[[i]])))
+}
+# 1vAllOthers
+# Many of the PW results don't have 40 markers:
+extend.idx <- names(which(lengths(markerList.t.1vAll) < 40))
+for(i in extend.idx){
+  markerList.t.1vAll[[i]] <- c(markerList.t.1vAll[[i]], rep("", 40-length(markerList.t.1vAll[[i]])))
+}
+
+top40genes <- cbind(sapply(markerList.t.pw, function(x) head(x, n=40)),
+                    sapply(markerList.t.1vAll, function(y) head(y, n=40)))
+top40genes <- top40genes[ ,sort(colnames(top40genes))]
+write.csv(top40genes, file=here("code","analyses_sn","top40genesLists_LC-n3_26cellTypes.csv"),
+          row.names=FALSE)
+
+
 
 ## Reproducibility information ====
 print('Reproducibility information:')
