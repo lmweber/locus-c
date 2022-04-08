@@ -346,7 +346,38 @@ save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
     # --> re-print the marker plots, above, with these annotations
 
 
-
+## Re-print reducedDims with these new annotations ===
+# UMAPs, along with some other metrics
+pdf(here("plots","snRNA-seq","LC-n3_reducedDims_clusters_multiple-levels-annotated.pdf"))
+  # Original 60 clusters, annotated
+  plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType",
+                 text_by="cellType", text_size=2,
+                 point_alpha=0.3, point_size=1.7) +
+    guides(color=guide_legend(ncol=2)) +
+    ggtitle("UMAP of LC (n=3), colored by annotated 60 graph-based clusters")
+  
+  # HC-merged:
+  plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType.merged",
+                 text_by="cellType.merged", text_size=3,
+                 point_alpha=0.3, point_size=1.7) +
+    scale_color_manual(values = c(tableau20, tableau10medium),
+                       labels=paste0(levels(sce.lc$cellType.merged)," (",
+                                     table(sce.lc$cellType.merged),")")) +
+    guides(color=guide_legend(ncol=1)) +
+    ggtitle("UMAP of LC (n=3), colored by HC-merged clusters") +
+    labs(colour="Cell type")
+  
+  # Typical iterations
+  plotReducedDim(sce.lc, dimred="UMAP", colour_by="Sample",
+                 point_alpha=0.3, point_size=1.7) +
+    ggtitle("UMAP of LC (n=3)")
+  plotReducedDim(sce.lc, dimred="UMAP", colour_by="sum",
+                 point_alpha=0.3, point_size=1.7) +
+    ggtitle("UMAP of LC (n=3)")
+  plotReducedDim(sce.lc, dimred="UMAP", colour_by="doubletScore",
+                 point_alpha=0.3, point_size=1.7) +
+    ggtitle("UMAP of LC (n=3)")
+dev.off()
 
 
 ### Cluster agglomeration with `cut_at()` ================================
