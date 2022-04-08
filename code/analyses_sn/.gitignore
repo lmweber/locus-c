@@ -1,0 +1,2 @@
+# .Rout files - will paste in comments into the .R script itself
+*.Rout
