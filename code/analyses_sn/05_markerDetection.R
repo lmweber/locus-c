@@ -62,61 +62,66 @@ sce.lc <- logNormCounts(sce.lc)
 ### First make a list of Boolean param / cell subtype ===
 # Will use this to assess more 'valid', non-noise-driving markers
 cellClust.idx <- splitit(sce.lc$cellType.merged)
-medianNon0.lc.26 <- lapply(cellClust.idx, function(x){
-  apply(as.matrix(assay(sce.lc, "logcounts")), 1, function(y){
-    median(y[x]) > 0
-  })
-})
+# medianNon0.lc.26 <- lapply(cellClust.idx, function(x){
+#   apply(as.matrix(assay(sce.lc, "logcounts")), 1, function(y){
+#     median(y[x]) > 0
+#   })
+# })
+# 
+# sapply(medianNon0.lc.26, table)
+#     #
+# 
+# 
+# # # Just for interactive exploration of some of these
+# # plotExpressionCustom(sce = sce.lc,
+# #                      exprs_values = "logcounts",
+# #                      # 
+# #                      features = head(Oligo_A_markers,4),
+# #                      features_name = "custom-selected",
+# #                      anno_name = "cellType.merged",
+# #                      ncol=2, point_alpha=0.4, point_size=0.9,
+# #                      scales="free_y", swap_rownames="gene_name") +
+# #   ggtitle(label=paste0("Lionel's custom markers of interest")) +
+# #   theme(plot.title = element_text(size = 12),
+# #         axis.text.x = element_text(size=7))
+# 
+# 
+# ## Traditional t-test, pairwise ===
+# mod <- with(colData(sce.lc), model.matrix(~ Sample))
+# mod <- mod[ , -1, drop=F] # intercept otherwise automatically dropped by `findMarkers()`
+# 
+# # Run pairwise t-tests
+# markers.lc.t.pw <- findMarkers(sce.lc, groups=sce.lc$cellType.merged,
+#                                assay.type="logcounts", design=mod, test="t",
+#                                direction="up", pval.type="all", full.stats=T)
+# 
+# sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05)})
+#     #
+# 
+# 
+# 
+# 
+# # Add respective 'non0median' column to the stats for each set of markers
+# for(i in names(markers.lc.t.pw)){
+#   markers.lc.t.pw[[i]] <- cbind(markers.lc.t.pw[[i]],
+#                                 medianNon0.lc.26[[i]][match(rownames(markers.lc.t.pw[[i]]),
+#                                                          names(medianNon0.lc.26[[i]]))])
+#   colnames(markers.lc.t.pw[[i]])[29] <- "non0median"
+# }
+# 
+# sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05 & x$non0median == TRUE)["TRUE"]})
+#     #
+# 
+# 
+# ## Save these
+# save(markers.lc.t.pw, medianNon0.lc.26,
+#      file=here("processed_data","SCE",
+#                "markers-stats_LC-n3_findMarkers_26cellTypes.rda"))
 
-sapply(medianNon0.lc.26, table)
-    #
 
-
-# # Just for interactive exploration of some of these
-# plotExpressionCustom(sce = sce.lc,
-#                      exprs_values = "logcounts",
-#                      # 
-#                      features = head(Oligo_A_markers,4),
-#                      features_name = "custom-selected",
-#                      anno_name = "cellType.merged",
-#                      ncol=2, point_alpha=0.4, point_size=0.9,
-#                      scales="free_y", swap_rownames="gene_name") +
-#   ggtitle(label=paste0("Lionel's custom markers of interest")) +
-#   theme(plot.title = element_text(size = 12),
-#         axis.text.x = element_text(size=7))
-
-
-## Traditional t-test, pairwise ===
-mod <- with(colData(sce.lc), model.matrix(~ Sample))
-mod <- mod[ , -1, drop=F] # intercept otherwise automatically dropped by `findMarkers()`
-
-# Run pairwise t-tests
-markers.lc.t.pw <- findMarkers(sce.lc, groups=sce.lc$cellType.merged,
-                               assay.type="logcounts", design=mod, test="t",
-                               direction="up", pval.type="all", full.stats=T)
-
-sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05)})
-    #
-
-
-
-
-# Add respective 'non0median' column to the stats for each set of markers
-for(i in names(markers.lc.t.pw)){
-  markers.lc.t.pw[[i]] <- cbind(markers.lc.t.pw[[i]],
-                                medianNon0.lc.26[[i]][match(rownames(markers.lc.t.pw[[i]]),
-                                                         names(medianNon0.lc.26[[i]]))])
-  colnames(markers.lc.t.pw[[i]])[29] <- "non0median"
-}
-
-sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05 & x$non0median == TRUE)["TRUE"]})
-    #
-
-
-## Save these
-save(markers.lc.t.pw, medianNon0.lc.26,
-     file=here("processed_data","SCE",
-               "markers-stats_LC-n3_findMarkers_26cellTypes.rda"))
+    # As needed
+    load(here("processed_data","SCE",
+              "markers-stats_LC-n3_findMarkers_26cellTypes.rda"), verbose=T)
 
 
 # Print these to pngs
@@ -134,14 +139,19 @@ genes.top40.t <- lapply(markerList.t.pw, function(x){head(x, n=40)})
 
 smaller.set <- names(genes.top40.t)[lengths(genes.top40.t) <= 20]
 left.set <- setdiff(names(genes.top40.t), smaller.set)
+# Now remove those with no significant markers
+smaller.set <- setdiff(smaller.set,
+                       names(genes.top40.t)[lengths(genes.top40.t) == 0])
 
 # Smaller graphical window
+#dir.create(here("plots","snRNA-seq","markers"))
 for(i in smaller.set){
-  png(here("plots","snRNA-seq","LC_t_pairwise_topMarkers-", i, "_vlnPlots.png"), height=950, width=1200)
+  png(here("plots","snRNA-seq","markers",
+           paste0("LC_t_pairwise_topMarkers-", i, "_vlnPlots.png")), height=950, width=1200)
   print(
     plotExpressionCustom(sce = sce.hold,
                          exprs_values = "logcounts",
-                         features = genes.top40.t[[i]], 
+                         features = head(genes.top40.t[[i]],n=4), 
                          features_name = i,
                          anno_name = "cellType.merged",
                          ncol=5, point_alpha=0.4,
@@ -155,7 +165,8 @@ for(i in smaller.set){
 
 # 20-40 markers
 for(i in left.set){
-  png(here("plots","snRNA-seq","LC_t_pairwise_topMarkers-", i, "_vlnPlots.png"), height=1900, width=1200)
+  png(here("plots","snRNA-seq","markers",
+           paste0("LC_t_pairwise_topMarkers-", i, "_vlnPlots.png")), height=1900, width=1200)
   print(
     plotExpressionCustom(sce = sce.hold,
                          exprs_values = "logcounts",
@@ -253,7 +264,8 @@ markerList.t.1vAll <- lapply(markerList.t.1vAll, function(x){
 genes.top40.t <- lapply(markerList.t.1vAll, function(x){head(x, n=40)})
 
 for(i in names(genes.top40.t)){
-  png(here("plots","snRNA-seq","LC_t_1vALL_topMarkers-",i,"_vlnPlots.png"), height=1900, width=1200)
+  png(here("plots","snRNA-seq","markers",
+           paste0("LC_t_1vALL_topMarkers-",i,"_vlnPlots.png")), height=1900, width=1200)
   print(
     plotExpressionCustom(sce = sce.hold,
                          exprs_values = "logcounts",
