@@ -158,9 +158,9 @@ unname(clust.treeCut[order.dendrogram(dend)])
     ## Cutting at 210 looks good for the main neuronal branch, but a lot of glial
     #    prelim clusters are dropped off (0's)
 
-    # Cut at 400 for broad glia branch (will manually merge remaining dropped off)    
+    # Cut at 425 for broad glia branch (will manually merge remaining dropped off)    
     glia.treeCut <- cutreeDynamic(tree.clusCollapsed, distM=as.matrix(dist.clusCollapsed),
-                                  minClusterSize=2, deepSplit=1, cutHeight=400)
+                                  minClusterSize=2, deepSplit=1, cutHeight=425)
     unname(glia.treeCut[order.dendrogram(dend)])
     
     # Take those and re-assign to the first assignments
@@ -173,8 +173,8 @@ unname(clust.treeCut[order.dendrogram(dend)])
 clustersStill0 <- which(clust.treeCut[order.dendrogram(dend)]==0)
 clust.treeCut[order.dendrogram(dend)][clustersStill0] <- max(clust.treeCut) +
   #c(1:length(clustersStill0))
-  c(1,1, 2:11, 12,12, 13,13, 14:18)
-  # 'repeating' bc some of these branches are just pairs/would be merged at a lower cut height
+  c(1,1, 2:11, 12,12, 13,13)
+  # 'repeating' bc some of these branches are just pairs/would be merged at a higher cut height
 
 # 'Re-write', since there are missing numbers
 clust.treeCut[order.dendrogram(dend)] <- as.numeric(as.factor(clust.treeCut[order.dendrogram(dend)]))
@@ -216,17 +216,17 @@ mod.ratio.merged.HC <- pairwiseModularity(graph = snn.gr.glmpcamnn,
                                           as.ratio=TRUE)
 
 # Plot
-pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_30collapsedClusters-by-HC.pdf"))
+pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_26collapsedClusters-by-HC.pdf"))
 # Add UMAP to this
 print(
   plotReducedDim(sce.lc, dimred="UMAP", colour_by="mergedCluster.HC", text_by="mergedCluster.HC") +
-    ggtitle(paste0("UMAP with 30 HC-merged clusters in LC (n=3)")) +
+    ggtitle(paste0("UMAP with 26 HC-merged clusters in LC (n=3)")) +
     scale_color_manual(values = c(tableau20, tableau10medium)) + labs(colour="New Cluster")
 )
 # Heatmap
 pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
          color=colorRampPalette(c("white", "blue"))(100),
-         main="Modularity ratio for 30 HC-merged clusters in LC (n=3)",
+         main="Modularity ratio for 26 HC-merged clusters in LC (n=3)",
          fontsize_row=7, fontsize_col=7, angle_col=90,
          display_numbers=T, number_format="%.1f", na_col="darkgrey")
 grid::grid.text(label="log2(ratio)",x=0.97,y=0.64, gp=grid::gpar(fontsize=7))
@@ -246,6 +246,7 @@ table(droplevels(sce.lc$cellType[which(sce.lc$mergedCluster.HC == 1)]))
     # Excit_D        Excit_E        Inhib_G Neuron.ambig_A Neuron.mixed_A 
     #     114            219             50           2560           2301
     #     (thus the self-modularity ratio is pretty low)
+
 
 
 
