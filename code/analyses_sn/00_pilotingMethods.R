@@ -152,6 +152,43 @@ save(#e.out.custom,
                ))
 
 
+### For funsies - test `cluster_walktrap` with increasing steps ===
+  #   Default is steps=4 (see Pons, Latapy, arXiv 2005 - recommend somewhere in {3,8})
+  # qrsh -l mf=60G,h_vmem=64G
+library(igraph)
+load(here("processed_data","SCE","graph_communities_glmpcamnn_LC.rda"), verbose=T)
+    # snn.gr.glmpcamnn, clusters.glmpcamnn
+
+Sys.time()
+    #[1] "2022-04-07 07:10:30 EDT"
+clusters.glmpcamnn.t6 <- igraph::cluster_walktrap(snn.gr.glmpcamnn, steps=6)
+Sys.time()
+    #[1] "2022-04-07 07:40:02 EDT"
+
+Sys.time()
+    # [1] "2022-04-07 08:14:44 EDT"
+clusters.glmpcamnn.t8 <- igraph::cluster_walktrap(snn.gr.glmpcamnn, steps=8)
+Sys.time()
+    #[1] "2022-04-07 08:53:27 EDT"
+
+
+# How do they compare to the 60 clusters with the default `steps=4`?
+table(clusters.glmpcamnn.t6$membership) # 49
+table(clusters.glmpcamnn.t8$membership) # 67 oh interesting
+
+table(clusters.glmpcamnn$membership, clusters.glmpcamnn.t6$membership)
+table(clusters.glmpcamnn$membership, clusters.glmpcamnn.t8$membership)
+
+    # Observation: in both cases, it doesn't seem to be particularly in a
+    #     nested way--i.e. the 60 clusters in the default t=4 aren't always
+    #     and completely found together in the 47 (from t=6)
+
+# Save these with the same graph
+save(snn.gr.glmpcamnn, clusters.glmpcamnn.t6, clusters.glmpcamnn.t8,
+     file=here("processed_data","SCE","ztest_communities-t6-t8_glmpcamnn_LC.rda"))
+
+
+
 
 ## Reproducibility information ====
 print('Reproducibility information:')
