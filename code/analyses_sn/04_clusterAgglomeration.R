@@ -248,6 +248,102 @@ table(droplevels(sce.lc$cellType[which(sce.lc$mergedCluster.HC == 1)]))
     #     (thus the self-modularity ratio is pretty low)
 
 
+### Since the below method performs poorly, print broad markers for annotation =====
+  #       of these 26 merged clusters
+source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotExpressionCustom.R")
+
+markers.mathys.tran = list(
+  'neuron' = c('SYT1', 'SNAP25', 'GRIN1'),
+  'excit_neuron' = c('CAMK2A', 'NRGN','SLC17A7', 'SLC17A6', 'SLC17A8'),
+  'inhib_neuron' = c('GAD1', 'GAD2', 'SLC32A1'),
+  # Norepinephrine & serotonergic markers
+  'neuron.NE' = c("TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC"), #SLC6A3 - saw no DAT
+  'neuron.5HT' = c("SLC6A4", "TPH1", "TPH2", "DDC"),
+  # SERT, serotonin T (aka 5-HTT); 
+  'monoamine.metab' = c("COMT", "MAOA", "MAOB"),
+  # MSN markers
+  'MSNs.pan' = c("PPP1R1B","BCL11B"),# "CTIP2")
+  'MSNs.D1' = c("DRD1", "PDYN", "TAC1"),
+  'MSNs.D2' = c("DRD2", "PENK"),
+  ## Non-neuronal:
+  'oligodendrocyte' = c('MBP', 'MOBP', 'PLP1'),
+  'oligo_precursor' = c('PDGFRA', 'VCAN', 'CSPG4'),
+  'microglia' = c('CD74', 'CSF1R', 'C3'),
+  'astrocyte' = c('GFAP', 'TNC', 'AQP4', 'SLC1A2'),
+  'endothelial' = c('CLDN5', 'FLT1', 'VTN'),
+  # Post-hoc from Tran-Maynard, et al. Neuron 2021
+  'differn_committed_OPC' = c("SOX4", "BCAN", "GPR17", "TNS3"),
+  'Tcell' = c('SKAP1', 'ITK', 'CD247'),
+  'Mural' = c('COL1A2', 'TBX18', 'RBPMS'),
+  'Macro' = c('CD163', 'SIGLEC1', 'F13A1')
+)
+
+
+pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_26-HC-merged-graphClusters.pdf")),
+    height=6, width=12)
+for(i in 1:length(markers.mathys.tran)){
+  print(
+    plotExpressionCustom(sce = sce.lc,
+                         exprs_values = "logcounts",
+                         features = markers.mathys.tran[[i]], 
+                         features_name = names(markers.mathys.tran)[[i]], 
+                         #anno_name = "mergedCluster.HC",
+                         anno_name = "cellType.merged",
+                         ncol=2, point_alpha=0.4, point_size=0.9,
+                         scales="free_y", swap_rownames="gene_name") +  
+      ggtitle(label=paste0("LC-n3 HC-merged (26) clusters: ",
+                           names(markers.mathys.tran)[[i]], " markers")) +
+      theme(plot.title = element_text(size = 12),
+            axis.text.x = element_text(size=7)) +
+      scale_color_manual(values = c(tableau20, tableau10medium))
+  )
+}
+dev.off()
+
+
+# Annotation reassignment ===
+annotationTab.lc <- annotationTab.lc[order(annotationTab.lc$merged), ]
+
+
+# Reference (smaller table)
+annTab.lc <- data.frame(cluster=c(1:26))
+annTab.lc$cellType.merged <- NA
+
+annTab.lc$cellType.merged[c(2,3,6,7, 15,23)] <- paste0("Excit_", c("A","B","C","D", "E","F"))
+annTab.lc$cellType.merged[c(4,5,16,24)] <- paste0("Inhib_", c("A","B","C","D"))
+annTab.lc$cellType.merged[c(1,18)] <- paste0("Neuron.mixed_", c("A","B"))
+annTab.lc$cellType.merged[c(19,22,25,26)] <- paste0("Neuron.ambig_", c("A","B","C","D"))
+annTab.lc$cellType.merged[c(14)] <- "ambig.lowNTx"
+
+annTab.lc$cellType.merged[c(21)] <- "Neuron.NE"
+annTab.lc$cellType.merged[c(17)] <- "Neuron.5HT"
+annTab.lc$cellType.merged[c(20)] <- "Neuron.5HT_noDDC"
+
+annTab.lc$cellType.merged[c(8,10)] <- paste0("Oligo_", c("A","B"))
+annTab.lc$cellType.merged[c(12)] <- "OPC"
+annTab.lc$cellType.merged[c(11)] <- "Micro"
+annTab.lc$cellType.merged[c(9)] <- "Astro"
+annTab.lc$cellType.merged[c(13)] <- "Endo.Mural"
+
+# Add to the bigger reference
+annotationTab.lc$cellType.merged <- annTab.lc$cellType.merged[match(annotationTab.lc$merged,
+                                                                    annTab.lc$cluster)]
+
+# Add to SCE
+sce.lc$cellType.merged <- annotationTab.lc$cellType.merged[match(sce.lc$mergedCluster.HC,
+                                                                 annotationTab.lc$merged)]
+sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
+
+
+# To distinguish original 60 clusters' annotations from these ones, `tolower()` the former
+annotationTab.lc$cellType <- tolower(annotationTab.lc$cellType)
+sce.lc$cellType <- factor(tolower(sce.lc$cellType))
+
+### Save
+save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
+     file=here("processed_data","SCE", "sce_updated_LC.rda"))
+
+    # --> re-print the marker plots, above, with these annotations
 
 
 
@@ -329,13 +425,13 @@ save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    # [1] "2022-04-03 12:41:47 EDT"
+    # [1] "2022-04-07 22:57:06 EDT"
 proc.time()
     #     user    system   elapsed 
-    #  225.217   14.400 5678.962 
+    # 1524.301    38.689 11076.920 
 options(width = 120)
 session_info()
-    # ─ Session info ─────────────────────────────────────────────────────────────────────
+    # ─ Session info ────────────────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -345,10 +441,10 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-04-03
+    # date     2022-04-07
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ─────────────────────────────────────────────────────────────────────────
+    # ─ Packages ────────────────────────────────────────────────────────────────────────────
     # package              * version  date (UTC) lib source
     # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
     # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -357,7 +453,7 @@ session_info()
     # Biobase              * 2.54.0   2021-10-26 [2] Bioconductor
     # BiocGenerics         * 0.40.0   2021-10-26 [2] Bioconductor
     # BiocNeighbors          1.12.0   2021-10-26 [2] Bioconductor
-    # BiocParallel           1.28.3   2021-12-09 [2] Bioconductor
+    # BiocParallel         * 1.28.3   2021-12-09 [2] Bioconductor
     # BiocSingular           1.10.0   2021-10-26 [2] Bioconductor
     # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
     # bluster              * 1.4.0    2021-10-26 [2] Bioconductor
@@ -418,7 +514,7 @@ session_info()
     # R.utils                2.11.0   2021-09-26 [2] CRAN (R 4.1.2)
     # R6                     2.5.1    2021-08-19 [2] CRAN (R 4.1.2)
     # rafalib              * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
-    # RColorBrewer           1.1-2    2014-12-07 [2] CRAN (R 4.1.0)
+    # RColorBrewer           1.1-3    2022-04-03 [2] CRAN (R 4.1.2)
     # Rcpp                   1.0.8.3  2022-03-17 [2] CRAN (R 4.1.2)
     # RCurl                  1.98-1.6 2022-02-08 [2] CRAN (R 4.1.2)
     # ResidualMatrix         1.4.0    2021-10-26 [1] Bioconductor
@@ -456,6 +552,6 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ────────────────────────────────────────────────────────────────────────────────────
+    # ───────────────────────────────────────────────────────────────────────────────────────
 
 
