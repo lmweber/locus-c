@@ -1,7 +1,7 @@
 ##################################################
 # LC project
 # Script for additional quality control (QC) plots
-# Lukas Weber, Mar 2022
+# Lukas Weber, Apr 2022
 ##################################################
 
 # module load conda_R/4.1.x

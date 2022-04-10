@@ -1,7 +1,7 @@
 #########################################
 # LC project
 # Script for batch correction: WM regions
-# Lukas Weber, Mar 2022
+# Lukas Weber, Apr 2022
 #########################################
 
 # module load conda_R/4.1.x
@@ -41,10 +41,12 @@ dim(spe)
 # -----------------------------------
 
 # clustering on WM region spots without batch correction
+# demonstrates that batch correction is required in this dataset
 
 # select WM spots
 spe <- spe[, !colData(spe)$annot_region]
 dim(spe)
+
 
 # run standard clustering pipeline from OSTA
 
