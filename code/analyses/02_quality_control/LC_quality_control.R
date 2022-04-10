@@ -54,25 +54,12 @@ all(colData(spe)$in_tissue)
 dim(spe)
 
 
-# ------------------------------------------------------
-# split into 2 SPE objects for LC regions and WM regions
-# ------------------------------------------------------
+# -------------------------------
+# calculate spot-level QC metrics
+# -------------------------------
 
-# spots in manually annotated LC regions
-table(colData(spe)$annot_region)
-
-spe_LC <- spe[, colData(spe)$annot_region]
-spe_WM <- spe[, !colData(spe)$annot_region]
-
-dim(spe_LC)
-dim(spe_WM)
-
-
-# -----------------------------------------------------
-# spot-level QC: all spots (LC and WM regions together)
-# -----------------------------------------------------
-
-# not used for final QC
+# combined object containing both LC and WM regions
+# calculate QC metrics; then split object to select QC thresholds in LC and WM
 
 # identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
@@ -80,16 +67,23 @@ table(is_mito)
 rowData(spe)$gene_name[is_mito]
 
 # calculate QC metrics using scater package
-reasons <- perCellQCMetrics(spe, subsets = list(mito = is_mito))
-# note duplicate columns from previously
-all(reasons$sum == colData(spe)$sum_umi)
-all(reasons$detected == colData(spe)$sum_gene)
-all(reasons$subsets_mito_sum == colData(spe)$expr_chrM)
-all(reasons$subsets_mito_percent == colData(spe)$expr_chrM_ratio * 100)
+spe <- addPerCellQCMetrics(spe, subsets = list(mito = is_mito))
 
-# note wide range of values in combined object
-summary(reasons$sum)
-summary(reasons$detected)
+# note: remove duplicate columns from previously
+all(colData(spe)$sum == colData(spe)$sum_umi)
+all(colData(spe)$detected == colData(spe)$sum_gene)
+all(colData(spe)$subsets_mito_sum == colData(spe)$expr_chrM)
+all(colData(spe)$subsets_mito_percent == colData(spe)$expr_chrM_ratio * 100)
+ix_remove <- which(names(colData(spe)) %in% c("sum_umi", "sum_gene", "expr_chrM", "expr_chrM_ratio"))
+ix_remove
+dim(colData(spe))
+colData(spe) <- colData(spe)[, -ix_remove]
+dim(colData(spe))
+
+
+# note extremely wide range of values in combined object containing both LC and WM
+summary(colData(spe)$sum)
+summary(colData(spe)$detected)
 
 
 # plot histograms of QC metrics
@@ -104,27 +98,45 @@ par(mfrow = c(1, 1))
 dev.off()
 
 
-# -------------------------
-# spot-level QC: LC regions
-# -------------------------
+# --------------------------------------
+# split into 2 SPE objects for LC and WM
+# --------------------------------------
 
-# check number of spots
+# select QC thresholds separately in LC and WM regions
+
+# spots in manually annotated LC regions
+table(colData(spe)$annot_region)
+
+spe_LC <- spe[, colData(spe)$annot_region]
+spe_WM <- spe[, !colData(spe)$annot_region]
+
+dim(spe_LC)
+dim(spe_WM)
+
+
+# compare summary values
+
+summary(colData(spe)$sum)
+summary(colData(spe)$detected)
+
+summary(colData(spe_LC)$sum)
+summary(colData(spe_LC)$detected)
+
+summary(colData(spe_WM)$sum)
+summary(colData(spe_WM)$detected)
+
+
+# to do: plots comparing these summary values
+
+
+# ---------------------------
+# spot-level QC in LC regions
+# ---------------------------
+
+# check
 dim(spe_LC)
 table(colData(spe_LC)$sample_id)
 table(colData(spe_LC)$sample_part_id)
-
-# identify mitochondrial genes
-is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe_LC)$gene_name)
-table(is_mito)
-rowData(spe_LC)$gene_name[is_mito]
-
-# calculate QC metrics using scater package
-spe_LC <- addPerCellQC(spe_LC, subsets = list(mito = is_mito))
-
-
-# check summaries and compare with combined object above
-summary(colData(spe_LC)$sum)
-summary(colData(spe_LC)$detected)
 
 
 # plot histograms of QC metrics
@@ -156,6 +168,7 @@ thresh_high_subsets_mito_percent  ## 63.4
 stopifnot(nrow(reasons_LC) == nrow(colData(spe_LC)))
 colData(spe_LC) <- cbind(colData(spe_LC), reasons_LC)
 
+
 # store in main SPE object
 colData(spe)$low_lib_size <- FALSE
 colData(spe)$low_n_features <- FALSE
@@ -172,26 +185,14 @@ rbind(table(colData(spe_LC)$low_n_features), table(colData(spe)$low_n_features))
 rbind(table(colData(spe_LC)$high_subsets_mito_percent), table(colData(spe)$high_subsets_mito_percent))
 rbind(table(colData(spe_LC)$discard), table(colData(spe)$discard))
 
-# -------------------------
-# spot-level QC: WM regions
-# -------------------------
 
-# check number of spots
+# ---------------------------
+# spot-level QC in WM regions
+# ---------------------------
+
+# check
 dim(spe_WM)
 table(colData(spe_WM)$sample_id)
-
-# identify mitochondrial genes
-is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe_WM)$gene_name)
-table(is_mito)
-rowData(spe_WM)$gene_name[is_mito]
-
-# calculate QC metrics using scater package
-spe_WM <- addPerCellQC(spe_WM, subsets = list(mito = is_mito))
-
-
-# check summaries and compare with combined object above
-summary(colData(spe_WM)$sum)
-summary(colData(spe_WM)$detected)
 
 
 # plot histograms of QC metrics
@@ -219,7 +220,8 @@ thresh_low_n_features ## 1.4
 thresh_high_subsets_mito_percent <- attr(reasons_WM$high_subsets_mito_percent, "thresholds")["higher"]
 thresh_high_subsets_mito_percent  ## 69.6
 
-# adaptive thresholds are too low for lib_size and n_features
+
+# note; adaptive thresholds are too low in this dataset for lib_size and n_features
 quantile(colData(spe_WM)$sum, seq(0, 1, by = 0.1))
 quantile(colData(spe_WM)$detected, seq(0, 1, by = 0.1))
 
@@ -234,6 +236,7 @@ table(high_subsets_mito_percent)
 
 discard <- low_lib_size | low_n_features | high_subsets_mito_percent
 table(discard)
+
 
 # store in subsetted SPE object
 colData(spe_WM) <- cbind(
@@ -251,15 +254,18 @@ colData(spe)[colData(spe_WM)$key_id, "high_subsets_mito_percent"] <- colData(spe
 colData(spe)[colData(spe_WM)$key_id, "discard"] <- colData(spe_WM)$discard
 
 # check
-rbind(table(colData(spe_WM)$low_lib_size))
-rbind(table(colData(spe_WM)$low_n_features))
-rbind(table(colData(spe_WM)$high_subsets_mito_percent))
-rbind(table(colData(spe_WM)$discard))
-
-# check
-table(colData(spe_WM)$discard)
-table(colData(spe_LC)$discard)
-table(colData(spe)$discard)
+rbind(table(colData(spe_LC)$low_lib_size), 
+      table(colData(spe_WM)$low_lib_size), 
+      table(colData(spe)$low_lib_size))
+rbind(table(colData(spe_LC)$low_n_features), 
+      table(colData(spe_WM)$low_n_features), 
+      table(colData(spe)$low_n_features))
+rbind(table(colData(spe_LC)$high_subsets_mito_percent), 
+      table(colData(spe_WM)$high_subsets_mito_percent), 
+      table(colData(spe)$high_subsets_mito_percent))
+rbind(table(colData(spe_LC)$discard), 
+      table(colData(spe_WM)$discard), 
+      table(colData(spe)$discard))
 
 
 # --------------------
@@ -269,6 +275,9 @@ table(colData(spe)$discard)
 # summary of discarded spots in LC and WM regions
 table(colData(spe_LC)$sample_part_id, colData(spe_LC)$discard)
 table(colData(spe_WM)$sample_id, colData(spe_WM)$discard)
+
+# to do: summary plot of these values
+
 
 # plot all spots
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
