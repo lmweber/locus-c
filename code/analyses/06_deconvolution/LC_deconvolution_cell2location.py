@@ -45,9 +45,35 @@ table(colData(spe)$sample_id)
 table(colData(spe)$sample_part_id)
 
 
-# to do: load SCE object (snRNA-seq)
+# load SCE object (snRNA-seq)
 
-# to do: extract pieces of each object, since Python session cannot load SCE or SPE directly
+fn_sce <- here("processed_data", "SCE", "sce_updated_LC.rda")
+load(fn_sce)
+
+dim(sce.lc)
+
+
+# ---------------------------------
+# extract components from R objects
+# ---------------------------------
+
+# extract components from SPE/SCE objects to create new AnnData objects later
+# see https://theislab.github.io/scanpy-in-R/, section 4.4.1: "Creating AnnData from SingleCellExperiment"
+# note: use standard data.frames instead of DataFrames so reticulate can access them
+
+# SPE object
+spe_assays <- assays(spe)
+spe_counts <- assay(spe, "counts")
+spe_rowdata <- as.data.frame(rowData(spe))
+spe_coldata <- as.data.frame(colData(spe))
+spe_coldata_combined <- cbind(as.data.frame(colData(spe)), spatialCoords(spe))
+
+# SCE object
+sce_assays <- assays(sce.lc)
+sce_counts <- assay(sce.lc, "counts")
+sce_rowdata <- as.data.frame(rowData(sce.lc))
+sce_coldata <- as.data.frame(colData(sce.lc))
+sce_reduceddims <- reducedDims(sce.lc)
 
 
 # --------------------
@@ -57,7 +83,7 @@ table(colData(spe)$sample_part_id)
 # start interactive Python session using reticulate with correct Python installation
 
 library(reticulate)
-use_python("/users/lweber/miniconda3/bin/python", required = TRUE)
+use_python("/users/lweber/miniconda3/bin/python", required = TRUE)  ## skip on laptop
 reticulate::repl_python()
 
 
@@ -92,16 +118,31 @@ ref_run_name = f'{results_folder}/reference_signatures'
 run_name = f'{results_folder}/cell2location_map'
 
 
-# ----------------------------
-# convert R objects to AnnData
-# ----------------------------
+# ----------------------
+# create AnnData objects
+# ----------------------
 
-# to do: convert SPE and SCE objects to AnnData objects
-# see https://theislab.github.io/scanpy-in-R/
+# create AnnData objects from previously loaded R objects using reticulate
+# see https://theislab.github.io/scanpy-in-R/, section 4.4.1: "Creating AnnData from SingleCellExperiment"
 
-# access R objects within Python session using reticulate
-r.spe
-r.sce
+# SPE object
+adata_spe = sc.AnnData(
+    X = r.spe_counts.T, 
+    obs = r.spe_coldata_combined, 
+    var = r.spe_rowdata
+)
+
+# SCE object
+adata_sce = sc.AnnData(
+    X = r.sce_counts.T, 
+    obs = r.sce_coldata, 
+    var = r.sce_rowdata
+)
+#adata_sce.obsm['umap'] = r.sce_reduceddims
+
+# to do: add reducedDims components to adata.sce
+
+# to do: check these objects are using correct data, e.g. counts not logcounts
 
 
 # -------------------------------
