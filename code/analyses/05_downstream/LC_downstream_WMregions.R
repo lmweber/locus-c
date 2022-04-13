@@ -85,8 +85,8 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = label)) +
   theme(panel.grid = element_blank())
 
 fn <- file.path(dir_plots, "LC_clusters_HARM_WMregions")
-ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
-ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
+ggsave(paste0(fn, ".pdf"), width = 6.75, height = 5)
+ggsave(paste0(fn, ".png"), width = 6.75, height = 5)
 
 
 # PCA
@@ -99,8 +99,8 @@ ggplot(df, aes(x = PC1, y = PC2, color = label)) +
   theme(panel.grid = element_blank())
 
 fn <- file.path(dir_plots, "LC_clusters_PCA_WMregions")
-ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
-ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
+ggsave(paste0(fn, ".pdf"), width = 6.75, height = 5)
+ggsave(paste0(fn, ".png"), width = 6.75, height = 5)
 
 
 # UMAP
@@ -113,14 +113,14 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme(panel.grid = element_blank())
 
 fn <- file.path(dir_plots, "LC_clusters_UMAP_WMregions")
-ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
-ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
+ggsave(paste0(fn, ".pdf"), width = 6.75, height = 5)
+ggsave(paste0(fn, ".png"), width = 6.75, height = 5)
 
 
 # x-y space (by sample)
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = label)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
-  geom_point(size = 0.5) + 
+  geom_point(size = 0.1) + 
   scale_color_manual(values = pal) + 
   # coord_fixed() +  ## use 'aspect.ratio = 1' instead with 'scales = "free"'
   scale_y_reverse() + 
@@ -153,6 +153,6 @@ plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2
   guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
 
 fn <- file.path(dir_plots, "selectedMarkers_byCluster_WMregions")
-ggsave(paste0(fn, ".pdf"), width = 6, height = 7, bg = "white")
-ggsave(paste0(fn, ".png"), width = 6, height = 7, bg = "white")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 7, bg = "white")
+ggsave(paste0(fn, ".png"), width = 9, height = 7, bg = "white")
 
