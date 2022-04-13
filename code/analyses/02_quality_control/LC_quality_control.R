@@ -308,6 +308,16 @@ ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
+# --------------------------------------
+# remove discarded spots from SPE object
+# --------------------------------------
+
+dim(spe)
+
+spe <- spe[, !colData(spe)$discard]
+dim(spe)
+
+
 # -----------
 # save object
 # -----------
