@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_downstream", "all_spots")
+dir_plots <- here("plots", "05_downstream", "LC_regions")
 
 
 # ---------
@@ -34,7 +34,32 @@ spe <- readRDS(fn_spe)
 dim(spe)
 
 
-# using all spots
+# -----------------
+# select LC regions
+# -----------------
+
+# select spots from LC regions only
+
+spe <- spe[, colData(spe)$annot_region]
+
+dim(spe)
+
+
+# ----------
+# clustering
+# ----------
+
+# re-run clustering on selected spots
+
+# clustering pipeline from OSTA using Harmony batch corrected PCs
+
+set.seed(123)
+k <- 10
+g <- buildSNNGraph(spe, k = k, use.dimred = "HARM")
+g_walk <- igraph::cluster_walktrap(g)
+clus <- g_walk$membership
+table(clus)
+colLabels(spe) <- factor(clus)
 
 
 # -------------
@@ -59,7 +84,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_HARM_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_HARM_LCregions")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -73,7 +98,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_PCA_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_PCA_LCregions")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -87,7 +112,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_UMAP_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_UMAP_LCregions")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -95,7 +120,7 @@ ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 # x-y space (by sample)
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = label)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
-  geom_point(size = 0.1) + 
+  geom_point(size = 0.5) + 
   scale_color_manual(values = pal) + 
   # coord_fixed() +  ## use 'aspect.ratio = 1' instead with 'scales = "free"'
   scale_y_reverse() + 
@@ -108,7 +133,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = label)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_XYspace_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_XYspace_LCregions")
 ggsave(paste0(fn, ".pdf"), width = 6.75, height = 7)
 ggsave(paste0(fn, ".png"), width = 6.75, height = 7)
 
@@ -117,31 +142,9 @@ ggsave(paste0(fn, ".png"), width = 6.75, height = 7)
 # marker gene identification
 # --------------------------
 
-# code from OSCA
+# plot selected genes across clusters
 
 rownames(spe) <- rowData(spe)$gene_name
-
-marker.info <- scoreMarkers(spe, colLabels(spe))
-marker.info
-
-
-# plot top markers for each cluster
-
-for (i in names(marker.info)) {
-  chosen <- marker.info[[i]]
-  ordered <- chosen[order(chosen$mean.AUC, decreasing = TRUE), ]
-  head(ordered[, 1:4])
-  plotExpression(spe, features = head(rownames(ordered)), 
-                 x = "label", colour_by = "label") + 
-    scale_color_manual(values = pal, name = "label") + 
-    guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
-  fn <- file.path(dir_plots, "markers_allSpots", paste0("markers_cluster", i))
-  ggsave(paste0(fn, ".pdf"), width = 10, height = 6, bg = "white")
-  ggsave(paste0(fn, ".png"), width = 10, height = 6, bg = "white")
-}
-
-
-# plot selected genes across clusters
 
 genes <- c("SNAP25", "SYT1", "TH", "DBH", "DDC", "TPH2", "SLC6A4")
 
@@ -149,7 +152,7 @@ plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2
   scale_color_manual(values = pal, name = "label") + 
   guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
 
-fn <- file.path(dir_plots, "selectedMarkers_byCluster_allSpots")
-ggsave(paste0(fn, ".pdf"), width = 9, height = 7, bg = "white")
-ggsave(paste0(fn, ".png"), width = 9, height = 7, bg = "white")
+fn <- file.path(dir_plots, "selectedMarkers_byCluster_LCregions")
+ggsave(paste0(fn, ".pdf"), width = 6, height = 7, bg = "white")
+ggsave(paste0(fn, ".png"), width = 6, height = 7, bg = "white")
 
