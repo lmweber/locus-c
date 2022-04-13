@@ -132,7 +132,7 @@ for (i in names(marker.info)) {
                  x = "label", colour_by = "label") + 
     scale_color_manual(values = pal, name = "label") + 
     guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
-  fn <- file.path(dir_plots, "markers", paste0("markers_cluster", i))
+  fn <- file.path(dir_plots, "markers_allSpots", paste0("markers_cluster", i))
   ggsave(paste0(fn, ".pdf"), width = 10, height = 6, bg = "white")
   ggsave(paste0(fn, ".png"), width = 10, height = 6, bg = "white")
 }
@@ -146,7 +146,7 @@ plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2
   scale_color_manual(values = pal, name = "label") + 
   guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
 
-fn <- file.path(dir_plots, "selectedMarkers_byCluster")
+fn <- file.path(dir_plots, "selectedMarkers_byCluster_allSpots")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 7, bg = "white")
 ggsave(paste0(fn, ".png"), width = 9, height = 7, bg = "white")
 
