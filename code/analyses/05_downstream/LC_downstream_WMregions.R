@@ -34,11 +34,11 @@ spe <- readRDS(fn_spe)
 dim(spe)
 
 
-# -----------------
-# select WM regions
-# -----------------
+# ------------------------------------
+# select manually annotated WM regions
+# ------------------------------------
 
-# select spots from WM regions only
+# select spots from manually annotated WM regions
 
 spe <- spe[, !colData(spe)$annot_region]
 

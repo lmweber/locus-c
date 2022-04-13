@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_downstream", "LC_regions")
+dir_plots <- here("plots", "05_downstream", "individual_spots")
 
 
 # ---------
@@ -34,13 +34,13 @@ spe <- readRDS(fn_spe)
 dim(spe)
 
 
-# ------------------------------------
-# select manually annotated LC regions
-# ------------------------------------
+# ------------------------------------------
+# select manually annotated individual spots
+# ------------------------------------------
 
-# select spots from manually annotated LC regions
+# select manually annotated individual spots only
 
-spe <- spe[, colData(spe)$annot_region]
+spe <- spe[, colData(spe)$annot_spot]
 
 dim(spe)
 
@@ -84,7 +84,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_HARM_LCregions")
+fn <- file.path(dir_plots, "LC_clusters_HARM_individual")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -98,7 +98,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_PCA_LCregions")
+fn <- file.path(dir_plots, "LC_clusters_PCA_individual")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -112,7 +112,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_UMAP_LCregions")
+fn <- file.path(dir_plots, "LC_clusters_UMAP_individual")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -133,7 +133,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = label)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_XYspace_LCregions")
+fn <- file.path(dir_plots, "LC_clusters_XYspace_individual")
 ggsave(paste0(fn, ".pdf"), width = 6.75, height = 7)
 ggsave(paste0(fn, ".png"), width = 6.75, height = 7)
 
@@ -152,7 +152,7 @@ plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2
   scale_color_manual(values = pal, name = "label") + 
   guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
 
-fn <- file.path(dir_plots, "selectedMarkers_byCluster_LCregions")
-ggsave(paste0(fn, ".pdf"), width = 6, height = 7, bg = "white")
-ggsave(paste0(fn, ".png"), width = 6, height = 7, bg = "white")
+fn <- file.path(dir_plots, "selectedMarkers_byCluster_individual")
+ggsave(paste0(fn, ".pdf"), width = 4, height = 7, bg = "white")
+ggsave(paste0(fn, ".png"), width = 4, height = 7, bg = "white")
 
