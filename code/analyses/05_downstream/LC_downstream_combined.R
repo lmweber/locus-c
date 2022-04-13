@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_downstream", "all_spots")
+dir_plots <- here("plots", "05_downstream", "combined")
 
 
 # ---------
@@ -59,7 +59,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_HARM_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_HARM_combined")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -73,7 +73,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_PCA_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_PCA_combined")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -87,7 +87,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_UMAP_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_UMAP_combined")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -108,7 +108,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = label)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "LC_clusters_XYspace_allSpots")
+fn <- file.path(dir_plots, "LC_clusters_XYspace_combined")
 ggsave(paste0(fn, ".pdf"), width = 6.75, height = 7)
 ggsave(paste0(fn, ".png"), width = 6.75, height = 7)
 
@@ -135,7 +135,7 @@ for (i in names(marker.info)) {
                  x = "label", colour_by = "label") + 
     scale_color_manual(values = pal, name = "label") + 
     guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
-  fn <- file.path(dir_plots, "markers_allSpots", paste0("markers_cluster", i))
+  fn <- file.path(dir_plots, "markers_combined", paste0("markers_cluster", i))
   ggsave(paste0(fn, ".pdf"), width = 10, height = 6, bg = "white")
   ggsave(paste0(fn, ".png"), width = 10, height = 6, bg = "white")
 }
@@ -149,7 +149,7 @@ plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2
   scale_color_manual(values = pal, name = "label") + 
   guides(color = guide_legend(override.aes = list(size = 2, alpha = 1)))
 
-fn <- file.path(dir_plots, "selectedMarkers_byCluster_allSpots")
+fn <- file.path(dir_plots, "selectedMarkers_byCluster_combined")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 7, bg = "white")
 ggsave(paste0(fn, ".png"), width = 9, height = 7, bg = "white")
 
