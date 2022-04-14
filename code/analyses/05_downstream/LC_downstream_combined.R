@@ -143,7 +143,7 @@ for (i in names(marker.info)) {
 
 # plot selected genes across clusters
 
-genes <- c("SNAP25", "SYT1", "TH", "DBH", "DDC", "TPH2", "SLC6A4")
+genes <- c("SNAP25", "SYT1", "TH", "SLC6A2", "TPH2", "SLC6A4", "DBH", "DDC")
 
 plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2) + 
   scale_color_manual(values = pal, name = "label") + 
