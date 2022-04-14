@@ -16,6 +16,8 @@ library(here)
 library(scater)
 library(ggplot2)
 library(ggnewscale)
+library(dplyr)
+library(tidyr)
 
 
 # directory to save plots
@@ -126,7 +128,19 @@ summary(colData(spe_WM)$sum)
 summary(colData(spe_WM)$detected)
 
 
-# to do: plots comparing these summary values
+# table of summary values
+
+df_summary <- data.frame(
+  sumUMI_combined = round(as.numeric(summary(colData(spe)$sum))), 
+  sumUMI_LC = round(as.numeric(summary(colData(spe_LC)$sum))), 
+  sumUMI_WM = round(as.numeric(summary(colData(spe_WM)$sum))), 
+  detectedGenes_combined = round(as.numeric(summary(colData(spe)$detected))), 
+  detectedGenes_LC = round(as.numeric(summary(colData(spe_LC)$detected))), 
+  detectedGenes_WM = round(as.numeric(summary(colData(spe_WM)$detected)))
+)
+rownames(df_summary) <- names(summary(colData(spe)$sum))
+
+df_summary
 
 
 # ---------------------------
