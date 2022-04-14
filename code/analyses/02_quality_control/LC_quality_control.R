@@ -308,6 +308,35 @@ ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
+# ----------------
+# additional plots
+# ----------------
+
+# no metrics (spots only)
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray80") + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "royalblue3") + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_y_reverse() + 
+  ggtitle("Manually annotated regions") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_annotatedRegions")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
 # --------------------------------------
 # remove discarded spots from SPE object
 # --------------------------------------
