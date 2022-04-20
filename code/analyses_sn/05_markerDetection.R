@@ -117,6 +117,37 @@ sapply(cellClust.idx, function(x){quantile(sce.lc$sum[x])})
     # 100% 46062.00
 
 
+## sizeFactor distribution
+sapply(cellClust.idx, function(x){round(quantile(sce.lc$sizeFactor[x]), 2)})
+    #     ambig.lowNTx Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E
+    # 0%           0.03  0.05       0.08    0.10    0.78    0.57    1.09    0.22
+    # 25%          0.06  0.17       0.17    0.46    2.22    2.29    2.48    0.32
+    # 50%          0.09  0.28       0.28    1.26    3.15    3.51    4.03    0.67
+    # 75%          0.17  0.50       0.72    3.86    4.79    4.90    6.03    5.12
+    # 100%         2.93  3.21       5.18   15.81   16.47   12.20   21.66   17.41
+
+    #      Excit_F Inhib_A Inhib_B Inhib_C Inhib_D Micro Neuron.5HT Neuron.5HT_noDDC
+    # 0%      1.02    0.48    1.65    0.52    0.08  0.06       1.62             0.16
+    # 25%     2.16    1.37    4.31    1.28    0.18  0.14       5.02             0.34
+    # 50%     3.17    2.32    5.46    1.90    0.27  0.25       6.46             0.53
+    # 75%     4.53    3.56    6.93    2.57    0.43  0.46       7.67             0.96
+    # 100%    8.65   19.83   11.66    8.61    1.26  4.46      15.53             4.48
+
+    #      Neuron.ambig_A Neuron.ambig_B Neuron.ambig_C Neuron.ambig_D Neuron.mixed_A
+    # 0%             0.07           0.19           0.12           0.10           0.03
+    # 25%            0.17           0.32           0.34           0.24           0.34
+    # 50%            0.26           0.53           0.53           0.37           1.02
+    # 75%            0.55           0.90           0.82           0.56           3.26
+    # 100%           2.32           2.47           9.18           2.52          17.30
+
+    #      Neuron.mixed_B Neuron.NE Oligo_A Oligo_B  OPC
+    # 0%             0.31      1.79    0.40    0.03 0.07
+    # 25%            0.78      2.87    0.64    0.12 0.31
+    # 50%            1.41      3.87    0.90    0.21 0.53
+    # 75%            2.66      6.27    1.38    0.35 1.11
+    # 100%           8.12     18.71    5.82   11.26 5.34
+
+
 
 # Remove 0 genes across all nuclei
 sce.lc <- sce.lc[!rowSums(assay(sce.lc, "counts"))==0, ]  #
@@ -155,18 +186,6 @@ sapply(medianNon0.lc.26, table)
     # TRUE            2670           3807      5916    2040     277  1117
 
 
-# # Just for interactive exploration of some of these
-# plotExpressionCustom(sce = sce.lc,
-#                      exprs_values = "logcounts",
-#                      #
-#                      features = head(Oligo_A_markers,4),
-#                      features_name = "custom-selected",
-#                      anno_name = "cellType.merged",
-#                      ncol=2, point_alpha=0.4, point_size=0.9,
-#                      scales="free_y", swap_rownames="gene_name") +
-#   ggtitle(label=paste0("Lionel's custom markers of interest")) +
-#   theme(plot.title = element_text(size = 12),
-#         axis.text.x = element_text(size=7))
 
 
 ## Traditional t-test, pairwise ===
@@ -411,6 +430,77 @@ top40genes <- cbind(sapply(markerList.t.pw, function(x) head(x, n=40)),
 top40genes <- top40genes[ ,sort(colnames(top40genes))]
 write.csv(top40genes, file=here("code","analyses_sn","top40genesLists_LC-n3_26cellTypes.csv"),
           row.names=FALSE)
+
+
+
+
+### Some follow-up ================================================
+load(here("processed_data","SCE",
+          "markers-stats_LC-n3_findMarkers_26cellTypes.rda"), verbose=T)
+
+## Oligo_B: there are no pw markers; sizeFactors IQR: [0.12, 0.35] ===
+#     Observation:
+#         - there are no pairwise markers, and all the '1vAll' markers are more expressed
+#           in Oligo_A;  -> are there any depleted markers?
+
+head(markers.lc.t.1vAll[["Oligo_B"]][["Oligo_B_depleted"]])
+printThese <- head(rownames(markers.lc.t.1vAll[["Oligo_B"]][["Oligo_B_depleted"]]),n=12)
+printThese <- rowData(sce.lc)$gene_name[match(printThese, rowData(sce.lc)$gene_id)]
+
+# Just for interactive exploration of some of these
+png(here("plots","snRNA-seq","markers",
+         "temp_explore_vlnPlots_Oligo_B_depleted.png"), height=600, width=800)
+print(
+  plotExpressionCustom(sce = sce.lc,
+                       exprs_values = "logcounts",
+                       #
+                       features = head(printThese,12),
+                       features_name = "",
+                       anno_name = "cellType.merged",
+                       ncol=4, point_alpha=0.4, point_size=0.9,
+                       scales="free_y", swap_rownames="gene_name") +
+    scale_color_manual(values = c(tableau20, tableau10medium)) +  
+    ggtitle(label=paste0("Custom-selected markers: Oligo_B depleted genes")) +
+    theme(plot.title = element_text(size = 12),
+          axis.text.x = element_text(size=7))
+  )
+dev.off()
+
+    ## Observation: there doesn't seem to be any genes uniquely depleted in these
+    #         - top depleted genes are co-depleted in _B AND _A (and often other glial pops)
+
+
+### Let's actually print these for the others that have little/no pw markers...
+othersToCheck <- c("Excit_A", "Inhib_A", "Inhib_D", "Neuron.5HT_noDDC",
+            paste0("Neuron.ambig_",c("A","B","C","D")))
+
+for(i in othersToCheck){
+  
+  printThese <- head(rownames(markers.lc.t.1vAll[[i]][[paste0(i,"_depleted")]]),n=12)
+  printThese <- rowData(sce.lc)$gene_name[match(printThese, rowData(sce.lc)$gene_id)]
+  
+  # Just for interactive exploration of some of these
+  png(here("plots","snRNA-seq","markers",
+           paste0("temp_explore_vlnPlots_",i,"_depleted.png")), height=600, width=800)
+    print(
+      plotExpressionCustom(sce = sce.lc,
+                           exprs_values = "logcounts",
+                           #
+                           features = head(printThese,12),
+                           features_name = "",
+                           anno_name = "cellType.merged",
+                           ncol=4, point_alpha=0.4, point_size=0.9,
+                           scales="free_y", swap_rownames="gene_name") +
+        scale_color_manual(values = c(tableau20, tableau10medium)) +  
+        ggtitle(label=paste0("Custom-selected markers: ",i," depleted genes")) +
+        theme(plot.title = element_text(size = 12),
+              axis.text.x = element_text(size=7))
+      )
+  dev.off()
+  
+}
+
+
 
 
 
