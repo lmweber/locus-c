@@ -18,17 +18,17 @@
 
 
 # start interactive session on JHPCE GPU node:
-# qrsh -l caracol,mem_free=64G,h_vmem=64G
+# qrsh -l caracol,mem_free=128G,h_vmem=128G
 
 # module load conda_R/4.1.x
 # R
 
 
-# --------------
-# load R objects
-# --------------
+# ----------------------
+# load Visium SPE object
+# ----------------------
 
-# load SPE object for use within Python session with reticulate
+# load Visium SPE object for use within Python session with reticulate
 
 library(here)
 library(SpatialExperiment)
@@ -37,18 +37,40 @@ fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
 spe <- readRDS(fn_spe)
 dim(spe)
 
-# select LC regions only
-spe <- spe[, colData(spe)$annot_region]
-dim(spe)
-
+# check sample IDs
 table(colData(spe)$sample_id)
 table(colData(spe)$sample_part_id)
 
 
-# load SCE object (snRNA-seq)
+# -------------------------
+# load snRNA-seq SCE object
+# -------------------------
+
+# load snRNA-seq SCE object for use within Python session with reticulate
 
 fn_sce <- here("processed_data", "SCE", "sce_updated_LC.rda")
 load(fn_sce)
+
+dim(sce.lc)
+
+# check sample IDs
+table(colData(sce.lc)$Sample)
+# check annotated cell types / clusters
+table(colData(sce.lc)$cellType.collapsed)
+
+# merge 5-HT clusters ("Neuron.5HT", "Neuron.5HT_noDDC") into a single cluster
+ix_5HT_all <- colData(sce.lc)$cellType.collapsed %in% c("Neuron.5HT", "Neuron.5HT_noDDC")
+table(ix_5HT_all)
+colData(sce.lc)$cellType.collapsed[ix_5HT_all] <- "Neuron.5HT"
+colData(sce.lc)$cellType.collapsed <- droplevels(colData(sce.lc)$cellType.collapsed)
+table(colData(sce.lc)$cellType.collapsed)
+
+# remove ambiguous cell types / clusters ("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed")
+ix_remove <- colData(sce.lc)$cellType.collapsed %in% c("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed")
+table(ix_remove)
+sce.lc <- sce.lc[, !ix_remove]
+colData(sce.lc)$cellType.collapsed <- droplevels(colData(sce.lc)$cellType.collapsed)
+table(colData(sce.lc)$cellType.collapsed)
 
 dim(sce.lc)
 
@@ -88,7 +110,7 @@ sce_TSNE <- reducedDim(sce.lc, "TSNE")
 # start interactive Python session using reticulate with correct Python installation
 
 library(reticulate)
-use_python("/users/lweber/miniconda3/bin/python", required = TRUE)  ## skip on laptop
+use_python("/users/lweber/miniconda3/bin/python", required = TRUE)
 reticulate::repl_python()
 
 
@@ -156,108 +178,93 @@ adata_sce.obsm['TSNE'] = r.sce_TSNE
 # continue cell2location workflow
 # -------------------------------
 
-# to do: continue tutorial workflow below using objects loaded above
-
-# to do: adapt following code below from tutorial
+# continue cell2location workflow with code adapted for objects above
 
 
-# Loading Visium and scRNA-seq reference data
+# -------------
+# preprocessing
+# -------------
 
-adata_vis = sc.datasets.visium_sge(sample_id="V1_Human_Lymph_Node")
-adata_vis.obs['sample'] = list(adata_vis.uns['spatial'].keys())[0]
+# update AnnData Visium object to match structure in cell2location workflow
 
-# rename genes to ENSEMBL
-adata_vis.var['SYMBOL'] = adata_vis.var_names
-adata_vis.var_names = adata_vis.var['gene_ids']
+# rename object
+adata_vis = adata_spe
+# rename 'sample_id' column
+adata_vis.obs['sample'] = adata_vis.obs['sample_id']
+# rename 'gene_id' column
+adata_vis.var['SYMBOL'] = adata_vis.var['gene_id']
+
+adata_vis.var_names = adata_vis.var['gene_id']
 adata_vis.var_names.name = None
 
-
-# find mitochondria-encoded (MT) genes
-adata_vis.var['MT_gene'] = [gene.startswith('MT-') for gene in adata_vis.var['SYMBOL']]
-
-# remove MT genes for spatial mapping (keeping their counts in the object)
-adata_vis.obsm['MT'] = adata_vis[:, adata_vis.var['MT_gene'].values].X.toarray()
-adata_vis = adata_vis[:, ~adata_vis.var['MT_gene'].values]
+# note: mitochondrial genes have already been filtered out
+# (otherwise see cell2location tutorial code for how to filter them out here)
 
 
-# Download data if not already here
-# if not os.path.exists('/dcs04/hicks/data/lweber/cell2location/data/sc.h5ad'):
-#     !cd /dcs04/hicks/data/lweber/cell2location/data/ && wget https://cell2location.cog.sanger.ac.uk/paper/integrated_lymphoid_organ_scrna/RegressionNBV4Torch_57covariates_73260cells_10237genes/sc.h5ad
+# update AnnData snRNA-seq object to match structure in cell2location workflow
+
+# rename object
+adata_ref = adata_sce
+# use ENSEMBL gene IDs
+adata_ref.var['SYMBOL'] = adata_ref.var['gene_id']
 
 
-# Read data
-adata_ref = sc.read(f'/dcs04/hicks/data/lweber/cell2location/data/sc.h5ad')
+# recommended gene filtering from cell2location workflow
 
-# Use ENSEMBL as gene IDs to make sure IDs are unique and correctly matched
-adata_ref.var['SYMBOL'] = adata_ref.var.index
-adata_ref.var.index = adata_ref.var['GeneID-2'].copy()
-adata_ref.var_names = adata_ref.var['GeneID-2'].copy()
-adata_ref.var.index.name = None
-adata_ref.raw.var['SYMBOL'] = adata_ref.raw.var.index
-adata_ref.raw.var.index = adata_ref.raw.var['GeneID-2'].copy()
-adata_ref.raw.var.index.name = None
-
-
-# before we estimate the reference cell type signature we recommend to perform very permissive genes selection
-# in this 2D histogram orange rectangle lays over excluded genes.
-# In this case, the downloaded dataset was already filtered using this method,
-# hence no density under the orange rectangle
 from cell2location.utils.filtering import filter_genes
 selected = filter_genes(adata_ref, cell_count_cutoff=5, cell_percentage_cutoff2=0.03, nonz_mean_cutoff=1.12)
 
 # filter the object
 adata_ref = adata_ref[:, selected].copy()
+adata_ref
 
 
-# Estimation of reference cell type signatures (NB regression)
+# --------------------------------------------
+# estimation of reference cell type signatures
+# --------------------------------------------
 
-# prepare anndata for the regression model
+# prepare AnnData for the regression model
 scvi.data.setup_anndata(adata=adata_ref,
                         # 10X reaction / sample / batch
                         batch_key='Sample',
                         # cell type, covariate used for constructing signatures
-                        labels_key='Subset',
-                        # multiplicative technical effects (platform, 3' vs 5', donor effect)
-                        categorical_covariate_keys=['Method']
+                        labels_key='cellType.collapsed'
                        )
 scvi.data.view_anndata_setup(adata_ref)
-
 
 # create and train the regression model
 from cell2location.models import RegressionModel
 mod = RegressionModel(adata_ref)
 
-# Use all data for training (validation not implemented yet, train_size=1)
+# use all data for training (validation not implemented yet, train_size=1)
 mod.train(max_epochs=250, batch_size=2500, train_size=1, lr=0.002, use_gpu=True)
 
 # plot ELBO loss history during training, removing first 20 epochs from the plot
 mod.plot_history(20)
 
 
-# In this section, we export the estimated cell abundance (summary of the posterior distribution).
+# in this section, we export the estimated cell abundance (summary of the posterior distribution)
 adata_ref = mod.export_posterior(
     adata_ref, sample_kwargs={'num_samples': 1000, 'batch_size': 2500, 'use_gpu': True}
 )
 
-# Save model
+# save model
 mod.save(f"{ref_run_name}", overwrite=True)
 
-# Save anndata object with results
+# save anndata object with results
 adata_file = f"{ref_run_name}/sc.h5ad"
 adata_ref.write(adata_file)
 adata_file
 
 
-# Examine QC plots
-
+# examine QC plots
 mod.plot_QC()
 
 
-# The model and output h5ad can be loaded later like this:
-
-mod = cell2location.models.RegressionModel.load(f"{ref_run_name}", adata_ref)
-adata_file = f"{ref_run_name}/sc.h5ad"
-adata_ref = sc.read_h5ad(adata_file)
+# the model and output h5ad can be loaded later like this:
+#mod = cell2location.models.RegressionModel.load(f"{ref_run_name}", adata_ref)
+#adata_file = f"{ref_run_name}/sc.h5ad"
+#adata_ref = sc.read_h5ad(adata_file)
 
 
 # export estimated expression in each cluster
@@ -271,26 +278,32 @@ inf_aver.columns = adata_ref.uns['mod']['factor_names']
 inf_aver.iloc[0:5, 0:5]
 
 
+# ------------------------------
 # Cell2location: spatial mapping
+# ------------------------------
 
-# find shared genes and subset both anndata and reference signatures
+# note from tutorial documentation: user needs to choose a value for 'N_cells_per_location'
+# based on prior knowledge of tissue cell density in this dataset
+
+
+# find shared genes and subset both AnnData and reference signatures
 intersect = np.intersect1d(adata_vis.var_names, inf_aver.index)
 adata_vis = adata_vis[:, intersect].copy()
 inf_aver = inf_aver.loc[intersect, :].copy()
 
-# prepare anndata for cell2location model
+# prepare AnnData for Cell2location model
 scvi.data.setup_anndata(adata=adata_vis, batch_key="sample")
 scvi.data.view_anndata_setup(adata_vis)
 
 
-# Note: change N_cells_per_location=30 depending on tissue cell density
+# note: change N_cells_per_location=30 depending on tissue cell density
 
 # create and train the model
 mod = cell2location.models.Cell2location(
     adata_vis, cell_state_df=inf_aver,
     # the expected average cell abundance: tissue-dependent
     # hyper-prior which can be estimated from paired histology:
-    N_cells_per_location=30,
+    N_cells_per_location=3,
     # hyperparameter controlling normalisation of
     # within-experiment variation in RNA detection (using default here):
     detection_alpha=200
@@ -304,35 +317,38 @@ mod.train(max_epochs=30000,
           train_size=1,
           use_gpu=True)
 
+
+### currently running on cluster up to here
+
+
 # plot ELBO loss history during training, removing first 100 epochs from the plot
 mod.plot_history(1000)
 plt.legend(labels=['full data training']);
 
 
-# In this section, we export the estimated cell abundance (summary of the posterior distribution).
+# in this section, we export the estimated cell abundance (summary of the posterior distribution)
 adata_vis = mod.export_posterior(
     adata_vis, sample_kwargs={'num_samples': 1000, 'batch_size': mod.adata.n_obs, 'use_gpu': True}
 )
 
-# Save model
+# save model
 mod.save(f"{run_name}", overwrite=True)
 
 # mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
 
-# Save anndata object with results
+# save anndata object with results
 adata_file = f"{run_name}/sp.h5ad"
 adata_vis.write(adata_file)
 adata_file
 
 
-# The model and output h5ad can be loaded later like this:
-
+# the model and output h5ad can be loaded later like this:
 mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
 adata_file = f"{run_name}/sp.h5ad"
 adata_vis = sc.read_h5ad(adata_file)
 
 
-# Examine reconstruction accuracy to assess if there are any issues with mapping
+# examine reconstruction accuracy to assess if there are any issues with mapping
 # the plot should be roughly diagonal, strong deviations will signal problems
 mod.plot_QC()
 
@@ -341,8 +357,9 @@ mod.plot_spatial_QC_across_batches()
 plt.savefig('plot1.png')
 
 
-# Visualising cell abundance in spatial coordinates
-
+# -------------------------------------------------
+# visualizing cell abundance in spatial coordinates
+# -------------------------------------------------
 
 # add 5% quantile, representing confident cell abundance, 'at least this amount is present',
 # to adata.obs with nice names for plotting
@@ -350,15 +367,15 @@ adata_vis.obs[adata_vis.uns['mod']['factor_names']] = adata_vis.obsm['q05_cell_a
 
 # select one slide
 from cell2location.utils import select_slide
-slide = select_slide(adata_vis, 'V1_Human_Lymph_Node')
+slide = select_slide(adata_vis, 'V1_Human_Lymph_Node')  ## to do: update tutorial code here
 
 # plot in spatial coordinates
 with mpl.rc_context({'axes.facecolor':  'black',
                      'figure.figsize': [4.5, 5]}):
     sc.pl.spatial(slide, cmap='magma',
-                  # show first 8 cell types
-                  color=['B_Cycling', 'B_GC_LZ', 'T_CD4+_TfH_GC', 'FDC',
-                         'B_naive', 'T_CD4+_naive', 'B_plasma', 'Endo'],
+                  # show first 8 cell types                               ## to do: update tutorial code here
+                  color=['B_Cycling', 'B_GC_LZ', 'T_CD4+_TfH_GC', 'FDC',  ## to do: update tutorial code here
+                         'B_naive', 'T_CD4+_naive', 'B_plasma', 'Endo'],  ## to do: update tutorial code here
                   ncols=4, size=1.3,
                   img_key='hires',
                   # limit color scale at 99.2% quantile of cell abundance
@@ -368,14 +385,14 @@ with mpl.rc_context({'axes.facecolor':  'black',
 plt.savefig('plot2.png')
 
 
-# Now we use cell2location plotter that allows showing multiple cell types in one panel
+# now we use cell2location plotter that allows showing multiple cell types in one panel
 from cell2location.plt import plot_spatial
 
-# select up to 6 clusters
-clust_labels = ['T_CD4+_naive', 'B_naive', 'FDC']
+# select up to 6 clusters                          ## to do: update tutorial code here
+clust_labels = ['T_CD4+_naive', 'B_naive', 'FDC']  ## to do: update tutorial code here
 clust_col = ['' + str(i) for i in clust_labels] # in case column names differ from labels
 
-slide = select_slide(adata_vis, 'V1_Human_Lymph_Node')
+slide = select_slide(adata_vis, 'V1_Human_Lymph_Node')  ## to do: update tutorial code here
 
 with mpl.rc_context({'figure.figsize': (15, 15)}):
     fig = plot_spatial(
