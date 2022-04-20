@@ -62,18 +62,23 @@ dim(sce.lc)
 # note: use standard data.frames instead of DataFrames so reticulate can access them
 
 # SPE object
-spe_assays <- assays(spe)
 spe_counts <- assay(spe, "counts")
+spe_logcounts <- assay(spe, "logcounts")
 spe_rowdata <- as.data.frame(rowData(spe))
 spe_coldata <- as.data.frame(colData(spe))
 spe_coldata_combined <- cbind(as.data.frame(colData(spe)), spatialCoords(spe))
 
 # SCE object
-sce_assays <- assays(sce.lc)
 sce_counts <- assay(sce.lc, "counts")
+sce_binomial_deviance_residuals <- assay(sce.lc, "binomial_deviance_residuals")
+sce_logcounts <- assay(sce.lc, "logcounts")
 sce_rowdata <- as.data.frame(rowData(sce.lc))
 sce_coldata <- as.data.frame(colData(sce.lc))
-sce_reduceddims <- reducedDims(sce.lc)
+sce_GLMPCA_approx <- reducedDim(sce.lc, "GLMPCA_approx")
+sce_GLMPCA_MNN <- reducedDim(sce.lc, "GLMPCA_MNN")
+sce_glmpca_mnn_50 <- reducedDim(sce.lc, "glmpca_mnn_50")
+sce_UMAP <- reducedDim(sce.lc, "UMAP")
+sce_TSNE <- reducedDim(sce.lc, "TSNE")
 
 
 # --------------------
@@ -125,6 +130,8 @@ run_name = f'{results_folder}/cell2location_map'
 # create AnnData objects from previously loaded R objects using reticulate
 # see https://theislab.github.io/scanpy-in-R/, section 4.4.1: "Creating AnnData from SingleCellExperiment"
 
+# note: using raw counts for cell2location
+
 # SPE object
 adata_spe = sc.AnnData(
     X = r.spe_counts.T, 
@@ -138,11 +145,11 @@ adata_sce = sc.AnnData(
     obs = r.sce_coldata, 
     var = r.sce_rowdata
 )
-#adata_sce.obsm['umap'] = r.sce_reduceddims
-
-# to do: add reducedDims components to adata.sce
-
-# to do: check these objects are using correct data, e.g. counts not logcounts
+adata_sce.obsm['GLMPCA_approx'] = r.sce_GLMPCA_approx
+adata_sce.obsm['GLMPCA_MNN'] = r.sce_GLMPCA_MNN
+adata_sce.obsm['glmpca_mnn_50'] = r.sce_glmpca_mnn_50
+adata_sce.obsm['UMAP'] = r.sce_UMAP
+adata_sce.obsm['TSNE'] = r.sce_TSNE
 
 
 # -------------------------------
