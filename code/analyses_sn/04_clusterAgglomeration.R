@@ -448,6 +448,18 @@ sce.lc$cellType.collapsed[sce.lc$cellType == "Neuron.5HT_noDDC"] <- "Neuron.5HT_
 sce.lc$cellType.collapsed <- factor(sce.lc$cellType.collapsed)
 
 
+## Noticed that we don't have $sizeFactors from multiBatchNorm
+#     (bc those were only computed in a temp object, but not saved)
+#     (see: https://github.com/lmweber/locus-c/blob/66fe765c3720d4fc11894718094161beadb44d33/code/analyses_sn/03_reduceDims_clustering.R#L156)
+
+all.equal(assay(multiBatchNorm(sce.lc, batch=sce.lc$Sample), "logcounts"),
+          assay(sce.lc, "logcounts"))
+    # [1] TRUE
+
+sce.lc$sizeFactor <- multiBatchNorm(sce.lc, batch=sce.lc$Sample)$sizeFactor
+colData(sce.lc) <- colData(sce.lc)[ ,c(1:9, 17, 10:16)]
+
+
 # Save
 save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
      file=here("processed_data","SCE", "sce_updated_LC.rda"))
