@@ -74,15 +74,23 @@ human_markers <- sort(human_markers)
 length(human_markers)
 human_markers
 
-# alternatively:
+
+# alternatively: if biomaRt site is unresponsive, load human marker names saved previously
 # human_markers <- c(
-#   "ASB4", "CALCR", "CHODL", "CYB561", "DBH", "DDC", "DLK1", "EYA2", "FAM183A", 
-#   "FIBCD1", "GAL", "GCH1", "GLRA2", "GNG4", "GPX3", "HCRTR1", "MAOA", "MRAP2", 
-#   "MYOM2", "NXPH4", "OVGP1", "PCBD1", "PHOX2A", "PHOX2B", "SLC18A2", "SLC31A1",
-#   "SLC6A2", "STBD1", "SYT17", "TH", "TM4SF1", "TRAF3IP2")
+#   "AGTR1", "ASB4", "CALCR", "CALR3", "CHODL", "CHRNA6",
+#   "CILP", "CYB561", "DBH", "DDC", "DLK1", "EYA2",
+#   "FAM183A", "FIBCD1", "GAL", "GCH1", "GLRA2", "GNG4",
+#   "GPX3", "GTF2A1L", "HCRTR1", "MAOA", "MRAP2", "MYOM2",
+#   "NEUROG2", "NXPH4", "OVGP1", "PCBD1", "PHOX2A", "PHOX2B",
+#   "PLA2G4D", "PTGER2", "SLC18A2", "SLC31A1", "SLC6A2", "STBD1",
+#   "SYT17", "TH", "TM4SF1", "TM4SF5", "TRAF3IP2")
 # 
 # length(human_markers)
-# length(human_markers %in% rowData(spe)$gene_name)
+
+
+# keep human markers that are present in SPE object (38 markers)
+human_markers <- human_markers[toupper(human_markers) %in% toupper(rowData(spe)$gene_name)]
+length(human_markers)
 
 
 # ---------------
@@ -102,16 +110,16 @@ for (s in seq_along(sample_ids)) {
     ix_marker <- which(toupper(rowData(spe_sub)$gene_name) == toupper(human_markers[g]))
     stopifnot(length(ix_marker) == 1)
     
-    # skip gene if total UMI counts below threshold
-    thresh <- 10
-    if (sum(counts(spe_sub)[ix_marker, ]) <= thresh) {
+    # skip gene if zero expression
+    if (sum(counts(spe_sub)[ix_marker, ]) == 0) {
       next
     }
+    
     df$marker <- counts(spe_sub)[ix_marker, ]
     
     # plot UMI counts
     p <- ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = marker)) + 
-      geom_point(size = 0.33) + 
+      geom_point(size = 0.3) + 
       coord_fixed() + 
       scale_y_reverse() + 
       scale_color_gradient(low = "gray85", high = "red", 
@@ -119,7 +127,9 @@ for (s in seq_along(sample_ids)) {
       ggtitle(human_markers[g]) + 
       labs(color = "counts") + 
       theme_bw() + 
-      theme(panel.grid = element_blank(), 
+      theme(title = element_text(face = "italic"), 
+            legend.title = element_text(face = "plain"), 
+            panel.grid = element_blank(), 
             axis.title = element_blank(), 
             axis.text = element_blank(), 
             axis.ticks = element_blank())
@@ -128,8 +138,8 @@ for (s in seq_along(sample_ids)) {
       dir.create(here(dir_plots, sample_ids[s]), recursive = TRUE)
     }
     fn <- here(dir_plots, sample_ids[s], paste0(sample_ids[s], "_", human_markers[g]))
-    ggsave(paste0(fn, ".pdf"), plot = p, width = 4, height = 3)
-    ggsave(paste0(fn, ".png"), plot = p, width = 4, height = 3)
+    ggsave(paste0(fn, ".pdf"), plot = p, width = 3.5, height = 2.75)
+    ggsave(paste0(fn, ".png"), plot = p, width = 3.5, height = 2.75)
   }
 }
 
