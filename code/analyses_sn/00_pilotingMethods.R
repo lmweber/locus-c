@@ -189,6 +189,128 @@ save(snn.gr.glmpcamnn, clusters.glmpcamnn.t6, clusters.glmpcamnn.t8,
 
 
 
+## For Heena's poster =======
+load(here("processed_data","SCE", "sce_updated_LC.rda"), verbose=T)
+
+# Plot UMAP with suffixes from 60 clusters are dropped; keeping NE, 5-HT and 5-HT_noDDC
+#   (already created this column - 'cellType.collapsed')
+table(sce.lc$cellType.collapsed)
+    # ambig.lowNTx            Astro       Endo.Mural            Excit 
+    #         3080              430              173             1390 
+    #        Inhib      Micro.Macro       Neuron.5HT Neuron.5HT_noDDC 
+    #         1070              235               47               64 
+    # Neuron.ambig     Neuron.mixed        Neuron.NE            Oligo 
+    #         3922             2374               36             2585 
+    #          OPC 
+    #          236 
+
+# First drop the 'lowNTx'
+sce.lc <- sce.lc[ ,-which(sce.lc$cellType.collapsed=="ambig.lowNTx")]
+sce.lc$cellType.collapsed <- droplevels(sce.lc$cellType.collapsed)
+sce.lc$cellType <- droplevels(sce.lc$cellType)
+
+pdf(here("plots","snRNA-seq","zforHeenaPoster_UMAP_cellType.collapsed.pdf"), width=9)
+plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType.collapsed",
+               text_by="cellType.collapsed", text_size=6,
+               point_alpha=0.3, point_size=3, theme_size=17) +
+  scale_color_manual(values = c(tableau20, tableau10medium),
+                     labels=paste0(levels(sce.lc$cellType.collapsed)," (",
+                                   table(sce.lc$cellType.collapsed),")")) +
+  guides(color=guide_legend(ncol=1)) +
+  ggtitle("UMAP of LC (n=3), colored by broad cell type annotation") +
+  labs(colour="Broad cell type") +
+  theme(plot.title = element_text(size=20),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size=20))
+
+# Version without the numbers/cluster
+plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType.collapsed",
+               text_by="cellType.collapsed", text_size=6,
+               point_alpha=0.3, point_size=3, theme_size=17) +
+  scale_color_manual(values = c(tableau20, tableau10medium)) +
+  guides(color=guide_legend(ncol=1)) +
+  ggtitle("UMAP of LC (n=3), colored by broad cell type annotation") +
+  labs(colour="Broad cell type") +
+  theme(plot.title = element_text(size=20),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size=20))
+
+dev.off()
+
+
+## Heatmap of cell type markers ===
+library(pheatmap)
+
+genes <- c('SNAP25','SLC17A7','SLC17A6','GAD1','GAD2',
+           # NE neuron markers
+           "TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC",
+           # serotonergic markers (includes DDC but repetitive)
+           "SLC6A4", "TPH2",  # (TPH1 not expressed by these clusters)
+           
+           ## Non-neuronal:
+           # AStro
+           'AQP4','GFAP',
+           # Endo, Mural (RBPMS)
+           'CLDN5','FLT1','RBPMS',
+           # Macrophage, Microglia
+           'CD163','C3',
+           # Oligo
+           'MBP',
+           # OPC
+           'PDGFRA','VCAN')
+
+cell.idx <- splitit(sce.lc$cellType)
+dat <- as.matrix(assay(sce.lc, "logcounts"))
+rownames(dat) <- rowData(sce.lc)$gene_name
+
+
+
+pdf(here("plots","snRNA-seq","zforHeenaPoster_heatmap_broadMarkers_by59Clusters.pdf"),
+    useDingbats=TRUE, height=6.5, width=9)
+## Means version:
+  current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[genes, ii])))
+  # For some reason rownames aren't kept:
+  rownames(current_dat) <- genes
+  # Set neuronal pops first
+  neuronPosition <- c(grep("excit", colnames(current_dat)),
+                     grep("inhib", colnames(current_dat)),
+                     grep("neuron", colnames(current_dat)))
+  reorderedCols <- c(neuronPosition, setdiff(1:59, neuronPosition))
+  current_dat <- current_dat[ ,reorderedCols]
+  # Put NE neurons before the 5-HT ones
+  current_dat <- current_dat[ ,c(1:23, 36, 24:35, 37:59)]
+  # Print
+  pheatmap(current_dat, cluster_rows = FALSE, cluster_cols = FALSE,
+           breaks = seq(0.02, 4, length.out = 101),
+           color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
+           main="59 LC graph-based clusters, annotated by\nbroad/expected cell type markers",
+           fontsize=13, fontsize_row = 14, fontsize_col=11)
+  grid::grid.text(label="log2-\nExprs", x=0.96, y=0.52, gp=grid::gpar(fontsize=10))
+
+## or medians version:
+  current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[genes, ii])))
+  # For some reason rownames aren't kept:
+  rownames(current_dat) <- genes
+  # Set neuronal pops first
+  neuronPosition <- c(grep("excit", colnames(current_dat)),
+                      grep("inhib", colnames(current_dat)),
+                      grep("neuron", colnames(current_dat)))
+  reorderedCols <- c(neuronPosition, setdiff(1:59, neuronPosition))
+  current_dat <- current_dat[ ,reorderedCols]
+  # Put NE neurons before the 5-HT ones
+  current_dat <- current_dat[ ,c(1:23, 36, 24:35, 37:59)]
+  # Print
+  pheatmap(current_dat, cluster_rows = FALSE, cluster_cols = FALSE,
+           breaks = seq(0.02, 4, length.out = 101),
+           color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
+           main="59 LC graph-based clusters, annotated by\nbroad/expected cell type markers",
+           fontsize=13, fontsize_row = 14, fontsize_col=11)
+  grid::grid.text(label="log2-\nExprs", x=0.96, y=0.52, gp=grid::gpar(fontsize=10))
+dev.off()
+
+
+
+
 
 ## Reproducibility information ====
 print('Reproducibility information:')
