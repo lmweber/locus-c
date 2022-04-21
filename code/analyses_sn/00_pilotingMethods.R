@@ -13,6 +13,16 @@ library(jaffelab)
 library(here)
 library(sessioninfo)
 
+### Palette taken from `scater`
+tableau10medium = c("#729ECE", "#FF9E4A", "#67BF5C", "#ED665D",
+                    "#AD8BC9", "#A8786E", "#ED97CA", "#A2A2A2",
+                    "#CDCC5D", "#6DCCDA")
+tableau20 = c("#1F77B4", "#AEC7E8", "#FF7F0E", "#FFBB78", "#2CA02C",
+              "#98DF8A", "#D62728", "#FF9896", "#9467BD", "#C5B0D5",
+              "#8C564B", "#C49C94", "#E377C2", "#F7B6D2", "#7F7F7F",
+              "#C7C7C7", "#BCBD22", "#DBDB8D", "#17BECF", "#9EDAE5")
+
+
 here()
 # [1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
 
@@ -209,6 +219,18 @@ sce.lc <- sce.lc[ ,-which(sce.lc$cellType.collapsed=="ambig.lowNTx")]
 sce.lc$cellType.collapsed <- droplevels(sce.lc$cellType.collapsed)
 sce.lc$cellType <- droplevels(sce.lc$cellType)
 
+# Plot version with the 59 annotations, first
+pdf(here("plots","snRNA-seq","zforHeenaPoster_UMAP_cellType_59clusters.pdf"))
+plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType",
+               text_by="cellType", text_size=3,
+               point_alpha=0.3, point_size=3,
+               theme_size=12, add_legend=FALSE) +
+  ggtitle("UMAP of LC (n=3), colored by annotated graph-based clusters") +
+  theme(plot.title = element_text(size=14),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size=20))
+dev.off()
+
 pdf(here("plots","snRNA-seq","zforHeenaPoster_UMAP_cellType.collapsed.pdf"), width=9)
 plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType.collapsed",
                text_by="cellType.collapsed", text_size=6,
@@ -266,7 +288,7 @@ rownames(dat) <- rowData(sce.lc)$gene_name
 
 
 pdf(here("plots","snRNA-seq","zforHeenaPoster_heatmap_broadMarkers_by59Clusters.pdf"),
-    useDingbats=TRUE, height=6.5, width=9)
+    useDingbats=TRUE, height=9, width=6.5)
 ## Means version:
   current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[genes, ii])))
   # For some reason rownames aren't kept:
@@ -280,12 +302,12 @@ pdf(here("plots","snRNA-seq","zforHeenaPoster_heatmap_broadMarkers_by59Clusters.
   # Put NE neurons before the 5-HT ones
   current_dat <- current_dat[ ,c(1:23, 36, 24:35, 37:59)]
   # Print
-  pheatmap(current_dat, cluster_rows = FALSE, cluster_cols = FALSE,
+  pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
            breaks = seq(0.02, 4, length.out = 101),
            color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
            main="59 LC graph-based clusters, annotated by\nbroad/expected cell type markers",
-           fontsize=13, fontsize_row = 14, fontsize_col=11)
-  grid::grid.text(label="log2-\nExprs", x=0.96, y=0.52, gp=grid::gpar(fontsize=10))
+           fontsize=12.5, fontsize_row = 11, fontsize_col=14)
+  grid::grid.text(label="log2-\nExprs", x=0.94, y=0.65, gp=grid::gpar(fontsize=10))
 
 ## or medians version:
   current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[genes, ii])))
@@ -300,12 +322,12 @@ pdf(here("plots","snRNA-seq","zforHeenaPoster_heatmap_broadMarkers_by59Clusters.
   # Put NE neurons before the 5-HT ones
   current_dat <- current_dat[ ,c(1:23, 36, 24:35, 37:59)]
   # Print
-  pheatmap(current_dat, cluster_rows = FALSE, cluster_cols = FALSE,
+  pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
            breaks = seq(0.02, 4, length.out = 101),
            color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
            main="59 LC graph-based clusters, annotated by\nbroad/expected cell type markers",
-           fontsize=13, fontsize_row = 14, fontsize_col=11)
-  grid::grid.text(label="log2-\nExprs", x=0.96, y=0.52, gp=grid::gpar(fontsize=10))
+           fontsize=12.5, fontsize_row = 11, fontsize_col=14)
+  grid::grid.text(label="log2-\nExprs", x=0.94, y=0.65, gp=grid::gpar(fontsize=10))
 dev.off()
 
 
