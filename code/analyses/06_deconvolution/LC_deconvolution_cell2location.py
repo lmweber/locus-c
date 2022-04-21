@@ -317,10 +317,6 @@ mod.train(max_epochs=30000,
           train_size=1,
           use_gpu=True)
 
-
-### currently running on cluster up to here
-
-
 # plot ELBO loss history during training, removing first 100 epochs from the plot
 mod.plot_history(1000)
 plt.legend(labels=['full data training']);
@@ -343,9 +339,9 @@ adata_file
 
 
 # the model and output h5ad can be loaded later like this:
-mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
-adata_file = f"{run_name}/sp.h5ad"
-adata_vis = sc.read_h5ad(adata_file)
+#mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
+#adata_file = f"{run_name}/sp.h5ad"
+#adata_vis = sc.read_h5ad(adata_file)
 
 
 # examine reconstruction accuracy to assess if there are any issues with mapping
@@ -355,6 +351,66 @@ mod.plot_QC()
 mod.plot_spatial_QC_across_batches()
 
 plt.savefig('plot1.png')
+
+
+# --------------------------
+# export AnnData object to R
+# --------------------------
+
+# export components of AnnData object back to R to add to SpatialExperiment object
+
+obs = adata_vis.obs
+var = adata_vis.var
+uns = adata_vis.uns
+obsm = adata_vis.obsm
+
+# close Python REPL session and go back to R session
+exit
+
+# now can access objects using reticulate 'py$' syntax
+str(py$obs)
+str(py$var)
+names(py$uns)
+str(py$obsm)
+# main results are stored in 'py$obsm' as follows
+str(py$obsm['means_cell_abundance_w_sf'])
+str(py$obsm['stds_cell_abundance_w_sf'])
+str(py$obsm['q05_cell_abundance_w_sf'])
+str(py$obsm['q95_cell_abundance_w_sf'])
+
+# using 'q05_cell_abundance_w_sf' following cell2location tutorial
+
+# check results
+head(py$obsm['q05_cell_abundance_w_sf'])
+dim(py$obsm['q05_cell_abundance_w_sf'])
+colnames(py$obsm['q05_cell_abundance_w_sf'])
+dim(spe)
+all(rownames(py$obsm['q05_cell_abundance_w_sf']) == colnames(spe))
+length(rownames(py$obsm['q05_cell_abundance_w_sf']) == colnames(spe))
+
+# cell type abundances (number of cells per spot)
+summary(py$obsm['q05_cell_abundance_w_sf'])
+# deciles
+sapply(py$obsm['q05_cell_abundance_w_sf'], quantile, seq(0, 1, by = 0.1))
+
+
+# add cell2location results to SpatialExperiment object
+colData(spe) <- cbind(colData(spe), py$obsm['q05_cell_abundance_w_sf'])
+
+
+# save SPE object for further plotting
+fn <- here("processed_data", "SPE", "LC_cell2location.rds")
+saveRDS(spe, file = fn)
+
+
+# ---------------------------------------------------------------
+# alternatively: plotting in Python using cell2location functions
+# ---------------------------------------------------------------
+
+# alternatively: modify cell2location plotting code in next section to create plots in Python
+
+# note: Python code in next section does not work, since 'adata_vis' object does not 
+# contain image data in 'spatial' slot
 
 
 # -------------------------------------------------
@@ -367,7 +423,7 @@ adata_vis.obs[adata_vis.uns['mod']['factor_names']] = adata_vis.obsm['q05_cell_a
 
 # select one slide
 from cell2location.utils import select_slide
-slide = select_slide(adata_vis, 'V1_Human_Lymph_Node')  ## to do: update tutorial code here
+slide = select_slide(adata_vis, 'Br6522_LC_1_round1')  ## to do: update tutorial code here
 
 # plot in spatial coordinates
 with mpl.rc_context({'axes.facecolor':  'black',
