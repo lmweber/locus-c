@@ -335,7 +335,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
   new_scale_color() + 
   geom_point(data = df[df$annot_region, , drop = FALSE], 
              aes(color = annot_region), size = 0.1) + 
-  scale_color_manual(values = "royalblue3") + 
+  scale_color_manual(values = "red") + 
   guides(color = guide_legend(override.aes = list(size = 2))) + 
   scale_y_reverse() + 
   ggtitle("Manually annotated regions") + 
