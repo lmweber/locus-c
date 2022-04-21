@@ -351,6 +351,27 @@ ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
+# total UMI counts
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = sum)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_viridis_c(trans = "sqrt") + 
+  #scale_color_gradient(low = "gray85", high = "red", trans = "sqrt") + 
+  scale_y_reverse() + 
+  labs(color = "counts") + 
+  ggtitle("Sum UMI counts") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMIs_values")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
 # --------------------------------------
 # remove discarded spots from SPE object
 # --------------------------------------
