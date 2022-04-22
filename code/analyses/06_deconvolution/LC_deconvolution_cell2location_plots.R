@@ -11,7 +11,7 @@ library(viridis)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_deconvolution", "cell2location")
+dir_plots <- here("plots", "06_deconvolution", "cell2location", "main")
 
 
 # ---------------
@@ -60,9 +60,9 @@ for (s in seq_along(sample_ids)) {
       geom_point(size = 0.5) + 
       coord_fixed() + 
       scale_y_reverse() + 
-      scale_color_viridis(option = "magma", 
-                          name = gsub("^.*_", "", cols[q])) + 
-      ggtitle(paste0(sample_ids[s], ": ", gsub("^.*_", "", cols[q]))) + 
+      scale_color_viridis(option = "magma", name = "abundance") + 
+      labs(title = gsub("^.*_", "", cols[q]), 
+           subtitle = sample_ids[s]) + 
       theme_bw() + 
       theme(panel.background = element_rect(fill = "gray80"), 
             panel.grid = element_line(color = "gray80"), 
