@@ -14,11 +14,13 @@
 library(SpatialExperiment)
 library(here)
 library(biomaRt)
+library(dplyr)
+library(tidyr)
 library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "04_mouse_markers", "Mulvey")
+dir_plots <- here("plots", "04_mouse_markers")
 
 
 # ---------
@@ -134,12 +136,116 @@ for (s in seq_along(sample_ids)) {
             axis.text = element_blank(), 
             axis.ticks = element_blank())
     
-    if (!dir.exists(here(dir_plots, sample_ids[s]))) {
-      dir.create(here(dir_plots, sample_ids[s]), recursive = TRUE)
+    if (!dir.exists(here(dir_plots, "Mulvey", sample_ids[s]))) {
+      dir.create(here(dir_plots, "Mulvey", sample_ids[s]), recursive = TRUE)
     }
-    fn <- here(dir_plots, sample_ids[s], paste0(sample_ids[s], "_", human_markers[g]))
+    fn <- here(dir_plots, "Mulvey", sample_ids[s], 
+               paste0(sample_ids[s], "_", human_markers[g]))
     ggsave(paste0(fn, ".pdf"), plot = p, width = 3.5, height = 2.75)
     ggsave(paste0(fn, ".png"), plot = p, width = 3.5, height = 2.75)
   }
 }
+
+
+# --------------------
+# calculate enrichment
+# --------------------
+
+# calculate enrichment of markers in manually annotated LC region
+
+table(colData(spe)$annot_region)
+
+sample_ids <- levels(colData(spe)$sample_id)
+sample_ids
+
+enrichment <- matrix(NA, nrow = length(sample_ids), ncol = length(human_markers))
+rownames(enrichment) <- sample_ids
+colnames(enrichment) <- human_markers
+
+enrichment_LC <- enrichment_WM <- enrichment
+
+
+# select manually annotated LC regions
+spe_LC <- spe[, colData(spe)$annot_region]
+dim(spe_LC)
+
+for (i in seq_along(sample_ids)) {
+  for (j in seq_along(human_markers)) {
+    # calculate mean logcounts for gene j, sample i
+    mean_ij <- mean(logcounts(spe_LC)[rowData(spe_LC)$gene_name == human_markers[j], 
+                                      colData(spe_LC)$sample_id == sample_ids[i]])
+    # store in matrix (transposed)
+    enrichment_LC[i, j] <- mean_ij
+  }
+}
+
+
+# select manually annotated WM regions
+spe_WM <- spe[, !colData(spe)$annot_region]
+dim(spe_WM)
+
+for (i in seq_along(sample_ids)) {
+  for (j in seq_along(human_markers)) {
+    # calculate mean logcounts for gene j, sample i
+    mean_ij <- mean(logcounts(spe_WM)[rowData(spe_WM)$gene_name == human_markers[j], 
+                                      colData(spe_WM)$sample_id == sample_ids[i]])
+    # store in matrix (transposed)
+    enrichment_WM[i, j] <- mean_ij
+  }
+}
+
+
+# -----------------------
+# plot enrichment summary
+# -----------------------
+
+df_enrichment_LC <- as.data.frame(enrichment_LC)
+df_enrichment_LC$region <- "LC"
+df_enrichment_LC$sample <- rownames(df_enrichment_LC)
+
+df_enrichment_WM <- as.data.frame(enrichment_WM)
+df_enrichment_WM$region <- "WM"
+df_enrichment_WM$sample <- rownames(df_enrichment_WM)
+
+df_enrichment_LC <- pivot_longer(df_enrichment_LC, cols = -c(region, sample), 
+                                 names_to = "gene", values_to = "mean")
+df_enrichment_WM <- pivot_longer(df_enrichment_WM, cols = -c(region, sample), 
+                                 names_to = "gene", values_to = "mean")
+
+df <- full_join(df_enrichment_LC, df_enrichment_WM) %>% 
+  mutate(region = as.factor(region)) %>% 
+  mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
+  mutate(gene = as.factor(gene)) %>% 
+  as.data.frame()
+
+pal <- c("purple4", "dodgerblue")
+
+
+# 2 panels for LC and WM
+p <- ggplot(df, aes(x = gene, y = mean, group = gene, color = region)) + 
+  facet_wrap(~region) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = pal) + 
+  labs(y = "mean logcounts") + 
+  ggtitle("Mulvey marker genes") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(size = 7, angle = 90, vjust = 0.5, hjust = 1))
+
+fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_annotRegions_2panels")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 8, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 8, height = 3.5)
+
+
+# LC and WM side-by-side
+p <- ggplot(df, aes(x = gene, y = mean, color = region)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = pal) + 
+  labs(y = "mean logcounts") + 
+  ggtitle("Mulvey marker genes") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
+
+fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_annotRegions_1panel")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 7, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 7, height = 3.5)
 
