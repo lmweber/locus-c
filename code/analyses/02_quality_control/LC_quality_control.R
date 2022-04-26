@@ -380,9 +380,23 @@ ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 # heatmap comparing annotation vs. thresholding of marker expression
 
-# compare manually annotated individual spots vs. thresholding on TH expression
+# compare manually annotated individual spots vs. TH+ spots
 tbl <- table(thresh_TH = colData(spe)$TH > 1, annot_spots = colData(spe)$annot_spot)
 tbl
+
+# compare manually annotated and TH- spots vs. SLC17A6+ spots
+ix <- which(rowData(spe)$gene_name == "SLC17A6")
+colData(spe)$SLC17A6 <- counts(spe)[ix, ]
+
+tbl_SLC17A6 <- table(thresh_SLC17A6 = colData(spe)$SLC17A6 > 1, 
+                     annot_spots_THneg = colData(spe)$annot_spot & (colData(spe)$TH <= 1))
+tbl_SLC17A6
+
+# compare manually annotated and TH- spots vs. SLC6A4+ spots
+tbl_SLC6A4 <- table(thresh_SLC6A4 = colData(spe)$SLC6A4 > 1, 
+                    annot_spots_THneg = colData(spe)$annot_spot & (colData(spe)$TH <= 1))
+tbl_SLC6A4
+
 
 # calculate proportions (out of annotated individual spots)
 tbl_prop <- apply(tbl, 2, function(col) col / sum(col))
