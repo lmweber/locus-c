@@ -59,35 +59,35 @@ mouse_markers
 # using code from biomaRt vignette and 
 # https://www.r-bloggers.com/2016/10/converting-mouse-to-human-gene-names-with-biomart-package/
 
-human <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
-
-genes <- getLDS(
-  attributes = c("mgi_symbol"), filters = "mgi_symbol", values = mouse_markers, 
-  mart = mouse, attributesL = c("hgnc_symbol"), martL = human, uniqueRows = TRUE
-)
-
-genes
-
-human_markers <- genes[, 2]
-human_markers <- sort(human_markers)
-
-# retrieves homologous human gene names for 41 out of the 45 mouse marker genes
-length(human_markers)
-human_markers
+# human <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+# mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+# 
+# genes <- getLDS(
+#   attributes = c("mgi_symbol"), filters = "mgi_symbol", values = mouse_markers, 
+#   mart = mouse, attributesL = c("hgnc_symbol"), martL = human, uniqueRows = TRUE
+# )
+# 
+# genes
+# 
+# human_markers <- genes[, 2]
+# human_markers <- sort(human_markers)
+# 
+# # retrieves homologous human gene names for 41 out of the 45 mouse marker genes
+# length(human_markers)
+# human_markers
 
 
 # alternatively: if biomaRt site is unresponsive, load human marker names saved previously
-# human_markers <- c(
-#   "AGTR1", "ASB4", "CALCR", "CALR3", "CHODL", "CHRNA6",
-#   "CILP", "CYB561", "DBH", "DDC", "DLK1", "EYA2",
-#   "FAM183A", "FIBCD1", "GAL", "GCH1", "GLRA2", "GNG4",
-#   "GPX3", "GTF2A1L", "HCRTR1", "MAOA", "MRAP2", "MYOM2",
-#   "NEUROG2", "NXPH4", "OVGP1", "PCBD1", "PHOX2A", "PHOX2B",
-#   "PLA2G4D", "PTGER2", "SLC18A2", "SLC31A1", "SLC6A2", "STBD1",
-#   "SYT17", "TH", "TM4SF1", "TM4SF5", "TRAF3IP2")
-# 
-# length(human_markers)
+human_markers <- c(
+  "AGTR1", "ASB4", "CALCR", "CALR3", "CHODL", "CHRNA6",
+  "CILP", "CYB561", "DBH", "DDC", "DLK1", "EYA2",
+  "FAM183A", "FIBCD1", "GAL", "GCH1", "GLRA2", "GNG4",
+  "GPX3", "GTF2A1L", "HCRTR1", "MAOA", "MRAP2", "MYOM2",
+  "NEUROG2", "NXPH4", "OVGP1", "PCBD1", "PHOX2A", "PHOX2B",
+  "PLA2G4D", "PTGER2", "SLC18A2", "SLC31A1", "SLC6A2", "STBD1",
+  "SYT17", "TH", "TM4SF1", "TM4SF5", "TRAF3IP2")
+
+length(human_markers)
 
 
 # keep human markers that are present in SPE object (38 markers)
@@ -240,12 +240,18 @@ df_enrichment_spots <- pivot_longer(df_enrichment_spots, cols = -c(region, sampl
 df_enrichment_WM <- pivot_longer(df_enrichment_WM, cols = -c(region, sample), 
                                  names_to = "gene", values_to = "mean")
 
+# order genes by median of means in individual spots
+meds <- colMedians(enrichment_spots, useNames = TRUE)
+genes_ordered <- names(sort(meds, decreasing = TRUE))
+all(genes_ordered %in% human_markers)
+length(genes_ordered) == length(human_markers)
+
 df <- 
   full_join(df_enrichment_LC, df_enrichment_spots) %>% 
   full_join(., df_enrichment_WM) %>% 
   mutate(region = factor(region, levels = c("spots", "LC", "WM"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
-  mutate(gene = as.factor(gene)) %>% 
+  mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
 pal <- c("darkorange", "purple4", "dodgerblue")
