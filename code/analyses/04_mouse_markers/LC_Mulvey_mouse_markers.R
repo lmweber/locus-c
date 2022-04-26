@@ -282,6 +282,6 @@ p <- ggplot(df, aes(x = gene, y = mean, color = region)) +
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
 
 fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_annot_1panel")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 9, height = 4)
-ggsave(paste0(fn, ".png"), plot = p, width = 9, height = 4)
+ggsave(paste0(fn, ".pdf"), plot = p, width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), plot = p, width = 7.5, height = 4)
 
