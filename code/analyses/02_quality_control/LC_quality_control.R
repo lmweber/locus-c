@@ -328,7 +328,7 @@ ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 # additional plots
 # ----------------
 
-# no metrics (spots only)
+# annotated regions
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(aes(color = in_tissue), size = 0.1) + 
@@ -349,6 +349,40 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "01_quality_control", "QC_annotatedRegions")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# annotated regions and spots
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray80") + 
+  guides(color = guide_legend(override.aes = list(size = 2), 
+         order = 1)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "red") + 
+  guides(color = guide_legend(override.aes = list(size = 2), 
+         order = 2)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_spot, , drop = FALSE], 
+             aes(color = annot_spot), 
+             shape = 1, size = 0.6, stroke = 0.35) + 
+  scale_color_manual(values = "gray30") + 
+  guides(color = guide_legend(override.aes = list(shape = 1, size = 1, stroke = 1), 
+         order = 3)) + 
+  scale_y_reverse() + 
+  ggtitle("Manual annotations") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_annotatedRegionsSpots")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
