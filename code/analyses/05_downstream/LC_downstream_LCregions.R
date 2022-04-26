@@ -199,7 +199,8 @@ pal <- c("white", "navy")
 ggplot(df, aes(x = annotation, y = cluster, fill = proportion)) + 
   facet_wrap(~type, scales = "free") + 
   geom_tile() + 
-  scale_fill_gradientn(colors = pal)
+  scale_fill_gradientn(colors = pal) + 
+  ggtitle("Clustering in LC region")
 
 fn <- file.path(dir_plots, "clusterAnnotationComparison_LCregions")
 ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
