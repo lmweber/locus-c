@@ -15,7 +15,11 @@ library(SpatialExperiment)
 library(here)
 library(scater)
 library(scran)
+library(dplyr)
+library(tidyr)
+library(tibble)
 library(ggplot2)
+library(RColorBrewer)
 
 
 # directory to save plots
@@ -155,4 +159,49 @@ plotExpression(spe, features = genes, x = "label", colour_by = "label", ncol = 2
 fn <- file.path(dir_plots, "selectedMarkers_byCluster_LCregions")
 ggsave(paste0(fn, ".pdf"), width = 6, height = 7, bg = "white")
 ggsave(paste0(fn, ".png"), width = 6, height = 7, bg = "white")
+
+
+# ------------------------------
+# plot clustering vs. annotation
+# ------------------------------
+
+# compare cluster membership with manually annotated individual spots
+tab_spots <- table(colData(spe)$annot_spot, colData(spe)$label)
+tab_spots
+
+# compare cluster membership with thresholding on TH expression
+tab_TH <- table(colData(spe)$TH > 1, colData(spe)$label)
+tab_TH
+
+# convert to proportions
+tab_spots <- apply(tab_spots, 2, function(col) col / sum(col))
+tab_TH <- apply(tab_TH, 2, function(col) col / sum(col))
+
+rownames(tab_spots) <- c("nonspots", "spots")
+rownames(tab_TH) <- c("THneg", "THpos")
+
+colnames(tab_spots) <- paste0("cluster", colnames(tab_spots))
+colnames(tab_TH) <- paste0("cluster", colnames(tab_TH))
+
+df <- 
+  rbind(tab_spots, tab_TH) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "cluster") %>% 
+  pivot_longer(., cols = -cluster, 
+               names_to = "annotation", values_to = "proportion") %>% 
+  mutate(type = ifelse(annotation %in% c("THneg", "THpos"), 
+                       "TH_expression_threshold", "manually_annotated_spots")) %>% 
+  as.data.frame()
+
+pal <- c("white", "navy")
+
+ggplot(df, aes(x = annotation, y = cluster, fill = proportion)) + 
+  facet_wrap(~type, scales = "free") + 
+  geom_tile() + 
+  scale_fill_gradientn(colors = pal)
+
+fn <- file.path(dir_plots, "clusterAnnotationComparison_LCregions")
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
+ggsave(paste0(fn, ".png"), width = 6, height = 4)
 
