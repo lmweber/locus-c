@@ -18,6 +18,8 @@ library(ggplot2)
 library(ggnewscale)
 library(dplyr)
 library(tidyr)
+library(tibble)
+library(RColorBrewer)
 
 
 # directory to save plots
@@ -370,6 +372,56 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = sum)) +
 fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMIs_values")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# -----------------------------
+# heatmaps comparing annotation
+# -----------------------------
+
+# heatmap comparing annotation vs. thresholding of marker expression
+
+# compare manually annotated individual spots vs. thresholding on TH expression
+tbl <- table(thresh_TH = colData(spe)$TH > 1, annot_spots = colData(spe)$annot_spot)
+tbl
+
+# calculate proportions (out of annotated individual spots)
+tbl_prop <- apply(tbl, 2, function(col) col / sum(col))
+tbl_prop
+
+rownames(tbl) <- rownames(tbl_prop) <- c("THneg", "THpos")
+colnames(tbl) <- colnames(tbl_prop) <- c("not_spots", "spots")
+
+# convert to simple matrices
+class(tbl) <- "numeric"
+class(tbl_prop) <- "numeric"
+
+tbl <- cbind(as.data.frame(tbl), type = "number")
+tbl_prop <- cbind(as.data.frame(tbl_prop), type = "proportion")
+
+tbl$TH_expression <- rownames(tbl)
+tbl_prop$TH_expression <- rownames(tbl_prop)
+
+df <- rbind(tbl, tbl_prop) %>% 
+  pivot_longer(., cols = -c(TH_expression, type), 
+               names_to = "annotation", values_to = "value") %>% 
+  as.data.frame()
+
+pal <- c("white", "deepskyblue")
+
+ggplot() + 
+  geom_tile(data = df[df$type == "proportion", ], 
+            aes(x = annotation, y = TH_expression, fill = value)) + 
+  geom_text(data = df[df$type == "number", ], 
+            aes(x = annotation, y = TH_expression, label = value)) + 
+  scale_fill_gradientn(colors = pal, name = "proportion", 
+                       limits = c(0, 1), breaks = c(0, 0.5, 1)) + 
+  ggtitle("TH vs. annotation") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "TH_vs_annotSpots")
+ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
 
 # --------------------------------------

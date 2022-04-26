@@ -174,7 +174,7 @@ tab_TH
 tab_spots <- apply(tab_spots, 2, function(col) col / sum(col))
 tab_TH <- apply(tab_TH, 2, function(col) col / sum(col))
 
-rownames(tab_spots) <- c("nonspots", "spots")
+rownames(tab_spots) <- c("not_spots", "spots")
 rownames(tab_TH) <- c("THneg", "THpos")
 
 colnames(tab_spots) <- paste0("cluster", colnames(tab_spots))
