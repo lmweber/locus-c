@@ -141,20 +141,19 @@ all(genes_ordered %in% marker_genes)
 length(genes_ordered) == length(marker_genes)
 
 df <- 
-  full_join(df_enrichment_LC, df_enrichment_spots) %>% 
-  full_join(., df_enrichment_WM) %>% 
-  mutate(region = factor(region, levels = c("spots", "LC", "WM"))) %>% 
+  full_join(df_enrichment_LC, df_enrichment_WM) %>% 
+  mutate(region = factor(region, levels = c("LC", "WM"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
 
-# side-by-side: individual spots, LC regions, and WM regions
+# LC regions vs. WM regions
 p <- ggplot(df, aes(x = gene, y = mean, color = region)) + 
   geom_boxplot(outlier.size = 0.5) + 
   scale_color_manual(values = pal) + 
   labs(y = "mean logcounts") + 
-  ggtitle("Enrichment: annotated regions") + 
+  ggtitle("Enrichment: LC domains") + 
   theme_bw()
 
 fn <- here(dir_plots, "enrichment_selected")

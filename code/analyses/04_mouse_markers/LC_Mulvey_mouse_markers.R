@@ -247,32 +247,16 @@ all(genes_ordered %in% human_markers)
 length(genes_ordered) == length(human_markers)
 
 df <- 
-  full_join(df_enrichment_LC, df_enrichment_spots) %>% 
-  full_join(., df_enrichment_WM) %>% 
-  mutate(region = factor(region, levels = c("spots", "LC", "WM"))) %>% 
+  full_join(df_enrichment_LC, df_enrichment_WM) %>% 
+  mutate(region = factor(region, levels = c("LC", "WM"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
-pal <- c("darkorange", "purple4", "dodgerblue")
+pal <- c("darkorange", "purple4")
 
 
-# 3 panels for individual spots, LC regions, and WM regions
-p <- ggplot(df, aes(x = gene, y = mean, group = gene, color = region)) + 
-  facet_wrap(~region) + 
-  geom_boxplot(outlier.size = 0.5) + 
-  scale_color_manual(values = pal) + 
-  labs(y = "mean logcounts") + 
-  ggtitle("Mulvey marker genes") + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(size = 7, angle = 90, vjust = 0.5, hjust = 1))
-
-fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_annot_3panels")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 12, height = 3)
-ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3)
-
-
-# side-by-side: individual spots, LC regions, and WM regions
+# LC regions vs. WM regions
 p <- ggplot(df, aes(x = gene, y = mean, color = region)) + 
   geom_boxplot(outlier.size = 0.5) + 
   scale_color_manual(values = pal) + 
@@ -281,7 +265,7 @@ p <- ggplot(df, aes(x = gene, y = mean, color = region)) +
   theme_bw() + 
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
 
-fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_annot_1panel")
+fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_LCregions")
 ggsave(paste0(fn, ".pdf"), plot = p, width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), plot = p, width = 7.5, height = 4)
 
