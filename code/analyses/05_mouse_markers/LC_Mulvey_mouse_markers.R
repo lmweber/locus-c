@@ -20,7 +20,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "04_mouse_markers")
+dir_plots <- here("plots", "05_mouse_markers")
 
 
 # ---------

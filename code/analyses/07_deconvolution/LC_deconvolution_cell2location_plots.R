@@ -11,7 +11,7 @@ library(viridis)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_deconvolution", "cell2location", "main")
+dir_plots <- here("plots", "07_deconvolution", "cell2location", "main")
 
 
 # ---------------

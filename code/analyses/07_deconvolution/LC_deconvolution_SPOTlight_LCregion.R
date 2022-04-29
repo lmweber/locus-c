@@ -20,7 +20,7 @@ library(scran)
 library(ggplot2)
 
 # directory to save plots
-dir_plots <- here("plots", "06_deconvolution")
+dir_plots <- here("plots", "07_deconvolution")
 
 
 # ------------
@@ -32,35 +32,10 @@ dir_plots <- here("plots", "06_deconvolution")
 fn_spe_LC <- here("processed_data", "SPE", "LC_batchCorrected_LCregions.rds")
 spe_LC <- readRDS(fn_spe_LC)
 
-fn_spe_WM <- here("processed_data", "SPE", "LC_batchCorrected_WMregions.rds")
-spe_WM <- readRDS(fn_spe_WM)
 
-dim(spe_LC)
-dim(spe_WM)
+# use LC region only
 
-# note: merging into combined SPE is difficult due to checks on sample_id; save 
-# combined SPE in previous scripts instead
-
-
-# merge objects
-all(rownames(spe_LC) == rownames(spe_WM))
-identical(rowData(spe_LC), rowData(spe_WM))
-
-all(c(colnames(spe_LC), colnames(spe_WM)) == c(rownames(colData(spe_LC)), rownames(colData(spe_WM))))
-
-spe <- SpatialExperiment(
-  assays = list(
-    counts = cbind(counts(spe_LC), counts(spe_WM)), 
-    logcounts = cbind(logcounts(spe_LC), logcounts(spe_WM))
-  ), 
-  rowData = rowData(spe_LC), 
-  colData = rbind(colData(spe_LC), colData(spe_WM)), 
-  spatialCoords = rbind(spatialCoords(spe_LC), spatialCoords(spe_WM))
-)
-
-all(rownames(spatialCoords(spe)) == gsub("^.*_", "", rownames(colData(spe))))
-dim(spe)
-
+spe <- spe_LC
 
 # convert sample IDs to factor
 sample_ids <- c(
@@ -97,14 +72,16 @@ sce <- sce.lc[, ix_keep]
 ix_5HT_all <- colData(sce)$cellType.collapsed %in% c("Neuron.5HT", "Neuron.5HT_noDDC")
 colData(sce)$cellType.collapsed[ix_5HT_all] <- "Neuron.5HT"
 
+
+# remove 5-HT cluster for deconvolution in LC region
+sce <- sce[, !ix_5HT_all]
+
+
 # remove empty factor levels
 colData(sce)$cellType.collapsed <- droplevels(colData(sce)$cellType.collapsed)
 table(colData(sce)$cellType.collapsed)
 
 dim(sce)
-
-
-# note: consider 2 objects each containing one of "Neuron.NE", "Neuron.5HT"
 
 
 # -------------
@@ -149,8 +126,8 @@ dim(sce)
 # cell downsampling
 # split cell indices by identity
 idx <- split(seq(ncol(sce)), sce$cellType.collapsed)
-# downsample to at most 100 per identity & subset
-n_cells <- 100
+# downsample to at most 36 per identity & subset
+n_cells <- 36
 cs_keep <- lapply(idx, function(i) {
   n <- length(i)
   if (n < n_cells)
@@ -159,6 +136,7 @@ cs_keep <- lapply(idx, function(i) {
 })
 sce <- sce[, unlist(cs_keep)]
 
+table(colData(sce)$cellType.collapsed)
 dim(sce)
 
 # deconvolution
@@ -198,6 +176,7 @@ paletteMartin <- c(
 pal <- colorRampPalette(paletteMartin)(length(ct))
 names(pal) <- ct
 
+# add cluster labels for plotting
 lvs <- unique(mgs_df$cluster)
 
 plotSpatialScatterpie(
@@ -206,7 +185,7 @@ plotSpatialScatterpie(
   cell_types = colnames(mat),
   img = FALSE,
   scatterpie_alpha = 1,
-  pie_scale = 0.4) +
+  pie_scale = 0.6) +
   scale_fill_manual(
     values = pal,
     breaks = names(pal), 

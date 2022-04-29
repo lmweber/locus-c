@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_downstream", "individual_spots")
+dir_plots <- here("plots", "06_downstream", "individual_spots")
 
 
 # ---------

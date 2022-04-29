@@ -18,7 +18,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_downstream", "BayesSpace")
+dir_plots <- here("plots", "06_downstream", "BayesSpace")
 
 
 # ---------

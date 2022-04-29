@@ -11,7 +11,7 @@ library(viridis)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_deconvolution", "cell2location", "neurons")
+dir_plots <- here("plots", "07_deconvolution", "cell2location", "LCregions")
 
 
 # ---------------
@@ -20,7 +20,7 @@ dir_plots <- here("plots", "06_deconvolution", "cell2location", "neurons")
 
 # load SPE object containing cell2location results from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_cell2location_neurons.rds")
+fn_spe <- here("processed_data", "SPE", "LC_cell2location_LCregions.rds")
 spe <- readRDS(fn_spe)
 
 # check
@@ -33,8 +33,14 @@ sample_ids
 
 # names of columns containing deconvolved cell types
 cols <- c(
-  "q05cell_abundance_w_sf_Excit", "q05cell_abundance_w_sf_Inhib", 
-  "q05cell_abundance_w_sf_Neuron.5HT", "q05cell_abundance_w_sf_Neuron.NE"
+  "q05cell_abundance_w_sf_Astro", 
+  "q05cell_abundance_w_sf_Endo.Mural", 
+  "q05cell_abundance_w_sf_Excit", 
+  "q05cell_abundance_w_sf_Inhib", 
+  "q05cell_abundance_w_sf_Micro.Macro", 
+  "q05cell_abundance_w_sf_Neuron.NE", 
+  "q05cell_abundance_w_sf_Oligo", 
+  "q05cell_abundance_w_sf_OPC"
 )
 
 
@@ -54,7 +60,7 @@ for (s in seq_along(sample_ids)) {
   for (q in seq_along(cols)) {
     p <- ggplot(df, aes_string(x = "pxl_col_in_fullres", y = "pxl_row_in_fullres", 
                           color = cols[q])) + 
-      geom_point(size = 0.5) + 
+      geom_point(size = 1) + 
       coord_fixed() + 
       scale_y_reverse() + 
       scale_color_viridis(option = "magma", 
@@ -70,7 +76,8 @@ for (s in seq_along(sample_ids)) {
     if (!dir.exists(here(dir_plots, sample_ids[s]))) {
       dir.create(here(dir_plots, sample_ids[s]), recursive = TRUE)
     }
-    fn <- here(dir_plots, sample_ids[s], paste0(sample_ids[s], "_", gsub("^.*_", "", cols[q])))
+    fn <- here(dir_plots, sample_ids[s], 
+               paste0(sample_ids[s], "_LCregions_", gsub("^.*_", "", cols[q])))
     ggsave(paste0(fn, ".pdf"), plot = p, width = 4, height = 3)
     ggsave(paste0(fn, ".png"), plot = p, width = 4, height = 3)
   }

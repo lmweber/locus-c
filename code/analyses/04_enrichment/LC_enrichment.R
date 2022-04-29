@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "03a_enrichment")
+dir_plots <- here("plots", "04_enrichment")
 
 
 # ---------

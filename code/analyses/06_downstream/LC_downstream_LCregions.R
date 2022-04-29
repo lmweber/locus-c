@@ -23,7 +23,7 @@ library(RColorBrewer)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_downstream", "LC_regions")
+dir_plots <- here("plots", "06_downstream", "LC_regions")
 
 
 # ---------
