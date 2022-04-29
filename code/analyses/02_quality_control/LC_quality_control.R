@@ -237,7 +237,7 @@ thresh_high_subsets_mito_percent <- attr(reasons_WM$high_subsets_mito_percent, "
 thresh_high_subsets_mito_percent  ## 69.6
 
 
-# note; adaptive thresholds are too low in this dataset for lib_size and n_features
+# note: adaptive thresholds are too low in this dataset for lib_size and n_features
 quantile(colData(spe_WM)$sum, seq(0, 1, by = 0.1))
 quantile(colData(spe_WM)$detected, seq(0, 1, by = 0.1))
 
@@ -284,16 +284,55 @@ rbind(table(colData(spe_LC)$discard),
       table(colData(spe)$discard))
 
 
-# --------------------
-# plot discarded spots
-# --------------------
+# -------------------
+# plot summary values
+# -------------------
 
-# summary of discarded spots in LC and WM regions
+# summary of discarded spots in LC and WM regions by sample
 table(colData(spe_LC)$sample_part_id, colData(spe_LC)$discard)
 table(colData(spe_WM)$sample_id, colData(spe_WM)$discard)
 
-# to do: summary plot of these values
 
+# summary values of QC metrics in LC and WM regions by sample
+
+cols_keep <- c("sample_id", "sum", "detected", "annot_region", "annot_spot", "discard")
+
+df_summary_by_sample <- 
+  colData(spe)[, cols_keep] %>% 
+  as.data.frame() %>% 
+  mutate(region = ifelse(annot_region, "LC", "WM")) %>% 
+  mutate(region = factor(region, levels = c("LC", "WM"))) %>% 
+  mutate(spots = ifelse(annot_spot, "spot", "nonspot")) %>% 
+  mutate(spots = factor(spots, levels = c("spot", "nonspot"))) %>% 
+  group_by(sample_id, region) %>% 
+  summarize(medUMI = median(sum), 
+            medGenes = median(detected), 
+            sumDiscard = sum(discard)) %>% 
+  pivot_longer(., cols = c("medUMI", "medGenes", "sumDiscard"), 
+               names_to = "metric", values_to = "value") %>% 
+  mutate(metric = factor(metric, levels = c("medUMI", "medGenes", "sumDiscard"))) %>% 
+  as.data.frame()
+
+
+pal <- unname(palette.colors(4, palette = "Okabe-Ito"))[2:4]
+
+ggplot(df_summary_by_sample, 
+       aes(x = metric, y = value, color = metric)) + 
+  facet_wrap(~region) + 
+  geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(width = 0.1) + 
+  scale_color_manual(values = pal) + 
+  ggtitle("QC summary") + 
+  theme_bw()
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_summary_byRegionSample")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
+ggsave(paste0(fn, ".png"), width = 7, height = 4)
+
+
+# --------------------
+# plot discarded spots
+# --------------------
 
 # plot all spots
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
