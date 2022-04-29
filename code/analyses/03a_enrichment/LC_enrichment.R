@@ -193,7 +193,7 @@ ggsave(paste0(fn, ".pdf"), plot = p, width = 5, height = 4)
 ggsave(paste0(fn, ".png"), plot = p, width = 5, height = 4)
 
 
-# spots vs. non-spots
+# annotated spots vs. non-spots
 p <- ggplot(df2, aes(x = gene, y = mean, color = region)) + 
   geom_boxplot(outlier.size = 0.5) + 
   scale_color_manual(values = pal2) + 

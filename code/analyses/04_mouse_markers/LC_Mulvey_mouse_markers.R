@@ -155,10 +155,12 @@ for (s in seq_along(sample_ids)) {
 
 # LC regions
 table(colData(spe)$annot_region)
-# individual spots
-table(colData(spe)$annot_spot)
 # WM regions
 table(!colData(spe)$annot_region)
+# individual spots
+table(colData(spe)$annot_spot)
+# individual nonspots
+table(!colData(spe)$annot_spot)
 
 
 sample_ids <- levels(colData(spe)$sample_id)
@@ -168,7 +170,7 @@ enrichment <- matrix(NA, nrow = length(sample_ids), ncol = length(human_markers)
 rownames(enrichment) <- sample_ids
 colnames(enrichment) <- human_markers
 
-enrichment_LC <- enrichment_spots <- enrichment_WM <- enrichment
+enrichment_LC <- enrichment_WM <- enrichment_spots <- enrichment_nonspots <- enrichment
 
 
 # select manually annotated LC regions
@@ -185,6 +187,19 @@ for (i in seq_along(sample_ids)) {
   }
 }
 
+# select manually annotated WM regions
+spe_WM <- spe[, !colData(spe)$annot_region]
+dim(spe_WM)
+
+for (i in seq_along(sample_ids)) {
+  for (j in seq_along(human_markers)) {
+    # calculate mean logcounts for gene j, sample i
+    mean_ij <- mean(logcounts(spe_WM)[rowData(spe_WM)$gene_name == human_markers[j], 
+                                      colData(spe_WM)$sample_id == sample_ids[i]])
+    # store in matrix (transposed)
+    enrichment_WM[i, j] <- mean_ij
+  }
+}
 
 # select manually annotated individual spots
 spe_spots <- spe[, colData(spe)$annot_spot]
@@ -200,18 +215,17 @@ for (i in seq_along(sample_ids)) {
   }
 }
 
-
-# select manually annotated WM regions
-spe_WM <- spe[, !colData(spe)$annot_region]
-dim(spe_WM)
+# select manually annotated individual nonspots
+spe_nonspots <- spe[, !colData(spe)$annot_spot]
+dim(spe_nonspots)
 
 for (i in seq_along(sample_ids)) {
   for (j in seq_along(human_markers)) {
     # calculate mean logcounts for gene j, sample i
-    mean_ij <- mean(logcounts(spe_WM)[rowData(spe_WM)$gene_name == human_markers[j], 
-                                      colData(spe_WM)$sample_id == sample_ids[i]])
+    mean_ij <- mean(logcounts(spe_nonspots)[rowData(spe_nonspots)$gene_name == human_markers[j], 
+                                            colData(spe_nonspots)$sample_id == sample_ids[i]])
     # store in matrix (transposed)
-    enrichment_WM[i, j] <- mean_ij
+    enrichment_nonspots[i, j] <- mean_ij
   }
 }
 
@@ -224,48 +238,77 @@ df_enrichment_LC <- as.data.frame(enrichment_LC)
 df_enrichment_LC$region <- "LC"
 df_enrichment_LC$sample <- rownames(df_enrichment_LC)
 
-df_enrichment_spots <- as.data.frame(enrichment_spots)
-df_enrichment_spots$region <- "spots"
-df_enrichment_spots$sample <- rownames(df_enrichment_spots)
-
 df_enrichment_WM <- as.data.frame(enrichment_WM)
 df_enrichment_WM$region <- "WM"
 df_enrichment_WM$sample <- rownames(df_enrichment_WM)
 
+df_enrichment_spots <- as.data.frame(enrichment_spots)
+df_enrichment_spots$region <- "spots"
+df_enrichment_spots$sample <- rownames(df_enrichment_spots)
+
+df_enrichment_nonspots <- as.data.frame(enrichment_nonspots)
+df_enrichment_nonspots$region <- "nonspots"
+df_enrichment_nonspots$sample <- rownames(df_enrichment_nonspots)
+
 
 df_enrichment_LC <- pivot_longer(df_enrichment_LC, cols = -c(region, sample), 
                                  names_to = "gene", values_to = "mean")
-df_enrichment_spots <- pivot_longer(df_enrichment_spots, cols = -c(region, sample), 
-                                    names_to = "gene", values_to = "mean")
 df_enrichment_WM <- pivot_longer(df_enrichment_WM, cols = -c(region, sample), 
                                  names_to = "gene", values_to = "mean")
+df_enrichment_spots <- pivot_longer(df_enrichment_spots, cols = -c(region, sample), 
+                                    names_to = "gene", values_to = "mean")
+df_enrichment_nonspots <- pivot_longer(df_enrichment_nonspots, cols = -c(region, sample), 
+                                       names_to = "gene", values_to = "mean")
 
-# order genes by median of means in individual spots
+# order genes
 meds <- colMedians(enrichment_spots, useNames = TRUE)
 genes_ordered <- names(sort(meds, decreasing = TRUE))
 all(genes_ordered %in% human_markers)
 length(genes_ordered) == length(human_markers)
 
-df <- 
+df1 <- 
   full_join(df_enrichment_LC, df_enrichment_WM) %>% 
   mutate(region = factor(region, levels = c("LC", "WM"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
-pal <- c("darkorange", "purple4")
+df2 <- 
+  full_join(df_enrichment_spots, df_enrichment_nonspots) %>% 
+  mutate(region = factor(region, levels = c("spots", "nonspots"))) %>% 
+  mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
+  mutate(gene = factor(gene, levels = genes_ordered)) %>% 
+  as.data.frame()
+
+
+pal1 <- c("darkorange", "purple4")
+pal2 <- c("dodgerblue", "black")
 
 
 # LC regions vs. WM regions
-p <- ggplot(df, aes(x = gene, y = mean, color = region)) + 
+p <- ggplot(df1, aes(x = gene, y = mean, color = region)) + 
   geom_boxplot(outlier.size = 0.5) + 
-  scale_color_manual(values = pal) + 
+  scale_color_manual(values = pal1) + 
   labs(y = "mean logcounts") + 
-  ggtitle("Mulvey marker genes") + 
+  ggtitle("Mulvey genes: LC domains") + 
   theme_bw() + 
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
 
-fn <- here(dir_plots, "enrichment", "enrichment_Mulvey_LCregions")
+fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_domains")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), plot = p, width = 7.5, height = 4)
+
+
+# annotated spots vs. nonspots
+p <- ggplot(df2, aes(x = gene, y = mean, color = region)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = pal2) + 
+  labs(y = "mean logcounts") + 
+  ggtitle("Mulvey genes: annotated spots") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
+
+fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_spots")
 ggsave(paste0(fn, ".pdf"), plot = p, width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), plot = p, width = 7.5, height = 4)
 
