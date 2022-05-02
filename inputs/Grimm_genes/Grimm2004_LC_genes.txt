@@ -1,0 +1,39 @@
+Genes from Grimm et al. (2004), Figure 4, LC clusters
+Converted to human genes by searching individually at https://www.ncbi.nlm.nih.gov/gene/
+
+CBR3 carbonyl reductase 3
+DNAH5 axonemal dynein heavy chain
+SERPINE1 inhibitor of apoptosis protein 1
+LAYN layillin
+TPH2 tryptophan hydroxylase 2
+RPH3AL rabphillin-3a related protein
+NGB neuroglobin
+CYB561 cytochrome b-561
+GNAS adenylate cyclase-stimulating g-alpha
+SLC31A1 [alternatively: CTR1] copper transporter 1
+TCP1 chaperonin containing tcp-1
+PPIC peptidylprolyl isomerase c-ass
+COLEC10 collectin 34
+RAB3B rab3b
+MAOA monoamine oxidase a
+PCBP3 poly(rc)-binding protein 3
+TSPAN12 neuronal tetraspanin
+FBP1 fructose-1,6-bisphosphatase
+DBH dopamine beta-hydroxylase
+SERPINF1 pigment epithelium-derived factor
+TXK rlk-binding protein
+SEC16B rgpr-p117
+TRAF1 tnf receptor associated factor 1
+PTGES prostaglandin e synthase
+GGT5 ggt-rel
+MMP2 gelatinase a
+MCAM l-gicerin/muc18
+SLC31A1 [alternatively: CTR1] [duplicate] copper transporter 1
+TFAP2A transcription factor ap-2 beta
+ACSL1 long-chain acyl-coa synthetase
+UPB1 beta-alanine synthase
+UCP3 mitochondrial uncoupling protein 3
+SERPINF1 [duplicate] pigment epithelium-derived factor
+COL5A1 alpha 1 type v collagen
+ALDH1A1 aldh family 3 member 1
+FBN1 fibrillin-1
