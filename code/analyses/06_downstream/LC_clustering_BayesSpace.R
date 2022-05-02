@@ -71,12 +71,12 @@ for (i in seq_along(sample_ids)) {
   set.seed(123)
   spe_sub <- spatialCluster(
     spe_sub, 
-    q = 4, 
+    q = 6, 
     use.dimred = "HARM", 
     d = 15, 
     platform = "Visium", 
     init.method = "mclust", 
-    nrep = 5000, 
+    nrep = 10000, 
     burn.in = 1000
   )
   
