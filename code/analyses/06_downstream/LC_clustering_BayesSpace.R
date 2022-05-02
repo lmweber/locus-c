@@ -132,3 +132,12 @@ for (i in seq_along(sample_ids)) {
   ggsave(paste0(fn, ".png"), width = 4.5, height = 3.75)
 }
 
+
+# -----------
+# save object
+# -----------
+
+fn_out <- here("processed_data", "SPE", "LC_BayesSpace")
+saveRDS(spe, paste0(fn_out, ".rds"))
+save(spe, file = paste0(fn_out, ".RData"))
+
