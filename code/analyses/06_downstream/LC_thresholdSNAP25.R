@@ -46,7 +46,7 @@ sample_ids
 ix <- which(rowData(spe)$gene_name == "SNAP25")
 colData(spe)$SNAP25 <- counts(spe)[ix, ]
 
-thresh <- 2
+thresh <- 3
 
 colData(spe)$SNAP25pos <- colData(spe)$SNAP25 >= thresh
 
