@@ -272,3 +272,38 @@ Heatmap(hmat,
         name = "mean\nlogcounts")
 dev.off()
 
+
+# -------
+# MA plot
+# -------
+
+df <- data.frame(
+  gene = names(fdrs), 
+  mean_WM = mean_WM, 
+  mean_LC = mean_LC, 
+  mean = (mean_WM + mean_LC) / 2, 
+  logFC = logFC, 
+  FDR = fdrs, 
+  sig_high = sig_high
+)
+
+
+pal <- c("black", "red")
+
+set.seed(123)
+ggplot(df, aes(x = mean, y = logFC, 
+               color = sig_high, label = gene)) + 
+  geom_point(size = 0.1) + 
+  geom_point(data = df[df$sig_high, ], size = 0.5) + 
+  geom_text_repel(data = df[df$sig_high, ], 
+                  size = 1.5, nudge_y = 0.1, 
+                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
+  scale_color_manual(values = pal) + 
+  ggtitle("Pseudobulk: annotated LC regions vs. WM regions") + 
+  theme_bw() + 
+  theme(panel.grid.minor = element_blank())
+
+fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_MAplot")
+ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5, height = 4)
+
