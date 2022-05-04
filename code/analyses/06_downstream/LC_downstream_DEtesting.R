@@ -29,6 +29,9 @@ library(ComplexHeatmap)
 # directory to save plots
 dir_plots <- here("plots", "06_downstream", "DEtesting")
 
+# directory to save outputs
+dir_outputs <- here("outputs", "06_downstream", "DEtesting")
+
 
 # ---------
 # load data
@@ -307,4 +310,31 @@ ggplot(df, aes(x = mean, y = logFC,
 fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_MAplot")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5, height = 4)
+
+
+# ----------------
+# export gene list
+# ----------------
+
+df <- data.frame(
+  gene_name = names(fdrs), 
+  mean_logcounts_WM = mean_WM, 
+  mean_logcounts_LC = mean_LC, 
+  mean_logcounts = (mean_WM + mean_LC) / 2, 
+  logFC = logFC, 
+  pvals = p_vals, 
+  FDR = fdrs, 
+  sig_high = sig_high
+)
+
+# select 'sig_high' genes
+df <- df[df$gene_name %in% top_names, ]
+rownames(df) <- df$gene_name
+
+# order genes
+df <- df[top_names, ]
+
+# save .csv file
+fn <- file.path(dir_outputs, "LC_topGenes.csv")
+write.csv(df, file = fn, row.names = FALSE)
 
