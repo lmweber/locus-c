@@ -39,8 +39,14 @@ dim(spe)
 
 table(colData(spe)$sample_id)
 
-sample_ids <- levels(colData(spe)$sample_id)
-sample_ids
+
+# remove samples without clear capture of NE neurons (from TH+ QC thresholds)
+samples_remove <- c("Br5459_LC_round2", "Br8153_LC_round3")
+spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
+
+colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
+
+table(colData(spe)$sample_id)
 
 
 # ----------------
@@ -142,6 +148,11 @@ fdrs <- p.adjust(p_vals, method = "fdr")
 
 # number of significant DE genes
 table(fdrs <= 0.05)
+table(fdrs <= 1e-2)
+table(fdrs <= 1e-3)
+
+# top genes
+sort(fdrs[fdrs <= 1e-3])
 
 
 # plot most significant DE gene
@@ -151,15 +162,15 @@ which.min(fdrs)
 
 # using original spot-level SPE object
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
-df$PDGFD <- counts(spe)[rowData(spe)$gene_name == "PDGFD", ]
+df$LINC00682 <- counts(spe)[rowData(spe)$gene_name == "LINC00682", ]
 
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
-               color = TH)) + 
-  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+               color = LINC00682)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red") + 
   scale_y_reverse() + 
-  ggtitle("PDGFD") + 
+  ggtitle("LINC00682") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
@@ -168,6 +179,6 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting")
-ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
-ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
+ggsave(paste0(fn, ".png"), width = 7, height = 4)
 
