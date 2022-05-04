@@ -302,7 +302,7 @@ ggplot(df, aes(x = mean, y = logFC,
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
   scale_color_manual(values = pal) + 
-  labs(x = "mean logcounts") + 
+  labs(x = "mean logcounts (pseudobulked)") + 
   ggtitle("Pseudobulk: annotated LC regions vs. WM regions") + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
@@ -320,7 +320,7 @@ df <- data.frame(
   gene_name = names(fdrs), 
   mean_logcounts_WM = mean_WM, 
   mean_logcounts_LC = mean_LC, 
-  mean_logcounts = (mean_WM + mean_LC) / 2, 
+  mean_logcounts_LCWM = (mean_WM + mean_LC) / 2, 
   logFC = logFC, 
   pvals = p_vals, 
   FDR = fdrs, 
