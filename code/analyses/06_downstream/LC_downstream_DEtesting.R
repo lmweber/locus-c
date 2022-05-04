@@ -4,7 +4,8 @@
 # Lukas Weber, May 2022
 #################################################################
 
-# using code by Abby Spangler and Leonardo Collado-Torres from https://github.com/LieberInstitute/spatialDLPFC
+# using code by Abby Spangler, Sowmya Parthiban, and Leonardo Collado-Torres from:
+# https://github.com/LieberInstitute/spatialDLPFC
 
 
 # module load conda_R/4.1.x
