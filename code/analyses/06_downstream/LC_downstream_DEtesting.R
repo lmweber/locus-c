@@ -4,6 +4,9 @@
 # Lukas Weber, May 2022
 #################################################################
 
+# using code by Abby Spangler and Leonardo Collado-Torres from https://github.com/LieberInstitute/spatialDLPFC
+
+
 # module load conda_R/4.1.x
 # Rscript filename.R
 
@@ -15,6 +18,7 @@ library(SpatialExperiment)
 library(here)
 library(scater)
 library(scran)
+library(limma)
 library(ggplot2)
 
 
@@ -77,4 +81,93 @@ counts(spe_pseudo)[1:3, ]
 # recalculate logcounts
 # using default library size scale factors
 spe_pseudo <- logNormCounts(spe_pseudo, size.factors = NULL)
+
+
+# filter extremely low-count genes
+# using threshold of sum UMI counts across all samples
+thresh <- 100
+ix_remove <- rowSums(counts(spe_pseudo)) <= thresh
+table(ix_remove)
+
+spe_pseudo <- spe_pseudo[!ix_remove, ]
+
+dim(spe_pseudo)
+
+
+# -----------------------
+# pseudobulked DE testing
+# -----------------------
+
+# define model: LC vs. WM regions with blocks by sample
+model_formula <- ~annot_region_pseudo
+model_matrix <- model.matrix(model_formula, data = colData(spe_pseudo))
+
+model_formula
+model_matrix
+
+# calculate intra-block correlation using limma
+corfit <- duplicateCorrelation(
+  logcounts(spe_pseudo), 
+  model_matrix, 
+  block = colData(spe_pseudo)$sample_id_pseudo
+)
+corfit$consensus.correlation
+
+
+# calculate DE tests per gene using limma
+# using gene names instead of gene IDs in input for convenience later
+mat <- logcounts(spe_pseudo)
+rownames(mat) <- rowData(spe_pseudo)$gene_name
+
+res <- eBayes(
+  lmFit(
+    mat, 
+    design = model_matrix, 
+    block = colData(spe_pseudo)$sample_id_pseudo, 
+    correlation = corfit$consensus.correlation
+  )
+)
+
+
+# extract p-values
+p_vals <- res$p.value[, "annot_region_pseudoLC"]
+
+# calculate FDRs
+fdrs <- p.adjust(p_vals, method = "fdr")
+
+
+# -------
+# results
+# -------
+
+# number of significant DE genes
+table(fdrs <= 0.05)
+
+
+# plot most significant DE gene
+
+# most significant DE gene
+which.min(fdrs)
+
+# using original spot-level SPE object
+df <- cbind.data.frame(colData(spe), spatialCoords(spe))
+df$PDGFD <- counts(spe)[rowData(spe)$gene_name == "PDGFD", ]
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = TH)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red") + 
+  scale_y_reverse() + 
+  ggtitle("PDGFD") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "DEtesting")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
