@@ -197,7 +197,7 @@ stopifnot(all(names(fdrs) == names(logFC)))
 # identify significant genes (low FDR and high logFC)
 thresh_sig <- 0.005
 thresh_high <- 1
-sig_high <- (fdrs <= thresh_sig) & (logFC >= thresh_high)
+sig_high <- (fdrs <= thresh_sig) & (abs(logFC) >= thresh_high)
 
 table(sig_high)
 
