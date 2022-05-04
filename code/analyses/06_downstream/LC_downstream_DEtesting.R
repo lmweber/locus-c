@@ -299,6 +299,7 @@ ggplot(df, aes(x = mean, y = logFC,
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
   scale_color_manual(values = pal) + 
+  labs(x = "mean logcounts") + 
   ggtitle("Pseudobulk: annotated LC regions vs. WM regions") + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
