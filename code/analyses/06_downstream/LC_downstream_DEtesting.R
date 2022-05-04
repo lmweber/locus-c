@@ -20,6 +20,9 @@ library(scater)
 library(scran)
 library(limma)
 library(ggplot2)
+library(ggnewscale)
+library(ggrepel)
+library(ComplexHeatmap)
 
 
 # directory to save plots
@@ -159,18 +162,19 @@ sort(fdrs[fdrs <= 1e-3])
 
 # most significant DE gene
 which.min(fdrs)
+most_sig <- names(which.min(fdrs))
 
 # using original spot-level SPE object
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
-df$LINC00682 <- counts(spe)[rowData(spe)$gene_name == "LINC00682", ]
+df[, most_sig] <- counts(spe)[rowData(spe)$gene_name == most_sig, ]
 
-ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
-               color = LINC00682)) + 
+ggplot(df, aes_string(x = "pxl_col_in_fullres", y = "pxl_row_in_fullres", 
+                      color = most_sig)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red") + 
   scale_y_reverse() + 
-  ggtitle("LINC00682") + 
+  ggtitle(most_sig) + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
@@ -178,7 +182,92 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting")
-ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
-ggsave(paste0(fn, ".png"), width = 7, height = 4)
+
+# ------------
+# volcano plot
+# ------------
+
+# summarize results with volcano plot
+
+logFC <- res$coefficients[, "annot_region_pseudoLC"]
+
+stopifnot(length(fdrs) == length(logFC))
+stopifnot(all(names(fdrs) == names(logFC)))
+
+# identify significant genes (low FDR and high logFC)
+thresh_sig <- 0.005
+thresh_high <- 1
+sig_high <- (fdrs <= thresh_sig) & (logFC >= thresh_high)
+
+table(sig_high)
+
+
+df <- data.frame(
+  gene = names(fdrs), 
+  FDR = fdrs, 
+  logFC = logFC, 
+  sig_high = sig_high
+)
+
+pal <- c("black", "red")
+
+set.seed(123)
+ggplot(df, aes(x = logFC, y = -log10(FDR), 
+               color = sig_high, label = gene)) + 
+  geom_point(size = 0.1) + 
+  geom_point(data = df[df$sig_high, ], size = 0.5) + 
+  geom_text_repel(data = df[df$sig_high, ], 
+                  size = 1.5, nudge_y = 0.1, 
+                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
+  scale_color_manual(values = pal) + 
+  xlim(c(-3, 4)) + 
+  ylim(c(0, 4)) + 
+  ggtitle("Pseudobulk: annotated LC regions vs. WM regions") + 
+  theme_bw() + 
+  theme(panel.grid.minor = element_blank())
+
+fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_volcano")
+ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5, height = 4)
+
+
+# -------
+# heatmap
+# -------
+
+# calculate mean logcounts in LC and WM regions
+mat_WM <- mat[, 1:7]
+mat_LC <- mat[, 8:14]
+
+mean_WM <- rowMeans(mat_WM)
+mean_LC <- rowMeans(mat_LC)
+
+hmat <- cbind(
+  WM = mean_WM, 
+  LC = mean_LC
+)
+
+
+# select top genes
+# ordered by FDR within set of selected genes from volcano plot (sig_high)
+top <- sort(fdrs[sig_high])
+top_names <- names(top)
+
+# order matrix rows
+hmat <- hmat[top_names, ]
+
+# format p-values in row names
+nms <- paste0(names(top), " (", round(top, 4), ")")
+rownames(hmat) <- nms
+
+
+# save heatmap
+fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_heatmap.pdf")
+
+pdf(fn, width = 3.5, height = 7)
+Heatmap(hmat, 
+        cluster_rows = FALSE, cluster_columns = FALSE, 
+        row_names_gp = gpar(fontsize = 6), 
+        name = "mean\nlogcounts")
+dev.off()
 
