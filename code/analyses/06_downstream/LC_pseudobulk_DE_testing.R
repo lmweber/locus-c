@@ -1,10 +1,10 @@
-#################################################################
+############################################################################
 # LC project
-# Script for downstream analyses: differential expression testing
+# Script for downstream analyses: pseudobulk differential expression testing
 # Lukas Weber, May 2022
-#################################################################
+############################################################################
 
-# using code by Abby Spangler, Sowmya Parthiban, and Leonardo Collado-Torres from:
+# adapting code by Leonardo Collado-Torres, Abby Spangler, and Sowmya Parthiban from:
 # https://github.com/LieberInstitute/spatialDLPFC
 
 
@@ -27,10 +27,10 @@ library(ComplexHeatmap)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_downstream", "DEtesting")
+dir_plots <- here("plots", "06_downstream", "pseudobulkDE")
 
 # directory to save outputs
-dir_outputs <- here("outputs", "06_downstream", "DEtesting")
+dir_outputs <- here("outputs", "06_downstream", "pseudobulkDE")
 
 
 # ---------
@@ -47,8 +47,8 @@ dim(spe)
 table(colData(spe)$sample_id)
 
 
-# remove samples without clear capture of NE neurons (from TH+ QC thresholds)
-samples_remove <- c("Br5459_LC_round2", "Br8153_LC_round3")
+# remove samples where NE neurons were not captured (see TH enrichment plots)
+samples_remove <- "Br5459_LC_round2"
 spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
 
 colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
@@ -56,17 +56,22 @@ colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
 table(colData(spe)$sample_id)
 
 
+sample_ids <- levels(colData(spe)$sample_id)
+sample_ids
+
+
 # ----------------
 # pseudobulk spots
 # ----------------
 
-# pseudobulk spots within LC regions vs. WM regions
+# pseudobulk spots within LC regions and WM regions
 
-# note: using sample_id, not sample_part_id
+# note: pseudobulk by sample_id
 
 table(colData(spe)$sample_id, colData(spe)$annot_region)
 
-annot_region_fctr <- factor(as.numeric(colData(spe)$annot_region), labels = c("WM", "LC"))
+annot_region_fctr <- factor(as.numeric(colData(spe)$annot_region), 
+                            labels = c("WM", "LC"))
 table(annot_region_fctr)
 
 ids <- DataFrame(
@@ -74,7 +79,7 @@ ids <- DataFrame(
   sample_id_pseudo = colData(spe)$sample_id
 )
 
-# pseudobulk
+# pseudobulking
 spe_pseudo <- aggregateAcrossCells(spe, ids)
 
 # add levels to colData and column names
@@ -91,15 +96,16 @@ head(colData(spe_pseudo), 3)
 counts(spe_pseudo)[1:3, ]
 
 
-# recalculate logcounts
+# calculate logcounts for pseudobulked data
 # using default library size scale factors
 spe_pseudo <- logNormCounts(spe_pseudo, size.factors = NULL)
 
 
 # filter extremely low-count genes
-# using threshold of sum UMI counts across all samples
-thresh <- 100
-ix_remove <- rowSums(counts(spe_pseudo)) <= thresh
+# using threshold of sum UMI counts across all samples combined
+# e.g. threshold 80 UMI counts = 8 samples * 10 UMI counts per sample
+thresh <- 80
+ix_remove <- rowSums(counts(spe_pseudo)) < thresh
 table(ix_remove)
 
 spe_pseudo <- spe_pseudo[!ix_remove, ]
@@ -128,7 +134,7 @@ corfit$consensus.correlation
 
 
 # calculate DE tests per gene using limma
-# using gene names instead of gene IDs in input for convenience later
+# replace row names with gene names instead of gene IDs for convenience later
 mat <- logcounts(spe_pseudo)
 rownames(mat) <- rowData(spe_pseudo)$gene_name
 
@@ -162,7 +168,7 @@ table(fdrs <= 1e-3)
 sort(fdrs[fdrs <= 1e-3])
 
 
-# plot most significant DE gene
+# check: plot most significant DE gene
 
 # most significant DE gene
 which.min(fdrs)
@@ -176,7 +182,7 @@ ggplot(df, aes_string(x = "pxl_col_in_fullres", y = "pxl_row_in_fullres",
                       color = most_sig)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
-  scale_color_gradient(low = "gray80", high = "red") + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt") + 
   scale_y_reverse() + 
   ggtitle(most_sig) + 
   theme_bw() + 
@@ -223,14 +229,15 @@ ggplot(df, aes(x = logFC, y = -log10(FDR),
   geom_text_repel(data = df[df$sig_high, ], 
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
-  scale_color_manual(values = pal) + 
-  xlim(c(-3, 4)) + 
-  ylim(c(0, 4)) + 
-  ggtitle("Pseudobulk: annotated LC regions vs. WM regions") + 
+  scale_color_manual(values = pal, name = "selected") + 
+  xlim(c(-3, 3.5)) + 
+  ylim(c(0, 4.5)) + 
+  ggtitle("Pseudobulk DE tests: LC vs. WM") + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_volcano")
+fn <- file.path(dir_plots, "pseudobulkDE_volcano")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
@@ -240,8 +247,9 @@ ggsave(paste0(fn, ".png"), width = 5, height = 4)
 # -------
 
 # calculate mean logcounts in LC and WM regions
-mat_WM <- mat[, 1:7]
-mat_LC <- mat[, 8:14]
+# where mean is calculated as unweighted mean across samples
+mat_WM <- mat[, 1:8]
+mat_LC <- mat[, 9:16]
 
 mean_WM <- rowMeans(mat_WM)
 mean_LC <- rowMeans(mat_LC)
@@ -253,7 +261,7 @@ hmat <- cbind(
 
 
 # select top genes
-# ordered by FDR within set of selected genes from volcano plot (sig_high)
+# ordered by FDR within set of selected genes from volcano plot above
 top <- sort(fdrs[sig_high])
 top_names <- names(top)
 
@@ -261,18 +269,30 @@ top_names <- names(top)
 hmat <- hmat[top_names, ]
 
 # format p-values in row names
-nms <- paste0(names(top), " (", round(top, 4), ")")
+nms <- paste0(names(top), " (", signif(top, 2), ")")
 rownames(hmat) <- nms
 
 
-# save heatmap
-fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_heatmap.pdf")
+# create heatmap
+hm <- Heatmap(
+  hmat, 
+  cluster_rows = FALSE, cluster_columns = FALSE, 
+  row_names_gp = gpar(fontsize = 7), 
+  name = "mean\nlogcounts"
+)
 
-pdf(fn, width = 3.5, height = 7)
-Heatmap(hmat, 
-        cluster_rows = FALSE, cluster_columns = FALSE, 
-        row_names_gp = gpar(fontsize = 6), 
-        name = "mean\nlogcounts")
+hm
+
+
+# save heatmap
+fn <- file.path(dir_plots, "pseudobulkDE_heatmap")
+
+pdf(paste0(fn, ".pdf"), width = 3.5, height = 13)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 3.5 * 200, height = 13 * 200, res = 200)
+hm
 dev.off()
 
 
@@ -301,13 +321,15 @@ ggplot(df, aes(x = mean, y = logFC,
   geom_text_repel(data = df[df$sig_high, ], 
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
-  scale_color_manual(values = pal) + 
-  labs(x = "mean logcounts (pseudobulked)") + 
-  ggtitle("Pseudobulk: annotated LC regions vs. WM regions") + 
+  scale_color_manual(values = pal, name = "selected") + 
+  labs(x = "mean logcounts (pseudobulked LC and WM)", 
+       y = "log fold change") + 
+  ggtitle("Pseudobulk DE tests: LC vs. WM") + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtests_pseudobulkedLCvsWM_MAplot")
+fn <- file.path(dir_plots, "pseudobulkDE_MAplot")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
@@ -327,7 +349,7 @@ df <- data.frame(
   sig_high = sig_high
 )
 
-# select 'sig_high' genes
+# selected genes (highly significant and large logFC)
 df <- df[df$gene_name %in% top_names, ]
 rownames(df) <- df$gene_name
 
@@ -335,6 +357,6 @@ rownames(df) <- df$gene_name
 df <- df[top_names, ]
 
 # save .csv file
-fn <- file.path(dir_outputs, "LC_topGenes.csv")
+fn <- file.path(dir_outputs, "LC_pseudobulkDE_topGenes.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
