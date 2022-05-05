@@ -260,8 +260,8 @@ ggplot(df1, aes(x = gene, y = mean, color = regions)) +
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
 
 fn <- here(dir_plots, "enrichment", "Grimm_enrichment_annotatedRegions")
-ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
-ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 6.5, height = 4)
 
 
 # annotated spots vs. not annotated spots
@@ -274,6 +274,6 @@ ggplot(df2, aes(x = gene, y = mean, color = regions)) +
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
 
 fn <- here(dir_plots, "enrichment", "Grimm_enrichment_annotatedSpots")
-ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
+ggsave(paste0(fn, ".png"), width = 7, height = 4)
 
