@@ -116,6 +116,12 @@ df_samples <- data.frame(
 df_samples
 
 
+# to do:
+# - add column for donor ID
+# - add column for round ID
+# - add sample_part_id without NAs
+
+
 # ----------------------------------
 # load data from spaceranger outputs
 # ----------------------------------
