@@ -157,10 +157,6 @@ df_enrichment_nonspots <- pivot_longer(df_enrichment_nonspots, cols = -c(region,
                                        names_to = "gene", values_to = "mean")
 
 
-pal1 <- c("darkorange", "purple4")
-pal2 <- c("dodgerblue", "black")
-
-
 # order genes
 meds <- colMedians(enrichment_spots, useNames = TRUE)
 genes_ordered <- names(sort(meds, decreasing = TRUE))
@@ -184,6 +180,10 @@ df2 <-
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
+
+
+pal1 <- c("darkorange", "purple4")
+pal2 <- c("dodgerblue", "black")
 
 
 # LC regions vs. WM regions
