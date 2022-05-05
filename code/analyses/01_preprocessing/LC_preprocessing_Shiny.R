@@ -355,6 +355,8 @@ colData(spe)$DDC <- counts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
 colData(spe)$GCH1 <- counts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
 colData(spe)$MAOA <- counts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
 
+## to do: add TPH2
+
 
 # --------------------
 # quality control (QC)
@@ -406,6 +408,8 @@ colData(spe)$SLC18A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name ==
 colData(spe)$DDC_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
 colData(spe)$GCH1_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
 colData(spe)$MAOA_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
+
+## to do: add TPH2
 
 
 # -------------------------
