@@ -1,7 +1,7 @@
 #################################
 # LC project
 # Script for quality control (QC)
-# Lukas Weber, Apr 2022
+# Lukas Weber, May 2022
 #################################
 
 # module load conda_R/4.1.x
@@ -23,7 +23,7 @@ library(RColorBrewer)
 
 
 # directory to save plots
-dir_plots <- here("plots")
+dir_plots <- here("plots", "02_quality_control")
 
 
 # ---------
@@ -91,7 +91,7 @@ summary(colData(spe)$detected)
 
 
 # plot histograms of QC metrics
-fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_allSpots.pdf")
+fn <- file.path(dir_plots, "QC_histograms_allSpots.pdf")
 pdf(fn, width = 8, height = 2.5)
 par(mfrow = c(1, 4))
 hist(colData(spe)$sum, xlab = "sum", main = "UMIs per spot")
@@ -156,7 +156,7 @@ table(colData(spe_LC)$sample_part_id)
 
 
 # plot histograms of QC metrics
-fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_LCregions.pdf")
+fn <- file.path(dir_plots, "QC_histograms_LCregions.pdf")
 pdf(fn, width = 8, height = 2.5)
 par(mfrow = c(1, 4))
 hist(colData(spe_LC)$sum, xlab = "sum", main = "UMIs per spot")
@@ -212,7 +212,7 @@ table(colData(spe_WM)$sample_id)
 
 
 # plot histograms of QC metrics
-fn <- file.path(dir_plots, "01_quality_control", "QC_histograms_WMregions.pdf")
+fn <- file.path(dir_plots, "QC_histograms_WMregions.pdf")
 pdf(fn, width = 8, height = 2.5)
 par(mfrow = c(1, 4))
 hist(colData(spe_WM)$sum, xlab = "sum", main = "UMIs per spot")
@@ -327,7 +327,7 @@ ggplot(df_summary_by_sample,
   ggtitle("QC summary") + 
   theme_bw()
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_summary_boxplots")
+fn <- file.path(dir_plots, "QC_summary_boxplots")
 ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
 ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
@@ -364,7 +364,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_discard")
+fn <- file.path(dir_plots, "QC_discard")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -393,7 +393,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "annotations_regions")
+fn <- file.path(dir_plots, "annotations_regions")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -423,7 +423,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "annotations_regions_spots")
+fn <- file.path(dir_plots, "annotations_regions_spots")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -447,7 +447,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = sum)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMIs_values")
+fn <- file.path(dir_plots, "QC_sumUMIs_values")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -477,7 +477,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMIs")
+fn <- file.path(dir_plots, "QC_sumUMIs")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -507,7 +507,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_detectedGenes")
+fn <- file.path(dir_plots, "QC_detectedGenes")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -537,7 +537,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_mitochondrial")
+fn <- file.path(dir_plots, "QC_mitochondrial")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -569,7 +569,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_cellCount")
+fn <- file.path(dir_plots, "QC_cellCount")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -594,7 +594,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "expression_TH")
+fn <- file.path(dir_plots, "expression_TH")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -618,7 +618,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "threshold_TH")
+fn <- file.path(dir_plots, "threshold_TH")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -643,7 +643,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "expression_SLC6A2")
+fn <- file.path(dir_plots, "expression_SLC6A2")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -667,7 +667,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "threshold_SLC6A2")
+fn <- file.path(dir_plots, "threshold_SLC6A2")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -697,7 +697,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "expression_TPH2")
+fn <- file.path(dir_plots, "expression_TPH2")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -721,7 +721,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "threshold_TPH2")
+fn <- file.path(dir_plots, "threshold_TPH2")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -746,7 +746,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "expression_SLC6A4")
+fn <- file.path(dir_plots, "expression_SLC6A4")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -770,7 +770,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "threshold_SLC6A4")
+fn <- file.path(dir_plots, "threshold_SLC6A4")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
@@ -828,7 +828,7 @@ ggplot() +
         axis.text = element_text(size = 12), 
         panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "heatmap_annotationVsThreshold")
+fn <- file.path(dir_plots, "heatmap_annotationVsThreshold")
 ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
 ggsave(paste0(fn, ".png"), width = 6, height = 4)
 
