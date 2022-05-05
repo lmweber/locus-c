@@ -1,8 +1,8 @@
-#############################
+###########################################
 # LC project
-# Script for batch correction
-# Lukas Weber, Apr 2022
-#############################
+# Script for batch correction using Harmony
+# Lukas Weber, May 2022
+###########################################
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -21,7 +21,7 @@ library(ggnewscale)
 
 
 # directory to save plots
-dir_plots <- here("plots", "02_batch_correction", "combined")
+dir_plots <- here("plots", "03_batch_correction")
 
 
 # ---------
@@ -30,15 +30,13 @@ dir_plots <- here("plots", "02_batch_correction", "combined")
 
 # load saved SPE object from previous script
 
-# using combined data from both LC and WM regions
-
 fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
 
 
-# add donor id
+# add donor ID and round ID
 colData(spe)$donor_id <- 
   gsub("_.*$", "", colData(spe)$sample_id) %>% 
   factor(., levels = c("Br6522", "Br8153", "Br5459", "Br2701", "Br8079"))
@@ -50,10 +48,8 @@ colData(spe)$round_id <-
 
 table(colData(spe)$round_id)
 
-
-# to do: add donor_id and round_id (as factor) in previous scripts
-
-# to do: add sample_part_id without NAs
+# to do: add donor ID and round ID in preprocessing script and remove above
+# to do: add sample_part_id in preprocessing script without NAs
 
 
 # ------------------------
@@ -61,7 +57,7 @@ table(colData(spe)$round_id)
 # ------------------------
 
 # run dimension reduction and clustering without batch correction
-# demonstrates that batch correction is required in this dataset
+# this demonstrates that batch correction is required in this dataset
 
 
 # run standard clustering pipeline from OSTA
@@ -119,7 +115,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = donor_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_PCA_donorID")
+fn <- file.path(dir_plots, "noBatchCorrection_PCA_donorID")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -133,7 +129,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = round_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_PCA_roundID")
+fn <- file.path(dir_plots, "noBatchCorrection_PCA_roundID")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -147,7 +143,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_PCA_sampleID")
+fn <- file.path(dir_plots, "noBatchCorrection_PCA_sampleID")
 ggsave(paste0(fn, ".pdf"), width = 6.75, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.75, height = 5)
 
@@ -161,7 +157,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = sample_part_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_PCA_samplePartID")
+fn <- file.path(dir_plots, "noBatchCorrection_PCA_samplePartID")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
 ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
@@ -175,7 +171,7 @@ ggplot(df, aes(x = PC1, y = PC2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_PCA_clustering")
+fn <- file.path(dir_plots, "noBatchCorrection_PCA_clustering")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -193,7 +189,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = donor_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_UMAP_donorID")
+fn <- file.path(dir_plots, "noBatchCorrection_UMAP_donorID")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -207,7 +203,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = round_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_UMAP_roundID")
+fn <- file.path(dir_plots, "noBatchCorrection_UMAP_roundID")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -221,7 +217,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_UMAP_sampleID")
+fn <- file.path(dir_plots, "noBatchCorrection_UMAP_sampleID")
 ggsave(paste0(fn, ".pdf"), width = 6.75, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.75, height = 5)
 
@@ -235,7 +231,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = sample_part_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_UMAP_samplePartID")
+fn <- file.path(dir_plots, "noBatchCorrection_UMAP_samplePartID")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
 ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
@@ -249,7 +245,7 @@ ggplot(df, aes(x = UMAP1, y = UMAP2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_noBatchCorrection_UMAP_clustering")
+fn <- file.path(dir_plots, "noBatchCorrection_UMAP_clustering")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -259,7 +255,7 @@ ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 # ----------------------------------
 
 # run Harmony on PCA dimensions to integrate sample IDs
-# note: integrate on *sample IDs* based on plots above
+# note: integrating on *sample IDs* based on plots above
 
 pca_matrix <- reducedDim(spe, "PCA")
 sample_ids <- colData(spe)$sample_id
@@ -305,9 +301,9 @@ table(clus)
 colLabels(spe) <- factor(clus)
 
 
-# ----------------------
-# plots in Harmony space
-# ----------------------
+# ---------------------------
+# plots in Harmony dimensions
+# ---------------------------
 
 df <- cbind.data.frame(colData(spe), spatialCoords(spe), 
                        reducedDim(spe, "PCA"), reducedDim(spe, "UMAP"), 
@@ -322,7 +318,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = donor_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_Harmony_donorID")
+fn <- file.path(dir_plots, "batchCorrectedHarmony_donorID")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -336,7 +332,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = round_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_Harmony_roundID")
+fn <- file.path(dir_plots, "batchCorrectedHarmony_roundID")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
@@ -350,7 +346,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = sample_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_Harmony_sampleID")
+fn <- file.path(dir_plots, "batchCorrectedHarmony_sampleID")
 ggsave(paste0(fn, ".pdf"), width = 6.75, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.75, height = 5)
 
@@ -364,7 +360,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = sample_part_id)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_Harmony_samplePartID")
+fn <- file.path(dir_plots, "batchCorrectedHarmony_samplePartID")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 5)
 ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
@@ -378,7 +374,7 @@ ggplot(df, aes(x = HARM1, y = HARM2, color = label)) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "LC_Harmony_clustering")
+fn <- file.path(dir_plots, "batchCorrectedHarmony_clustering")
 ggsave(paste0(fn, ".pdf"), width = 6.25, height = 5)
 ggsave(paste0(fn, ".png"), width = 6.25, height = 5)
 
