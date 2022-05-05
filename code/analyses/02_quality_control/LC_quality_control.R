@@ -305,52 +305,58 @@ df_summary_by_sample <-
   mutate(spots = ifelse(annot_spot, "spot", "nonspot")) %>% 
   mutate(spots = factor(spots, levels = c("spot", "nonspot"))) %>% 
   group_by(sample_id, region) %>% 
-  summarize(medUMI = median(sum), 
-            medGenes = median(detected), 
+  summarize(medSumUMI = median(sum), 
+            medSumGenes = median(detected), 
             sumDiscard = sum(discard)) %>% 
-  pivot_longer(., cols = c("medUMI", "medGenes", "sumDiscard"), 
+  pivot_longer(., cols = c("medSumUMI", "medSumGenes", "sumDiscard"), 
                names_to = "metric", values_to = "value") %>% 
-  mutate(metric = factor(metric, levels = c("medUMI", "medGenes", "sumDiscard"))) %>% 
+  mutate(metric = factor(metric, levels = c("medSumUMI", "medSumGenes", "sumDiscard"))) %>% 
   as.data.frame()
 
 
-pal <- unname(palette.colors(4, palette = "Okabe-Ito"))[2:4]
+#pal <- unname(palette.colors(3, palette = "Alphabet"))
+pal <- c("darkorchid1", "dodgerblue", "darkorange")
 
+set.seed(123)
 ggplot(df_summary_by_sample, 
        aes(x = metric, y = value, color = metric)) + 
   facet_wrap(~region) + 
   geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.1) + 
+  geom_jitter(width = 0.15) + 
   scale_color_manual(values = pal) + 
   ggtitle("QC summary") + 
   theme_bw()
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_summary_byRegionSample")
-ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
-ggsave(paste0(fn, ".png"), width = 7, height = 4)
+fn <- file.path(dir_plots, "01_quality_control", "QC_summary_boxplots")
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
 
 # --------------------
 # plot discarded spots
 # --------------------
 
-# plot all spots
+# select all spots
 df <- cbind.data.frame(colData(spe), spatialCoords(spe))
 
+# plot discarded spots
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(aes(color = in_tissue), size = 0.1) + 
-  scale_color_manual(values = "gray85") + 
+  scale_color_manual(values = "gray85", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
   new_scale_color() + 
   geom_point(data = df[df$annot_region, , drop = FALSE], 
              aes(color = annot_region), size = 0.1) + 
-  scale_color_manual(values = "gray70") + 
+  scale_color_manual(values = "gray70", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
   new_scale_color() + 
   geom_point(data = df[df$discard, , drop = FALSE], 
              aes(color = discard), size = 0.1) + 
   scale_color_manual(values = "red") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
   scale_y_reverse() + 
-  ggtitle("Spot-level QC") + 
+  ggtitle("Spot-level quality control") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
@@ -358,28 +364,28 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_discard_combinedSampleMetrics")
+fn <- file.path(dir_plots, "01_quality_control", "QC_discard")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
 # ----------------
-# additional plots
+# plot annotations
 # ----------------
 
-# annotated regions
+# plot annotated regions
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(aes(color = in_tissue), size = 0.1) + 
-  scale_color_manual(values = "gray80") + 
-  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_color_manual(values = "gray80", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
   new_scale_color() + 
   geom_point(data = df[df$annot_region, , drop = FALSE], 
              aes(color = annot_region), size = 0.1) + 
-  scale_color_manual(values = "red") + 
-  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_color_manual(values = "red", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
   scale_y_reverse() + 
-  ggtitle("Manually annotated regions") + 
+  ggtitle("Annotated regions") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
@@ -387,33 +393,29 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_annotatedRegions")
+fn <- file.path(dir_plots, "01_quality_control", "annotated_regions")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
-# annotated regions and spots
+# plot annotated regions and spots
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(aes(color = in_tissue), size = 0.1) + 
-  scale_color_manual(values = "gray80") + 
-  guides(color = guide_legend(override.aes = list(size = 2), 
-         order = 1)) + 
+  scale_color_manual(values = "gray80", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
   new_scale_color() + 
   geom_point(data = df[df$annot_region, , drop = FALSE], 
              aes(color = annot_region), size = 0.1) + 
-  scale_color_manual(values = "red") + 
-  guides(color = guide_legend(override.aes = list(size = 2), 
-         order = 2)) + 
+  scale_color_manual(values = "red", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
   new_scale_color() + 
   geom_point(data = df[df$annot_spot, , drop = FALSE], 
-             aes(color = annot_spot), 
-             shape = 1, size = 0.6, stroke = 0.35) + 
-  scale_color_manual(values = "gray30") + 
-  guides(color = guide_legend(override.aes = list(shape = 1, size = 1, stroke = 1), 
-         order = 3)) + 
+             aes(color = annot_spot), size = 0.1) + 
+  scale_color_manual(values = "black", name = "annotated\nspot") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
   scale_y_reverse() + 
-  ggtitle("Manual annotations") + 
+  ggtitle("Annotations") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
@@ -421,17 +423,20 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "QC_annotatedRegionsSpots")
+fn <- file.path(dir_plots, "01_quality_control", "annotated_regions_spots")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
-# total UMI counts
+# ---------------
+# plot QC metrics
+# ---------------
+
+# plot sum UMI counts (values)
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = sum)) + 
   facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_viridis_c(trans = "sqrt") + 
-  #scale_color_gradient(low = "gray85", high = "red", trans = "sqrt") + 
   scale_y_reverse() + 
   labs(color = "counts") + 
   ggtitle("Sum UMI counts") + 
@@ -447,38 +452,351 @@ ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
+# QC plot: sum UMIs
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$low_lib_size, , drop = FALSE], 
+             aes(color = low_lib_size), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
+  scale_y_reverse() + 
+  ggtitle("Spot-level QC: sum UMIs") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_sumUMIs")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# QC plot: detected genes
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$low_n_features, , drop = FALSE], 
+             aes(color = low_n_features), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
+  scale_y_reverse() + 
+  ggtitle("Spot-level QC: detected genes") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_detectedGenes")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# QC plot: mitochondrial proportion
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$high_subsets_mito_percent, , drop = FALSE], 
+             aes(color = high_subsets_mito_percent), size = 0.1) + 
+  scale_color_manual(values = "darkorange", name = "high_mito") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
+  scale_y_reverse() + 
+  ggtitle("Spot-level QC: mitochondrial proportion") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_mitochondrial")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# cell count
+df$high_cell_count <- df$cell_count > 10
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(aes(color = in_tissue), size = 0.1) + 
+  scale_color_manual(values = "gray85", name = "tissue") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$annot_region, , drop = FALSE], 
+             aes(color = annot_region), size = 0.1) + 
+  scale_color_manual(values = "gray70", name = "annotated\nregion") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
+  new_scale_color() + 
+  geom_point(data = df[df$high_cell_count, , drop = FALSE], 
+             aes(color = high_cell_count), size = 0.1) + 
+  scale_color_manual(values = "darkorange") + 
+  guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
+  scale_y_reverse() + 
+  ggtitle("Spot-level QC: cell count") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "QC_cellCount")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# ------------------
+# plot TH expression
+# ------------------
+
+# plot TH expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = TH)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+                       name = "TH counts") + 
+  scale_y_reverse() + 
+  ggtitle("TH expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "expression_TH")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# plot TH thresholding
+thresh <- 3
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = TH >= thresh)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_manual(values = c("gray85", "red"), 
+                     name = paste0("TH counts >= ", thresh)) + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_y_reverse() + 
+  ggtitle("TH expression threshold") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "threshold_TH")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# ----------------------
+# plot SLC6A2 expression
+# ----------------------
+
+# plot SLC6A2 expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = SLC6A2)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+                       name = "SLC6A2 counts") + 
+  scale_y_reverse() + 
+  ggtitle("SLC6A2 expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "expression_SLC6A2")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# plot SLC6A2 thresholding
+thresh <- 3
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = SLC6A2 >= thresh)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_manual(values = c("gray85", "red"), 
+                     name = paste0("SLC6A2 counts >= ", thresh)) + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_y_reverse() + 
+  ggtitle("SLC6A2 expression threshold") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "threshold_SLC6A2")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# --------------------
+# plot TPH2 expression
+# --------------------
+
+# add to SPE object
+# to do: move into SPE object in previous script
+colData(spe)$TPH2 <- counts(spe)[which(rowData(spe)$gene_name == "TPH2"), ]
+df <- cbind.data.frame(colData(spe), spatialCoords(spe))
+
+# plot TPH2 expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = TPH2)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+                       name = "TPH2 counts") + 
+  scale_y_reverse() + 
+  ggtitle("TPH2 expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "expression_TPH2")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# plot TPH2 thresholding
+thresh <- 1
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = TPH2 >= thresh)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_manual(values = c("gray85", "red"), 
+                     name = paste0("TPH2 counts >= ", thresh)) + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_y_reverse() + 
+  ggtitle("TPH2 expression threshold") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "threshold_TPH2")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# ----------------------
+# plot SLC6A4 expression
+# ----------------------
+
+# plot SLC6A4 expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = SLC6A4)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+                       name = "SLC6A4 counts") + 
+  scale_y_reverse() + 
+  ggtitle("SLC6A4 expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "expression_SLC6A4")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
+# plot SLC6A4 thresholding
+thresh <- 3
+
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = SLC6A4 >= thresh)) + 
+  facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_manual(values = c("gray85", "red"), 
+                     name = paste0("SLC6A4 counts >= ", thresh)) + 
+  guides(color = guide_legend(override.aes = list(size = 2))) + 
+  scale_y_reverse() + 
+  ggtitle("SLC6A4 expression threshold") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "01_quality_control", "threshold_SLC6A4")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
+ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
+
+
 # -----------------------------
-# heatmaps comparing annotation
+# heatmap comparing annotations
 # -----------------------------
 
-# heatmap comparing annotation vs. thresholding of marker expression
+# heatmap comparing spot-level annotation and expression thresholding
 
-# compare manually annotated individual spots vs. TH+ spots
-tbl <- table(thresh_TH = colData(spe)$TH > 1, annot_spots = colData(spe)$annot_spot)
+# calculate overlaps
+thresh <- 2
+tbl <- table(threshold_TH = colData(spe)$TH >= thresh, 
+             annot_spot = colData(spe)$annot_spot)
 tbl
 
-# compare manually annotated and TH- spots vs. SLC17A6+ spots
-ix <- which(rowData(spe)$gene_name == "SLC17A6")
-colData(spe)$SLC17A6 <- counts(spe)[ix, ]
-
-tbl_SLC17A6 <- table(thresh_SLC17A6 = colData(spe)$SLC17A6 > 1, 
-                     annot_spots_THneg = colData(spe)$annot_spot & (colData(spe)$TH <= 1))
-tbl_SLC17A6
-
-# compare manually annotated and TH- spots vs. SLC6A4+ spots
-tbl_SLC6A4 <- table(thresh_SLC6A4 = colData(spe)$SLC6A4 > 1, 
-                    annot_spots_THneg = colData(spe)$annot_spot & (colData(spe)$TH <= 1))
-tbl_SLC6A4
-
-
-# calculate proportions (out of annotated individual spots)
+# convert to proportions
 tbl_prop <- apply(tbl, 2, function(col) col / sum(col))
 tbl_prop
 
-rownames(tbl) <- rownames(tbl_prop) <- c("THneg", "THpos")
-colnames(tbl) <- colnames(tbl_prop) <- c("not_spots", "spots")
+rownames(tbl) <- rownames(tbl_prop) <- 
+  c(paste0("TH counts < ", thresh), paste0("TH counts >= ", thresh))
+colnames(tbl) <- colnames(tbl_prop) <- 
+  c("not annotated spot", "annotated spot")
 
-# convert to simple matrices
+# convert to matrices
 class(tbl) <- "numeric"
 class(tbl_prop) <- "numeric"
 
@@ -488,10 +806,12 @@ tbl_prop <- cbind(as.data.frame(tbl_prop), type = "proportion")
 tbl$TH_expression <- rownames(tbl)
 tbl_prop$TH_expression <- rownames(tbl_prop)
 
+
 df <- rbind(tbl, tbl_prop) %>% 
   pivot_longer(., cols = -c(TH_expression, type), 
                names_to = "annotation", values_to = "value") %>% 
   as.data.frame()
+
 
 pal <- c("white", "deepskyblue")
 
@@ -504,11 +824,13 @@ ggplot() +
                        limits = c(0, 1), breaks = c(0, 0.5, 1)) + 
   ggtitle("TH vs. annotation") + 
   theme_bw() + 
-  theme(panel.grid = element_blank())
+  theme(axis.title = element_blank(), 
+        axis.text = element_text(size = 12), 
+        panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "01_quality_control", "TH_vs_annotSpots")
-ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
-ggsave(paste0(fn, ".png"), width = 5, height = 4)
+fn <- file.path(dir_plots, "01_quality_control", "heatmap_annotationVsThreshold")
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
+ggsave(paste0(fn, ".png"), width = 6, height = 4)
 
 
 # --------------------------------------
