@@ -17,7 +17,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_downstream", "thresholdTH")
+dir_plots <- here("plots", "06_downstream", "THthresholding")
 
 
 # ---------
@@ -33,6 +33,16 @@ dim(spe)
 
 table(colData(spe)$sample_id)
 
+
+# remove samples where NE neurons were not captured (see TH enrichment plots)
+samples_remove <- "Br5459_LC_round2"
+spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
+
+colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
+
+table(colData(spe)$sample_id)
+
+
 sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
@@ -43,7 +53,7 @@ sample_ids
 
 # select TH+ spots to compare with spot-level annotation
 
-thresh <- 3
+thresh <- 2
 
 colData(spe)$THpos <- colData(spe)$TH >= thresh
 
@@ -52,17 +62,15 @@ table(colData(spe)$THpos)
 # number of TH+ spots by sample
 table(colData(spe)$sample_id, colData(spe)$THpos)
 # TH+ spots vs. spot-level annotation
-table(annot = colData(spe)$annot_spot, thresh = colData(spe)$THpos)
+table(THpos = colData(spe)$THpos, 
+      annot_spot = colData(spe)$annot_spot)
 
 
 # --------------
 # plot by sample
 # --------------
 
-df <- cbind.data.frame(
-  colData(spe), spatialCoords(spe), 
-  reducedDim(spe, "PCA"), reducedDim(spe, "UMAP"), reducedDim(spe, "HARM")
-)
+df <- cbind.data.frame(colData(spe), spatialCoords(spe))
 
 df$THposAnnot <- df$THpos & df$annot_spot
 df$THposOnly <- df$THpos & !(df$annot_spot)
@@ -101,17 +109,8 @@ for (i in seq_along(sample_ids)) {
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  fn <- file.path(dir_plots, paste0("LC_thresholdTH_", sample_ids[i]))
+  fn <- file.path(dir_plots, paste0("THthresholding_", sample_ids[i]))
   ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3.75)
   ggsave(paste0(fn, ".png"), width = 4.5, height = 3.75)
 }
-
-
-# -----------
-# save object
-# -----------
-
-fn_out <- here("processed_data", "SPE", "LC_thresholdTH")
-saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
 
