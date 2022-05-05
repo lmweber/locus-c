@@ -149,6 +149,8 @@ df_summary
 # spot-level QC in LC regions
 # ---------------------------
 
+# to do: use sample-specific QC thresholds
+
 # check
 dim(spe_LC)
 table(colData(spe_LC)$sample_id)
@@ -205,6 +207,8 @@ rbind(table(colData(spe_LC)$discard), table(colData(spe)$discard))
 # ---------------------------
 # spot-level QC in WM regions
 # ---------------------------
+
+# to do: use sample-specific QC thresholds
 
 # check
 dim(spe_WM)
