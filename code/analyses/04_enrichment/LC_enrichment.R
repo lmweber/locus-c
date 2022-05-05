@@ -1,7 +1,7 @@
 ##############################################
 # LC project
 # Script to plot enrichment of LC marker genes
-# Lukas Weber, Apr 2022
+# Lukas Weber, May 2022
 ##############################################
 
 # module load conda_R/4.1.x
@@ -28,17 +28,25 @@ dir_plots <- here("plots", "04_enrichment")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
+fn_spe <- here("processed_data", "SPE", "LC_batchCorrected.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
+
+
+sample_ids <- levels(colData(spe)$sample_id)
+sample_ids
 
 
 # ------------------------------------
 # calculate enrichment of marker genes
 # ------------------------------------
 
-# calculate enrichment of marker genes in manually annotated regions
+# enrichment defined as difference in mean logcounts per spot between regions,
+# e.g. manually annotated LC vs. WM regions
+
+# to do: alternatively: calculate using pseudobulked logcounts per region
+
 
 # select marker genes of interest
 marker_genes <- c("TH", "SLC6A2")
@@ -53,9 +61,6 @@ table(colData(spe)$annot_spot)
 # individual non-spots
 table(!colData(spe)$annot_spot)
 
-
-sample_ids <- levels(colData(spe)$sample_id)
-sample_ids
 
 enrichment <- matrix(NA, nrow = length(sample_ids), ncol = length(marker_genes))
 rownames(enrichment) <- sample_ids
@@ -78,7 +83,6 @@ for (i in seq_along(sample_ids)) {
   }
 }
 
-
 # select manually annotated WM regions
 spe_WM <- spe[, !colData(spe)$annot_region]
 dim(spe_WM)
@@ -93,7 +97,6 @@ for (i in seq_along(sample_ids)) {
   }
 }
 
-
 # select manually annotated individual spots
 spe_spots <- spe[, colData(spe)$annot_spot]
 dim(spe_spots)
@@ -107,7 +110,6 @@ for (i in seq_along(sample_ids)) {
     enrichment_spots[i, j] <- mean_ij
   }
 }
-
 
 # select manually annotated individual nonspots
 spe_nonspots <- spe[, !colData(spe)$annot_spot]
@@ -167,41 +169,49 @@ length(genes_ordered) == length(marker_genes)
 
 df1 <- 
   full_join(df_enrichment_LC, df_enrichment_WM) %>% 
-  mutate(region = factor(region, levels = c("LC", "WM"))) %>% 
+  mutate(regions = factor(region, 
+                          levels = c("LC", "WM"), 
+                          labels = c("LC regions", "WM regions"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
 df2 <- 
   full_join(df_enrichment_spots, df_enrichment_nonspots) %>% 
-  mutate(region = factor(region, levels = c("spots", "nonspots"))) %>% 
+  mutate(regions = factor(region, 
+                          levels = c("spots", "nonspots"), 
+                          labels = c("annotated spots", "not annotated spots"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
 
 # LC regions vs. WM regions
-p <- ggplot(df1, aes(x = gene, y = mean, color = region)) + 
-  geom_boxplot(outlier.size = 0.5) + 
+set.seed(123)
+ggplot(df1, aes(x = gene, y = mean, color = regions)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(position = position_jitterdodge()) + 
   scale_color_manual(values = pal1) + 
-  labs(y = "mean logcounts") + 
-  ggtitle("Enrichment: LC domains") + 
+  labs(y = "mean logcounts per spot") + 
+  ggtitle("Enrichment: annotated regions") + 
   theme_bw()
 
-fn <- here(dir_plots, "enrichment_selected_domains")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 5, height = 4)
-ggsave(paste0(fn, ".png"), plot = p, width = 5, height = 4)
+fn <- here(dir_plots, "enrichment_annotatedRegions")
+ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
 
-# annotated spots vs. non-spots
-p <- ggplot(df2, aes(x = gene, y = mean, color = region)) + 
-  geom_boxplot(outlier.size = 0.5) + 
+# annotated spots vs. not annotated spots
+set.seed(123)
+ggplot(df2, aes(x = gene, y = mean, color = regions)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(position = position_jitterdodge()) + 
   scale_color_manual(values = pal2) + 
-  labs(y = "mean logcounts") + 
-  ggtitle("Enrichment: spots") + 
+  labs(y = "mean logcounts per spot") + 
+  ggtitle("Enrichment: annotated spots") + 
   theme_bw()
 
-fn <- here(dir_plots, "enrichment_selected_spots")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 5, height = 4)
-ggsave(paste0(fn, ".png"), plot = p, width = 5, height = 4)
+fn <- here(dir_plots, "enrichment_annotatedSpots")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 4)
 
