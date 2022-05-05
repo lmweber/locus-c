@@ -134,40 +134,6 @@ spe <- spatialCluster(
 table(colData(spe)$spatial.cluster)
 
 
-# -------------
-# plot clusters
-# -------------
-
-df <- cbind.data.frame(
-  colData(spe), spatialCoords(spe), 
-  reducedDim(spe, "PCA"), reducedDim(spe, "UMAP"), reducedDim(spe, "HARM")
-)
-
-df$spatial.cluster <- as.factor(df$spatial.cluster)
-
-pal <- unname(palette.colors(8, palette = "Okabe-Ito"))
-
-ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
-               color = spatial.cluster)) + 
-  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
-  geom_point(size = 0.1) + 
-  scale_color_manual(values = pal) + 
-  scale_y_reverse() + 
-  ggtitle("BayesSpace clustering") + 
-  labs(color = "cluster") + 
-  guides(color = guide_legend(override.aes = list(size = 3))) + 
-  theme_bw() + 
-  theme(aspect.ratio = 1, 
-        panel.grid = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(), 
-        axis.ticks = element_blank())
-
-fn <- file.path(dir_plots, "BayesSpace_clustering")
-ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
-
-
 # -----------
 # save object
 # -----------
