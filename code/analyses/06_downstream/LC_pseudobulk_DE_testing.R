@@ -103,8 +103,8 @@ spe_pseudo <- logNormCounts(spe_pseudo, size.factors = NULL)
 
 # filter extremely low-count genes
 # using threshold of sum UMI counts across all samples combined
-# e.g. threshold 80 UMI counts = 8 samples * 10 UMI counts per sample
-thresh <- 80
+# e.g. threshold 160 UMI counts = 8 samples * 20 UMI counts per sample
+thresh <- 160
 ix_remove <- rowSums(counts(spe_pseudo)) < thresh
 table(ix_remove)
 
@@ -205,7 +205,7 @@ stopifnot(length(fdrs) == length(logFC))
 stopifnot(all(names(fdrs) == names(logFC)))
 
 # identify significant genes (low FDR and high logFC)
-thresh_sig <- 0.005
+thresh_sig <- 0.001
 thresh_high <- 1
 sig_high <- (fdrs <= thresh_sig) & (abs(logFC) >= thresh_high)
 
@@ -230,6 +230,9 @@ ggplot(df, aes(x = logFC, y = -log10(FDR),
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
   scale_color_manual(values = pal, name = "selected") + 
+  geom_hline(yintercept = 3, lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = -1, lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = 1, lty = "dashed", color = "royalblue") + 
   xlim(c(-3, 3.5)) + 
   ylim(c(0, 4.5)) + 
   ggtitle("Pseudobulk DE tests: LC vs. WM") + 
@@ -287,11 +290,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "pseudobulkDE_heatmap")
 
-pdf(paste0(fn, ".pdf"), width = 3.5, height = 13)
+pdf(paste0(fn, ".pdf"), width = 3.5, height = 6)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.5 * 200, height = 13 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.5 * 200, height = 6 * 200, res = 200)
 hm
 dev.off()
 
@@ -322,6 +325,8 @@ ggplot(df, aes(x = mean, y = logFC,
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
   scale_color_manual(values = pal, name = "selected") + 
+  geom_hline(yintercept = 1, lty = "dashed", color = "royalblue") + 
+  geom_hline(yintercept = -1, lty = "dashed", color = "royalblue") + 
   labs(x = "mean logcounts (pseudobulked LC and WM)", 
        y = "log fold change") + 
   ggtitle("Pseudobulk DE tests: LC vs. WM") + 
