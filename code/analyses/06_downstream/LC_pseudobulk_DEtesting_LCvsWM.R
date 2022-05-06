@@ -79,6 +79,9 @@ ids <- DataFrame(
   sample_id_pseudo = colData(spe)$sample_id
 )
 
+table(ids$sample_id_pseudo, ids$annot_region_pseudo)
+
+
 # pseudobulking
 spe_pseudo <- aggregateAcrossCells(spe, ids)
 
@@ -240,7 +243,7 @@ ggplot(df, aes(x = logFC, y = -log10(FDR),
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_volcano")
+fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_volcano")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
@@ -288,7 +291,7 @@ hm
 
 
 # save heatmap
-fn <- file.path(dir_plots, "pseudobulkDE_heatmap")
+fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_heatmap")
 
 pdf(paste0(fn, ".pdf"), width = 3.5, height = 6)
 hm
@@ -334,7 +337,7 @@ ggplot(df, aes(x = mean, y = logFC,
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_MAplot")
+fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_MAplot")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
@@ -362,6 +365,7 @@ rownames(df) <- df$gene_name
 df <- df[top_names, ]
 
 # save .csv file
-fn <- file.path(dir_outputs, "LC_pseudobulkDE_topGenes.csv")
+fn <- file.path(dir_outputs, "pseudobulk_LCvsWM", 
+                "LC_pseudobulkDE_LCvsWM_topGenes.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
