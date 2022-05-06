@@ -807,7 +807,7 @@ for (g in seq_along(genes)) {
     scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
                          name = paste0(genes[g], " counts")) + 
     scale_y_reverse() + 
-    ggtitle(genes[g], " expression") + 
+    ggtitle(paste0(genes[g], " expression")) + 
     theme_bw() + 
     theme(aspect.ratio = 1, 
           panel.grid = element_blank(), 
