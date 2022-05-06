@@ -779,6 +779,48 @@ ggsave(paste0(fn, ".pdf"), width = 7, height = 6.75)
 ggsave(paste0(fn, ".png"), width = 7, height = 6.75)
 
 
+# ------------------------------
+# plot additional selected genes
+# ------------------------------
+
+genes_nicotinic_acetylcholine <- c(
+  "CHRNA1", "CHRNA2", "CHRNA3", "CHRNA4", "CHRNA5", "CHRNA6", "CHRNA7", 
+  "CHRNA9", "CHRNA10", "CHRNB1", "CHRNB2", "CHRNB3", "CHRNB4")
+
+genes_serotonin <- c("HTR1A", "HTR2A")
+
+genes <- c(genes_nicotinic_acetylcholine, genes_serotonin)
+
+length(genes)
+sum(genes %in% rowData(spe)$gene_name)
+
+
+for (g in seq_along(genes)) {
+  df <- cbind.data.frame(colData(spe), spatialCoords(spe))
+  ix_gene <- which(rowData(spe)$gene_name == genes[g])
+  df$gene <- counts(spe)[ix_gene, ]
+  
+  p <- ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+                      color = gene)) + 
+    facet_wrap(~ sample_id, nrow = 3, scales = "free") + 
+    geom_point(size = 0.1) + 
+    scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+                         name = paste0(genes[g], " counts")) + 
+    scale_y_reverse() + 
+    ggtitle(genes[g], " expression") + 
+    theme_bw() + 
+    theme(aspect.ratio = 1, 
+          panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "selected_genes", paste0("expression_", genes[g]))
+  ggsave(paste0(fn, ".pdf"), plot = p, width = 7, height = 6.75)
+  ggsave(paste0(fn, ".png"), plot = p, width = 7, height = 6.75)
+}
+
+
 # -----------------------------
 # heatmap comparing annotations
 # -----------------------------
