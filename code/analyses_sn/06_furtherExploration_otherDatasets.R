@@ -1,0 +1,81 @@
+### LC snRNA-seq analysis
+### Exploration with other datasets
+###     qsub -l bluejay,mf=76G,h_vmem=80G
+### Initiated: MNT 06May2022
+
+library(SingleCellExperiment)
+library(scater)
+library(scran)
+library(scry)
+library(batchelor)
+library(BiocParallel)
+library(jaffelab)
+library(gridExtra)
+library(here)
+library(sessioninfo)
+
+
+### Palette taken from `scater`
+tableau10medium = c("#729ECE", "#FF9E4A", "#67BF5C", "#ED665D",
+                    "#AD8BC9", "#A8786E", "#ED97CA", "#A2A2A2",
+                    "#CDCC5D", "#6DCCDA")
+tableau20 = c("#1F77B4", "#AEC7E8", "#FF7F0E", "#FFBB78", "#2CA02C",
+              "#98DF8A", "#D62728", "#FF9896", "#9467BD", "#C5B0D5",
+              "#8C564B", "#C49C94", "#E377C2", "#F7B6D2", "#7F7F7F",
+              "#C7C7C7", "#BCBD22", "#DBDB8D", "#17BECF", "#9EDAE5")
+
+here()
+# [1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
+
+source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotExpressionCustom.R")
+
+
+
+
+
+## Exploring mouse markers of interest ===========================
+# Provided by Lukas
+markers.Mulvey.human <- c(
+  "AGTR1", "ASB4", "CALCR", "CALR3", "CHODL", "CHRNA6", "CILP", "CYB561", 
+  "DBH", "DDC", "DLK1", "ADGRE1", "EYA2", "SHISAL2B", "FAM183A", "FIBCD1", 
+  "GAL", "GCH1", "GLRA2", "GNG4", "GPX3", "GTF2A1L", "HCRTR1", "IGSF5", "MAOA", 
+  "MRAP2", "MYOM2", "NEUROG2", "SLC9B2", "NXPH4", "OVGP1", "PCBD1", "PHOX2A", 
+  "PHOX2B", "PLA2G4D", "PTGER2", "SLC18A2", "SLC31A1", "SLC6A2", "STBD1", 
+  "SYT17", "TH", "TM4SF1", "TM4SF5", "TRAF3IP2")
+
+markers.Grimm.human <- c(
+  "CBR3", "DNAH5", "SERPINE1", "LAYN", "TPH2", "RPH3AL", "NGB", "CYB561", 
+  "GNAS", "SLC31A1", "TCP1", "PPIC", "COLEC10", "RAB3B", "MAOA", "PCBP3", 
+  "TSPAN12", "FBP1", "DBH", "SERPINF1", "TXK", "SEC16B", "TRAF1", "PTGES", 
+  "GGT5", "MMP2", "MCAM", "TFAP2A", "ACSL1", "UPB1", "UCP3", "COL5A1", 
+  "ALDH1A1", "FBN1")
+markers.Grimm.human <- sort(markers.Grimm.human)
+
+table(markers.Mulvey.human %in% rowData(sce.lc)$gene_name)
+table(markers.Grimm.human %in% rowData(sce.lc)$gene_name)
+intersect(markers.Mulvey.human, markers.Grimm.human)
+# [1] "CYB561"  "DBH"     "MAOA"    "SLC31A1"
+
+markers2print <- list(Mulvey.etal = markers.Mulvey.human,
+                      Grimm.etal = markers.Grimm.human)
+
+#dir.create(here("plots","snRNA-seq","exploration"))
+for(i in names(markers2print)){
+png(here("plots","snRNA-seq","exploration",
+         paste0("LC_snRNA-seq_", i, "_vlnPlots.png")), height=1900, width=1200)
+  print(
+    plotExpressionCustom(sce = sce.lc,
+                         exprs_values = "logcounts",
+                         features = markers2print[[i]], 
+                         features_name = i,
+                         anno_name = "cellType.merged",
+                         ncol=5, point_alpha=0.4,
+                         scales="free_y", swap_rownames="gene_name") +
+      scale_color_manual(values = c(tableau20, tableau10medium)) +  
+      ggtitle(label=paste0("LC snRNA-seq expression from ", i, " markers")) +
+      theme(plot.title = element_text(size = 20))
+  )
+dev.off()
+}
+
+
