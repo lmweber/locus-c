@@ -79,3 +79,52 @@ dev.off()
 }
 
 
+
+### Print Lukas' pseudo-bulked (annotated 'LC vs WM') DE markers ===============
+  # (these are all already subsetted for FDR < 0.05)
+visiumDE_LCvWM <- read.csv(here("outputs","06_downstream","pseudobulkDE","pseudobulk_LCvsWM",
+                                "LC_pseudobulkDE_LCvsWM_topGenes.csv"), sep=",")
+    # 51 DE genes
+
+visiumDE_withinLC <- read.csv(here("outputs","06_downstream","pseudobulkDE","pseudobulk_withinLCregions",
+                                "LC_pseudobulkDE_withinLCregions_topGenes.csv"), sep=",")
+    # 55 DE genes
+
+list.visiumDE <- list(LCvsWM = visiumDE_LCvWM$gene_name,
+                      withinAnnottatedLC = visiumDE_withinLC$gene_name)
+
+
+for(i in names(list.visiumDE)){
+  png(here("plots","snRNA-seq","exploration",
+           paste0("LC_snRNA-seq_visium-", i, "-DEgenes_vlnPlots.png")), height=2100, width=1200)
+  print(
+    plotExpressionCustom(sce = sce.lc,
+                         exprs_values = "logcounts",
+                         features = list.visiumDE[[i]], 
+                         features_name = i,
+                         anno_name = "cellType.merged",
+                         ncol=5, point_alpha=0.4,
+                         scales="free_y", swap_rownames="gene_name") +
+      scale_color_manual(values = c(tableau20, tableau10medium)) +  
+      ggtitle(label=paste0("LC snRNA-seq expression from ", i, "-DE genes")) +
+      theme(plot.title = element_text(size = 20))
+  )
+  dev.off()
+}
+
+
+
+
+
+
+## Reproducibility information ====
+print('Reproducibility information:')
+Sys.time()
+# 
+proc.time()
+#     user    system   elapsed 
+# 
+options(width = 120)
+session_info()
+
+
