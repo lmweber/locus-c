@@ -138,6 +138,9 @@ sizeFactors.PB  <- librarySizeFactors(cluster.PBcounts)
 # Normalize with these LSFs
 geneExprs.temp <- t(apply(cluster.PBcounts, 1, function(x) {log2(x/sizeFactors.PB + 1)}))
 
+# Now subset on HDGs - less driven by noise
+geneExprs.temp <- geneExprs.temp[hdgs.lc, ]
+dim(geneExprs.temp) # 2000 x 60
 
 ## Perform hierarchical clustering
 dist.clusCollapsed <- dist(t(geneExprs.temp))
@@ -150,30 +153,29 @@ myplclust(tree.clusCollapsed, main="LC (n=3) SNN-cluster relationships (60 clust
           cex.main=1, cex.lab=0.8, cex=0.6)
 
 clust.treeCut <- cutreeDynamic(tree.clusCollapsed, distM=as.matrix(dist.clusCollapsed),
-                               minClusterSize=2, deepSplit=1, cutHeight=210)
-
+                               minClusterSize=2, deepSplit=1, cutHeight=120)
 
 table(clust.treeCut)
 unname(clust.treeCut[order.dendrogram(dend)])
-    ## Cutting at 210 looks good for the main neuronal branch, but a lot of glial
-    #    prelim clusters are dropped off (0's)
-
-    # Cut at 425 for broad glia branch (will manually merge remaining dropped off)    
-    glia.treeCut <- cutreeDynamic(tree.clusCollapsed, distM=as.matrix(dist.clusCollapsed),
-                                  minClusterSize=2, deepSplit=1, cutHeight=425)
-    unname(glia.treeCut[order.dendrogram(dend)])
+    ## Cutting at 120 looks good for the overall, but re-assign some based on
+    #    cutHeight=80 (which preserves NE & 5-HT-producing neurons)
+    clust.treeCut80 <- cutreeDynamic(tree.clusCollapsed, distM=as.matrix(dist.clusCollapsed),
+                                   minClusterSize=2, deepSplit=1, cutHeight=80)
+    
+    table(clust.treeCut80)
+    unname(clust.treeCut80[order.dendrogram(dend)])
     
     # Take those and re-assign to the first assignments
-    clust.treeCut[order.dendrogram(dend)][c(38:60)] <- ifelse(glia.treeCut[order.dendrogram(dend)][c(38:60)] == 0,
-                                                              0, glia.treeCut[order.dendrogram(dend)][c(38:60)] + max(clust.treeCut))
+    clust.treeCut[order.dendrogram(dend)][c(3:4,27:28,34:35)] <-
+      ifelse(clust.treeCut80[order.dendrogram(dend)][c(3:4,27:28,34:35)] == 0,
+             0, clust.treeCut80[order.dendrogram(dend)][c(3:4,27:28,34:35)] + max(clust.treeCut80))
 
     unname(clust.treeCut[order.dendrogram(dend)])
 
 # Add new labels to those prelimClusters cut off
 clustersStill0 <- which(clust.treeCut[order.dendrogram(dend)]==0)
 clust.treeCut[order.dendrogram(dend)][clustersStill0] <- max(clust.treeCut) +
-  #c(1:length(clustersStill0))
-  c(1,1, 2:11, 12,12, 13,13)
+  c(1,1, 2:3, 4:5, 6,6)
   # 'repeating' bc some of these branches are just pairs/would be merged at a higher cut height
 
 # 'Re-write', since there are missing numbers
@@ -185,9 +187,9 @@ names(cluster_colors) <- unique(clust.treeCut[order.dendrogram(dend)])
 dendextend::labels_colors(dend) <- cluster_colors[as.character(clust.treeCut[order.dendrogram(dend)])]
 
 # Print for future reference
-pdf(here("plots","snRNA-seq","hierarchicalClustering_LC-n3_SNNcluster-relationships.pdf"))
-par(cex=0.7, font=2, mar=c(6,4,4,2))
-plot(dend, cex.main=2,
+pdf(here("plots","snRNA-seq","hierarchicalClustering_LC-n3_SNNcluster-relationships.pdf"), height=4.5)
+par(cex=0.7, font=2, mar=c(7,4,4,2))
+plot(dend, cex.main=1.6,
      main="LC (n=3) prelim-SNN-cluster relationships \nby hierarchical clustering")
 dev.off()
 
@@ -207,6 +209,7 @@ sce.lc$mergedCluster.HC <- factor(annotationTab.lc$merged[match(sce.lc$cellType,
 # Save
 save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
      file=here("processed_data","SCE", "sce_updated_LC.rda"))
+     # (April version .rda renamed > zobsolete_Apr2022_sce_updated_LC.rda)
 
 
 ## Cluster modularity?
@@ -216,7 +219,8 @@ mod.ratio.merged.HC <- pairwiseModularity(graph = snn.gr.glmpcamnn,
                                           as.ratio=TRUE)
 
 # Plot
-pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_26collapsedClusters-by-HC.pdf"))
+#pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_26collapsedClusters-by-HC.pdf"))
+pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_21collapsedClusters-by-HC.pdf"))
 # Add UMAP to this
 print(
   plotReducedDim(sce.lc, dimred="UMAP", colour_by="mergedCluster.HC", text_by="mergedCluster.HC") +
