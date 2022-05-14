@@ -235,26 +235,13 @@ pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
          display_numbers=T, number_format="%.1f", na_col="darkgrey")
 grid::grid.text(label="log2(ratio)",x=0.97,y=0.64, gp=grid::gpar(fontsize=7))
 dev.off()
-    # Observations: overall, honestly this isn't too bad.
-    #   - 18 and 7 share edge weights - this makes sense based on their HC
-    #   - 16 == Neuron.5HT  &  19 == Neuron.5HT_noDDC
-    #   - 18 <~ 24 ~> 20      Neuron.ambig_D <~ Neuron.ambig_E/_F ~> Neuron.NE
-    #     (not really showing shared 'lineages' in the HC)
 
 
 table(sce.lc$cellType, sce.lc$mergedCluster.HC)
 
-# By eye and briefly looking at markers, these mergings look pretty good
-#     other than:
-table(droplevels(sce.lc$cellType[which(sce.lc$mergedCluster.HC == 1)]))
-    # Excit_D        Excit_E        Inhib_G Neuron.ambig_A Neuron.mixed_A 
-    #     114            219             50           2560           2301
-    #     (thus the self-modularity ratio is pretty low)
-
 
 ### Since the below method performs poorly, print broad markers for annotation =====
-  #       of these 26 merged clusters
-source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotExpressionCustom.R")
+  #       of these 21 merged clusters
 
 markers.mathys.tran = list(
   'neuron' = c('SYT1', 'SNAP25', 'GRIN1'),
@@ -283,8 +270,8 @@ markers.mathys.tran = list(
 )
 
 
-pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_26-HC-merged-graphClusters.pdf")),
-    height=6, width=12)
+#pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_26-HC-merged-graphClusters.pdf")),
+pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_21-HC-merged-graphClusters.pdf")),    height=6, width=12)
 for(i in 1:length(markers.mathys.tran)){
   print(
     plotExpressionCustom(sce = sce.lc,
@@ -295,7 +282,8 @@ for(i in 1:length(markers.mathys.tran)){
                          anno_name = "cellType.merged",
                          ncol=2, point_alpha=0.4, point_size=0.9,
                          scales="free_y", swap_rownames="gene_name") +  
-      ggtitle(label=paste0("LC-n3 HC-merged (26) clusters: ",
+      #ggtitle(label=paste0("LC-n3 HC-merged (26) clusters: ",
+      ggtitle(label=paste0("LC-n3 HC-merged (21) clusters: ",
                            names(markers.mathys.tran)[[i]], " markers")) +
       theme(plot.title = element_text(size = 12),
             axis.text.x = element_text(size=7)) +
@@ -310,24 +298,25 @@ annotationTab.lc <- annotationTab.lc[order(annotationTab.lc$merged), ]
 
 
 # Reference (smaller table)
-annTab.lc <- data.frame(cluster=c(1:26))
+annTab.lc <- data.frame(cluster=c(1:21))
 annTab.lc$cellType.merged <- NA
+annTab.lc$cellType.merged[c(1,3,12,13,16)] <- paste0("ambig.lowNTx_",c("A","B","C","D","E"))
 
-annTab.lc$cellType.merged[c(2,3,6,7, 15,23)] <- paste0("Excit_", c("A","B","C","D", "E","F"))
-annTab.lc$cellType.merged[c(4,5,16,24)] <- paste0("Inhib_", c("A","B","C","D"))
-annTab.lc$cellType.merged[c(1,18)] <- paste0("Neuron.mixed_", c("A","B"))
-annTab.lc$cellType.merged[c(19,22,25,26)] <- paste0("Neuron.ambig_", c("A","B","C","D"))
-annTab.lc$cellType.merged[c(14)] <- "ambig.lowNTx"
+annTab.lc$cellType.merged[c(5,8,11,14,20,15)] <- paste0("Excit_", c("A","B","C","D","E","F"))
+annTab.lc$cellType.merged[c(2,7,18)] <- paste0("Inhib_", c("A","B","C"))
+# The new HC-based merging got rid of these three:
+    # annTab.lc$cellType.merged[c(1,18)] <- paste0("Neuron.mixed_", c("A","B"))
+    # annTab.lc$cellType.merged[c(19,22,25,26)] <- paste0("Neuron.ambig_", c("A","B","C","D"))
+    # annTab.lc$cellType.merged[c(20)] <- "Neuron.5HT_noDDC"
 
-annTab.lc$cellType.merged[c(21)] <- "Neuron.NE"
-annTab.lc$cellType.merged[c(17)] <- "Neuron.5HT"
-annTab.lc$cellType.merged[c(20)] <- "Neuron.5HT_noDDC"
+annTab.lc$cellType.merged[c(17)] <- "Neuron.NE"
+annTab.lc$cellType.merged[c(19)] <- "Neuron.5HT"
 
-annTab.lc$cellType.merged[c(8,10)] <- paste0("Oligo_", c("A","B"))
-annTab.lc$cellType.merged[c(12)] <- "OPC"
-annTab.lc$cellType.merged[c(11)] <- "Micro"
-annTab.lc$cellType.merged[c(9)] <- "Astro"
-annTab.lc$cellType.merged[c(13)] <- "Endo.Mural"
+annTab.lc$cellType.merged[c(4)] <- "Oligo"
+annTab.lc$cellType.merged[c(9)] <- "OPC"
+annTab.lc$cellType.merged[c(10)] <- "Micro"
+annTab.lc$cellType.merged[c(6)] <- "Astro"
+annTab.lc$cellType.merged[c(21)] <- "Endo.Mural"  # macrophages got merged here too, but won't notate
 
 # Add to the bigger reference
 annotationTab.lc$cellType.merged <- annTab.lc$cellType.merged[match(annotationTab.lc$merged,
@@ -339,9 +328,9 @@ sce.lc$cellType.merged <- annotationTab.lc$cellType.merged[match(sce.lc$mergedCl
 sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
 
 
-# To distinguish original 60 clusters' annotations from these ones, `tolower()` the former
-annotationTab.lc$cellType <- tolower(annotationTab.lc$cellType)
-sce.lc$cellType <- factor(tolower(sce.lc$cellType))
+    # # To distinguish original 60 clusters' annotations from these ones, `tolower()` the former
+    # annotationTab.lc$cellType <- tolower(annotationTab.lc$cellType)
+    # sce.lc$cellType <- factor(tolower(sce.lc$cellType))
 
 ### Save
 save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
@@ -472,13 +461,13 @@ save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    # [1] "2022-04-07 22:57:06 EDT"
+    # [1] "2022-05-13 23:43:21 EDT"
 proc.time()
     #     user    system   elapsed 
-    # 1524.301    38.689 11076.920 
+    # 1312.963    26.696 13704.514 
 options(width = 120)
 session_info()
-    # ─ Session info ────────────────────────────────────────────────────────────────────────
+    #─ Session info ────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -488,10 +477,10 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-04-07
+    # date     2022-05-13
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ────────────────────────────────────────────────────────────────────────────
+    # ─ Packages ────────────────────────────────────────────────────────────────
     # package              * version  date (UTC) lib source
     # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
     # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -500,11 +489,11 @@ session_info()
     # Biobase              * 2.54.0   2021-10-26 [2] Bioconductor
     # BiocGenerics         * 0.40.0   2021-10-26 [2] Bioconductor
     # BiocNeighbors          1.12.0   2021-10-26 [2] Bioconductor
-    # BiocParallel         * 1.28.3   2021-12-09 [2] Bioconductor
+    # BiocParallel           1.28.3   2021-12-09 [2] Bioconductor
     # BiocSingular           1.10.0   2021-10-26 [2] Bioconductor
     # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
     # bluster              * 1.4.0    2021-10-26 [2] Bioconductor
-    # cli                    3.2.0    2022-02-14 [2] CRAN (R 4.1.2)
+    # cli                    3.3.0    2022-04-25 [2] CRAN (R 4.1.2)
     # cluster                2.1.3    2022-03-28 [3] CRAN (R 4.1.2)
     # colorspace             2.0-3    2022-02-21 [2] CRAN (R 4.1.2)
     # cowplot                1.1.1    2020-12-30 [2] CRAN (R 4.1.2)
@@ -514,7 +503,7 @@ session_info()
     # DelayedMatrixStats     1.16.0   2021-10-26 [2] Bioconductor
     # dendextend             1.15.2   2021-10-28 [2] CRAN (R 4.1.2)
     # digest                 0.6.29   2021-12-01 [2] CRAN (R 4.1.2)
-    # dplyr                  1.0.8    2022-02-08 [2] CRAN (R 4.1.2)
+    # dplyr                  1.0.9    2022-04-28 [2] CRAN (R 4.1.2)
     # dqrng                  0.3.0    2021-05-01 [2] CRAN (R 4.1.2)
     # DropletUtils         * 1.14.2   2022-01-09 [2] Bioconductor
     # dynamicTreeCut       * 1.63-1   2016-03-11 [1] CRAN (R 4.1.2)
@@ -529,7 +518,7 @@ session_info()
     # GenomeInfoDbData       1.2.7    2021-11-01 [2] Bioconductor
     # GenomicRanges        * 1.46.1   2021-11-18 [2] Bioconductor
     # ggbeeswarm             0.6.0    2017-08-07 [2] CRAN (R 4.1.2)
-    # ggplot2              * 3.3.5    2021-06-25 [2] CRAN (R 4.1.0)
+    # ggplot2              * 3.3.6    2022-05-03 [2] CRAN (R 4.1.2)
     # ggrepel                0.9.1    2021-01-15 [2] CRAN (R 4.1.0)
     # glue                   1.6.2    2022-02-24 [2] CRAN (R 4.1.2)
     # googledrive            2.0.0    2021-07-08 [2] CRAN (R 4.1.0)
@@ -537,19 +526,19 @@ session_info()
     # gtable                 0.3.0    2019-03-25 [2] CRAN (R 4.1.0)
     # HDF5Array              1.22.1   2021-11-14 [2] Bioconductor
     # here                 * 1.0.1    2020-12-13 [2] CRAN (R 4.1.2)
-    # igraph                 1.3.0    2022-04-01 [2] CRAN (R 4.1.2)
+    # igraph                 1.3.1    2022-04-20 [2] CRAN (R 4.1.2)
     # IRanges              * 2.28.0   2021-10-26 [2] Bioconductor
     # irlba                  2.3.5    2021-12-06 [2] CRAN (R 4.1.2)
     # jaffelab             * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
     # labeling               0.4.2    2020-10-20 [2] CRAN (R 4.1.0)
     # lattice                0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
     # lifecycle              1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
-    # limma                  3.50.1   2022-02-17 [2] Bioconductor
+    # limma                  3.50.3   2022-04-07 [2] Bioconductor
     # locfit                 1.5-9.5  2022-03-03 [2] CRAN (R 4.1.2)
     # magrittr               2.0.3    2022-03-30 [2] CRAN (R 4.1.2)
     # Matrix                 1.4-1    2022-03-23 [3] CRAN (R 4.1.2)
     # MatrixGenerics       * 1.6.0    2021-10-26 [2] Bioconductor
-    # matrixStats          * 0.61.0   2021-09-17 [2] CRAN (R 4.1.2)
+    # matrixStats          * 0.62.0   2022-04-19 [2] CRAN (R 4.1.2)
     # metapod                1.2.0    2021-10-26 [2] Bioconductor
     # munsell                0.5.0    2018-06-12 [2] CRAN (R 4.1.0)
     # pheatmap             * 1.0.12   2019-01-04 [2] CRAN (R 4.1.0)
@@ -573,7 +562,7 @@ session_info()
     # rsvd                   1.0.5    2021-04-16 [2] CRAN (R 4.1.2)
     # S4Vectors            * 0.32.4   2022-03-24 [2] Bioconductor
     # ScaledMatrix           1.2.0    2021-10-26 [2] Bioconductor
-    # scales                 1.1.1    2020-05-11 [2] CRAN (R 4.1.0)
+    # scales                 1.2.0    2022-04-13 [2] CRAN (R 4.1.2)
     # scater               * 1.22.0   2021-10-26 [2] Bioconductor
     # scran                * 1.22.1   2021-11-14 [2] Bioconductor
     # scry                 * 1.6.0    2021-10-26 [2] Bioconductor
@@ -584,10 +573,10 @@ session_info()
     # sparseMatrixStats      1.6.0    2021-10-26 [2] Bioconductor
     # statmod                1.4.36   2021-05-10 [2] CRAN (R 4.1.0)
     # SummarizedExperiment * 1.24.0   2021-10-26 [2] Bioconductor
-    # tibble                 3.1.6    2021-11-07 [2] CRAN (R 4.1.2)
+    # tibble                 3.1.7    2022-05-03 [2] CRAN (R 4.1.2)
     # tidyselect             1.1.2    2022-02-21 [2] CRAN (R 4.1.2)
     # utf8                   1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
-    # vctrs                  0.4.0    2022-03-30 [2] CRAN (R 4.1.2)
+    # vctrs                  0.4.1    2022-04-13 [2] CRAN (R 4.1.2)
     # vipor                  0.4.5    2017-03-22 [2] CRAN (R 4.1.2)
     # viridis                0.6.2    2021-10-13 [2] CRAN (R 4.1.2)
     # viridisLite            0.4.0    2021-04-13 [2] CRAN (R 4.1.0)
@@ -599,6 +588,6 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ───────────────────────────────────────────────────────────────────────────────────────
+    # ───────────────────────────────────────────────────────────────────────────
 
 
