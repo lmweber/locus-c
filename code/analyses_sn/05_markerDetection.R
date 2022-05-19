@@ -133,6 +133,42 @@ sizeFactors(sce.lc) <- NULL
 sce.lc <- logNormCounts(sce.lc)
 
 
+    ## What if first re-assign 'inhib_g' & 'neuron.ambig_h' to their own? say, 'Inhib_D'
+     # Motivation: that Inhib_A has NO top PW markers... 
+    sce.lc$cellType.merged <- as.character(sce.lc$cellType.merged)
+    sce.lc$cellType.merged[sce.lc$cellType %in% c("inhib_g","neuron.ambig_h")] <- "Inhib_D"
+    sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
+        
+        #   Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
+        #           74             387              29              22             133 
+        # Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
+        #           11              55               8               1             171 
+        # Inhib_C.TRUE    Inhib_D.TRUE      Micro.TRUE Neuron.5HT.TRUE  Neuron.NE.TRUE 
+        #          183               2              59             101             104 
+        #   Oligo.TRUE        OPC.TRUE 
+        #          491              68 
+    
+        # [a bunch of other iterations in between...]
+    
+        ## LAST ATTEMPT: separate both 'inhib_d' & 'inhib_f'; keep 'inhib_g' and drop 'neuron.ambig_h'
+        sce.lc$cellType.merged <- as.character(sce.lc$cellType.merged)
+        sce.lc$cellType.merged[sce.lc$cellType =="inhib_d"] <- "Inhib_D"
+        sce.lc$cellType.merged[sce.lc$cellType =="inhib_f"] <- "Inhib_E"
+            sce.lc$cellType.merged[sce.lc$cellType =="inhib_g"] <- "Inhib_F"
+            sce.lc$cellType.merged[sce.lc$cellType =="neuron.ambig_h"] <- "drop.lowNTx.neu"
+            sce.lc <- sce.lc[ ,-grep("drop.", sce.lc$cellType.merged)]
+        sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
+            #			Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
+            #             69             378              25              19             105 
+            #   Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
+            #              9              51               7               5             139 
+            #   Inhib_C.TRUE    Inhib_D.TRUE    Inhib_E.TRUE    Inhib_F.TRUE      Micro.TRUE 
+            #            168               6               5              22              58 
+            #Neuron.5HT.TRUE  Neuron.NE.TRUE      Oligo.TRUE        OPC.TRUE 
+            #             96             101             489              64 
+    
+            ##  THIS LOOKS THE BEST --> proceed to make those changes in '04_clusterAgglomeration.R',
+             #                          then re-run through this script
         
     
 ### First make a list of Boolean param / cell subtype ===
