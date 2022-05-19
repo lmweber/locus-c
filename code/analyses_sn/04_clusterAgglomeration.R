@@ -181,6 +181,18 @@ clust.treeCut[order.dendrogram(dend)][clustersStill0] <- max(clust.treeCut) +
 # 'Re-write', since there are missing numbers
 clust.treeCut[order.dendrogram(dend)] <- as.numeric(as.factor(clust.treeCut[order.dendrogram(dend)]))
 
+unname(clust.treeCut[order.dendrogram(dend)])
+    # [1]  11 11 16 16 12 12  1  1  1  1  1  1  1 14 14  2  2  2  2  2  2 15 15  8  8
+    # [26]  8 17 18  7  7  7 13 13 19 20  5  5  4  4  4  4  4  6  6  6  6  6  9  9  9
+    # [51]  3  3  3  3  3 10 10 10 21 21
+
+## Post-hoc: Manually re-assign some, based on best partitioning of the
+ #           2's & their resulting marker genes (mostly assessed interactively)
+ #         - i.e. keep 'inhib_c' and 'inhib_e' together; separate the rest
+clust.treeCut[order.dendrogram(dend)][
+  which(clust.treeCut[order.dendrogram(dend)]==2)] <- c(2,22,23,23,24:25)
+
+
 ## Define color pallet
 cluster_colors <- unique(c(tableau20, tableau10medium)[clust.treeCut[order.dendrogram(dend)]])
 names(cluster_colors) <- unique(clust.treeCut[order.dendrogram(dend)])
@@ -225,7 +237,7 @@ pdf(here("plots","snRNA-seq","clusterModularityRatio_LC-n3_21collapsedClusters-b
 print(
   plotReducedDim(sce.lc, dimred="UMAP", colour_by="mergedCluster.HC", text_by="mergedCluster.HC") +
     ggtitle(paste0("UMAP with 26 HC-merged clusters in LC (n=3)")) +
-    scale_color_manual(values = c(tableau20, tableau10medium)) + labs(colour="New Cluster")
+    scale_color_manual(values=cell_colors.lc) + labs(colour="New Cluster")
 )
 # Heatmap
 pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
@@ -271,10 +283,10 @@ markers.mathys.tran = list(
 
 
 #pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_26-HC-merged-graphClusters.pdf")),
-pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_21-HC-merged-graphClusters.pdf")),    height=6, width=12)
+pdf(here("plots","snRNA-seq",paste0("LC-n3_expression-violin_markers_19-HC-merged-graphClusters.pdf")),    height=6, width=12)
 for(i in 1:length(markers.mathys.tran)){
   print(
-    plotExpressionCustom(sce = sce.lc,
+    plotExpressionCustom(sce = sce.final,
                          exprs_values = "logcounts",
                          features = markers.mathys.tran[[i]], 
                          features_name = names(markers.mathys.tran)[[i]], 
@@ -283,11 +295,11 @@ for(i in 1:length(markers.mathys.tran)){
                          ncol=2, point_alpha=0.4, point_size=0.9,
                          scales="free_y", swap_rownames="gene_name") +  
       #ggtitle(label=paste0("LC-n3 HC-merged (26) clusters: ",
-      ggtitle(label=paste0("LC-n3 HC-merged (21) clusters: ",
+      ggtitle(label=paste0("LC-n3 HC-merged (19) clusters: ",
                            names(markers.mathys.tran)[[i]], " markers")) +
       theme(plot.title = element_text(size = 12),
             axis.text.x = element_text(size=7)) +
-      scale_color_manual(values = c(tableau20, tableau10medium))
+      scale_color_manual(values=colors2print)
   )
 }
 dev.off()
@@ -298,16 +310,12 @@ annotationTab.lc <- annotationTab.lc[order(annotationTab.lc$merged), ]
 
 
 # Reference (smaller table)
-annTab.lc <- data.frame(cluster=c(1:21))
+annTab.lc <- data.frame(cluster=c(1:25))
 annTab.lc$cellType.merged <- NA
-annTab.lc$cellType.merged[c(1,3,12,13,16)] <- paste0("ambig.lowNTx_",c("A","B","C","D","E"))
+annTab.lc$cellType.merged[c(1,3,12,13,16,22)] <- paste0("ambig.lowNTx_",c("A","B","C","D","E","F"))
 
-annTab.lc$cellType.merged[c(5,8,11,14,20,15)] <- paste0("Excit_", c("A","B","C","D","E","F"))
-annTab.lc$cellType.merged[c(2,7,18)] <- paste0("Inhib_", c("A","B","C"))
-# The new HC-based merging got rid of these three:
-    # annTab.lc$cellType.merged[c(1,18)] <- paste0("Neuron.mixed_", c("A","B"))
-    # annTab.lc$cellType.merged[c(19,22,25,26)] <- paste0("Neuron.ambig_", c("A","B","C","D"))
-    # annTab.lc$cellType.merged[c(20)] <- "Neuron.5HT_noDDC"
+annTab.lc$cellType.merged[c(5,8,11,14,15,20)] <- paste0("Excit_", c("A","B","C","D","E","F"))
+annTab.lc$cellType.merged[c(23,7,18,24:25,2)] <- paste0("Inhib_", c("A","B","C","D","E","F"))
 
 annTab.lc$cellType.merged[c(17)] <- "Neuron.NE"
 annTab.lc$cellType.merged[c(19)] <- "Neuron.5HT"
@@ -332,11 +340,22 @@ sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
     # annotationTab.lc$cellType <- tolower(annotationTab.lc$cellType)
     # sce.lc$cellType <- factor(tolower(sce.lc$cellType))
 
+cell_colors.lc <- cluster_colors[order(as.integer(names(cluster_colors)))]
+names(cell_colors.lc) <- annTab.lc$cellType.merged
+cell_colors.lc
+# Actually now it looks like the order needs to match the levels of the factor variable
+cell_colors.lc <- cell_colors.lc[order(names(cell_colors.lc))]
+    # Also will have to rm the colors/levels that don't exist in the data, when printing
+    #     (such as after dropping flagged clusters)
+
 ### Save
-save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
+save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc, cell_colors.lc,
      file=here("processed_data","SCE", "sce_updated_LC.rda"))
 
     # --> re-print the marker plots, above, with these annotations
+    sce.final <- sce.lc[ ,-grep("ambig.lowNTx_", sce.lc$cellType.merged)]
+    sce.final$cellType.merged <- droplevels(sce.final$cellType.merged)
+    colors2print <- cell_colors.lc[-grep("ambig.lowNTx_", names(cell_colors.lc))]
 
 
 ## Re-print reducedDims with these new annotations ===
@@ -353,9 +372,36 @@ pdf(here("plots","snRNA-seq","LC-n3_reducedDims_clusters_multiple-levels-annotat
   plotReducedDim(sce.lc, dimred="UMAP", colour_by="cellType.merged",
                  text_by="cellType.merged", text_size=3,
                  point_alpha=0.3, point_size=1.7) +
-    scale_color_manual(values = c(tableau20, tableau10medium),
+    scale_color_manual(values = cell_colors.lc,
                        labels=paste0(levels(sce.lc$cellType.merged)," (",
                                      table(sce.lc$cellType.merged),")")) +
+    guides(color=guide_legend(ncol=1)) +
+    ggtitle("UMAP of LC (n=3), colored by HC-merged clusters") +
+    labs(colour="Cell type")
+  
+  # Modularity ratio
+  mod.ratio.merged.HC <- pairwiseModularity(graph = snn.gr.glmpcamnn,
+                                            clusters = sce.lc$cellType.merged,
+                                            as.ratio=TRUE)
+  
+  pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
+           color=colorRampPalette(c("white", "blue"))(100),
+           main="Modularity ratio for 25 HC-merged clusters in LC (n=3)",
+           fontsize_row=7, fontsize_col=7, angle_col=90,
+           display_numbers=T, number_format="%.1f", na_col="darkgrey")
+  grid::grid.text(label="log2(ratio)",x=0.97,y=0.64, gp=grid::gpar(fontsize=7))
+  
+  # HC-merged, after dropping
+  sce.final <- sce.lc[ ,-grep("ambig.lowNTx_", sce.lc$cellType.merged)]
+  sce.final$cellType.merged <- droplevels(sce.final$cellType.merged)
+  colors2print <- cell_colors.lc[-grep("ambig.lowNTx_", names(cell_colors.lc))]
+  
+  plotReducedDim(sce.final, dimred="UMAP", colour_by="cellType.merged",
+                 text_by="cellType.merged", text_size=3.5,
+                 point_alpha=0.2, point_size=4.5) +
+    scale_color_manual(values = colors2print,
+                       labels=paste0(levels(sce.final$cellType.merged)," (",
+                                     table(sce.final$cellType.merged),")")) +
     guides(color=guide_legend(ncol=1)) +
     ggtitle("UMAP of LC (n=3), colored by HC-merged clusters") +
     labs(colour="Cell type")
@@ -387,7 +433,7 @@ for(i in seq(10,30, by=5)){
   print(
     plotReducedDim(sce.test, dimred="UMAP", colour_by=paste0("merged.cut_at", i),
                    text_by=paste0("merged.cut_at", i)) +
-      scale_color_manual(values = c(tableau20, tableau10medium)) +
+      scale_color_manual(values=cell_colors.lc) +
       ggtitle(paste0("UMAP with ", i, " cut_at-merged clusters in LC (n=3)")) +
       labs(colour="New Cluster")
   )
@@ -461,13 +507,13 @@ save(sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc,
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    # [1] "2022-05-13 23:43:21 EDT"
+    #[1] "2022-05-19 18:05:45 EDT"
 proc.time()
     #     user    system   elapsed 
-    # 1312.963    26.696 13704.514 
+    #1098.633   48.726 8273.510 
 options(width = 120)
 session_info()
-    #─ Session info ────────────────────────────────────────────────────────────
+    #─ Session info ───────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -477,10 +523,10 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-05-13
+    # date     2022-05-19
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ────────────────────────────────────────────────────────────────
+    # ─ Packages ───────────────────────────────────────────────────────────────────
     # package              * version  date (UTC) lib source
     # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
     # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -588,6 +634,6 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ───────────────────────────────────────────────────────────────────────────
+    # ──────────────────────────────────────────────────────────────────────────────
 
 
