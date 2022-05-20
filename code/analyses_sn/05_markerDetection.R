@@ -32,88 +32,43 @@ source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotE
 ## ===
 
 load(here("processed_data","SCE", "sce_updated_LC.rda"), verbose=T)
+    # sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc, cell_colors.lc
+
+sce.lc
+    # class: SingleCellExperiment 
+    # dim: 36601 15642 
+    # metadata(1): Samples
+    # assays(3): counts binomial_deviance_residuals logcounts
+    # rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
+    #   ENSG00000277196
+    # rowData names(7): source type ... gene_type binomial_deviance
+    # colnames(15642): 3_AAACCCAAGTAGAATC-1 3_AAACCCAAGTGCACCC-1 ...
+    #   2_TTTGTTGTCAGGGATG-1 2_TTTGTTGTCCCTCTCC-1
+    # colData names(17): Sample Barcode ... mergedCluster.HC cellType.merged
+    # reducedDimNames(5): GLMPCA_approx GLMPCA_MNN glmpca_mnn_50 UMAP TSNE
+    # mainExpName: NULL
+    # altExpNames(0):
 
 table(sce.lc$cellType.merged)
     #ambig.lowNTx_A ambig.lowNTx_B ambig.lowNTx_C ambig.lowNTx_D ambig.lowNTx_E 
-    #          8657           2128            320            512            109 
-    #         Astro     Endo.Mural        Excit_A        Excit_B        Excit_C 
-    #           430             99            295            305             70 
-    #       Excit_D        Excit_E        Excit_F        Inhib_A        Inhib_B 
-    #           267             32            168            844            222 
-    #       Inhib_C          Micro     Neuron.5HT      Neuron.NE          Oligo 
-    #            99            205             47             36            561 
-    #           OPC 
-    #           236 
+# 8657           2128            320            512            109 
+# ambig.lowNTx_F          Astro     Endo.Mural        Excit_A        Excit_B 
+# 95            430             99            295            305 
+# Excit_C        Excit_D        Excit_E        Excit_F        Inhib_A 
+# 70            267            168             32            414 
+# Inhib_B        Inhib_C        Inhib_D        Inhib_E        Inhib_F 
+# 222             99            148            137             50 
+# Micro     Neuron.5HT      Neuron.NE          Oligo            OPC 
+# 205             47             36            561            236
 
 ## doubletScore & sum distributions / cluster?
 cellClust.idx <- splitit(sce.lc$cellType.merged)
 sapply(cellClust.idx, function(x){round(quantile(sce.lc$doubletScore[x]), 2)})
-    #      ambig.lowNTx_A ambig.lowNTx_B ambig.lowNTx_C ambig.lowNTx_D ambig.lowNTx_E
-    # 0%             0.00           0.00           0.02           0.01           0.05
-    # 25%            0.18           0.08           0.30           0.13           0.46
-    # 50%            0.71           0.23           0.83           0.24           0.68
-    # 75%            1.31           0.79           1.33           0.53           1.11
-    # 100%           6.28          11.04           6.27           6.51           3.75
-
-    #      Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
-    # 0%    0.00       0.14    0.62    0.64    0.51    0.94    0.95    0.21    0.00
-    # 25%   0.05       0.26    0.94    1.16    1.29    1.21    1.13    0.85    0.64
-    # 50%   0.13       0.44    1.06    1.41    1.45    1.39    1.32    1.14    1.11
-    # 75%   0.31       0.79    1.25    1.62    1.54    1.69    1.62    1.51    1.44
-    # 100%  3.64       2.20    4.68    3.29    2.27    4.41    2.00    3.14    4.63
-
-    #      Inhib_B Inhib_C Micro Neuron.5HT Neuron.NE Oligo  OPC
-    # 0%      0.54    0.80  0.01       0.62      0.71  0.02 0.16
-    # 25%     0.90    1.30  0.05       0.91      0.93  0.12 0.48
-    # 50%     1.14    1.52  0.17       1.47      0.96  0.22 0.76
-    # 75%     1.35    1.83  0.45       1.50      1.03  0.39 1.12
-    # 100%    2.53    1.88  5.10       2.97      2.19  9.67 3.46
+    #
 
 sapply(cellClust.idx, function(x){quantile(sce.lc$sum[x])})
-    #      ambig.lowNTx_A ambig.lowNTx_B ambig.lowNTx_C ambig.lowNTx_D ambig.lowNTx_E
-    # 0%              239         240.00         578.00         692.00            823
-    # 25%             935        1034.75        1897.50        1648.75           2173
-    # 50%            2684        1763.00        3918.00        2232.50           3423
-    # 75%           12478        2971.50        6972.75        3540.75           7090
-    # 100%         146018       97039.00       36528.00       70563.00         150106
+    #
 
-    #         Astro Endo.Mural Excit_A Excit_B Excit_C  Excit_D Excit_E  Excit_F
-    # 0%     461.00       2772    4936    6596    9426   4765.0  8771.0   1353.0
-    # 25%   1493.50       5793   19536   18892   21411  22112.5 18266.5   4824.0
-    # 50%   2468.50       9373   30326   26572   34727  33001.0 27073.5  17998.5
-    # 75%   4307.75      12830   42630   40847   52002  50180.5 38486.0  30538.0
-    # 100% 27657.00      43741  106030  142023  182780 133387.0 73021.0 120749.0
-
-    #       Inhib_A   Inhib_B Inhib_C Micro Neuron.5HT Neuron.NE Oligo      OPC
-    # 0%      647.0  14333.00  4450.0   465    14002.0  15101.00  3431   627.00
-    # 25%    3279.5  37479.00 11127.5  1139    43467.5  24208.75  5510  2645.50
-    # 50%   10125.0  47500.50 16461.0  1882    56183.0  32792.50  7768  4549.00
-    # 75%   23957.5  60213.75 22221.0  3154    66372.0  53717.50 11893  9329.25
-    # 100% 167360.0 101398.00 74217.0 37667   134968.0 161314.00 50182 46062.00
-
-
-## sizeFactor distribution
-sapply(cellClust.idx, function(x){round(quantile(sce.lc$sizeFactor[x]), 2)})
-    #     ambig.lowNTx_A ambig.lowNTx_B ambig.lowNTx_C ambig.lowNTx_D ambig.lowNTx_E
-    # 0%             0.03           0.03           0.07           0.08           0.10
-    # 25%            0.11           0.12           0.22           0.19           0.25
-    # 50%            0.32           0.21           0.46           0.26           0.41
-    # 75%            1.47           0.35           0.81           0.41           0.84
-    # 100%          17.30          11.26           4.33           8.12          17.41
-
-    #      Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
-    # 0%    0.05       0.33    0.57    0.78    1.09    0.56    1.02    0.16    0.08
-    # 25%   0.17       0.69    2.29    2.22    2.48    2.59    2.16    0.57    0.39
-    # 50%   0.28       1.11    3.51    3.15    4.03    3.85    3.17    2.13    1.20
-    # 75%   0.50       1.52    4.90    4.79    6.03    5.87    4.53    3.56    2.78
-    # 100%  3.21       5.18   12.20   16.47   21.66   15.81    8.65   14.31   19.83
-
-    #      Inhib_B Inhib_C Micro Neuron.5HT Neuron.NE Oligo  OPC
-    # 0%      1.65    0.52  0.06       1.62      1.79  0.40 0.07
-    # 25%     4.31    1.28  0.13       5.02      2.87  0.64 0.31
-    # 50%     5.46    1.90  0.22       6.46      3.87  0.90 0.53
-    # 75%     6.93    2.57  0.36       7.67      6.27  1.38 1.11
-    # 100%   11.66    8.61  4.46      15.53     18.71  5.82 5.34
 
 
 # First remove 'ambig.lowNTx' ('low N transcripts')-driven or -associated clusters
@@ -122,7 +77,7 @@ sce.lc <- sce.lc[ ,-grep("ambig.lowNTx_", sce.lc$cellType.merged)]
 sce.lc$cellType.merged <- droplevels(sce.lc$cellType.merged)
 
 # Remove 0 genes across all nuclei
-sce.lc <- sce.lc[!rowSums(assay(sce.lc, "counts"))==0, ]  #33353, but after dropping, a 32241
+sce.lc <- sce.lc[!rowSums(assay(sce.lc, "counts"))==0, ]  #33353, but after dropping, a 32223
 
 ## Re-create 'logcounts' (don't want to use 'multiBatchNorm's down-scaling across donor 'batches')
 # First 'hold' the MBN 'logcounts' for printing
@@ -132,62 +87,26 @@ assay(sce.lc, "logcounts") <- NULL
 sizeFactors(sce.lc) <- NULL
 sce.lc <- logNormCounts(sce.lc)
 
-
-    ## What if first re-assign 'inhib_g' & 'neuron.ambig_h' to their own? say, 'Inhib_D'
-     # Motivation: that Inhib_A has NO top PW markers... 
-    sce.lc$cellType.merged <- as.character(sce.lc$cellType.merged)
-    sce.lc$cellType.merged[sce.lc$cellType %in% c("inhib_g","neuron.ambig_h")] <- "Inhib_D"
-    sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
-        
-        #   Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
-        #           74             387              29              22             133 
-        # Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
-        #           11              55               8               1             171 
-        # Inhib_C.TRUE    Inhib_D.TRUE      Micro.TRUE Neuron.5HT.TRUE  Neuron.NE.TRUE 
-        #          183               2              59             101             104 
-        #   Oligo.TRUE        OPC.TRUE 
-        #          491              68 
-    
-        # [a bunch of other iterations in between...]
-    
-        ## LAST ATTEMPT: separate both 'inhib_d' & 'inhib_f'; keep 'inhib_g' and drop 'neuron.ambig_h'
-        sce.lc$cellType.merged <- as.character(sce.lc$cellType.merged)
-        sce.lc$cellType.merged[sce.lc$cellType =="inhib_d"] <- "Inhib_D"
-        sce.lc$cellType.merged[sce.lc$cellType =="inhib_f"] <- "Inhib_E"
-            sce.lc$cellType.merged[sce.lc$cellType =="inhib_g"] <- "Inhib_F"
-            sce.lc$cellType.merged[sce.lc$cellType =="neuron.ambig_h"] <- "drop.lowNTx.neu"
-            sce.lc <- sce.lc[ ,-grep("drop.", sce.lc$cellType.merged)]
-        sce.lc$cellType.merged <- factor(sce.lc$cellType.merged)
-            #			Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
-            #             69             378              25              19             105 
-            #   Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
-            #              9              51               7               5             139 
-            #   Inhib_C.TRUE    Inhib_D.TRUE    Inhib_E.TRUE    Inhib_F.TRUE      Micro.TRUE 
-            #            168               6               5              22              58 
-            #Neuron.5HT.TRUE  Neuron.NE.TRUE      Oligo.TRUE        OPC.TRUE 
-            #             96             101             489              64 
-    
-            ##  THIS LOOKS THE BEST --> proceed to make those changes in '04_clusterAgglomeration.R',
-             #                          then re-run through this script
-        
     
 ### First make a list of Boolean param / cell subtype ===
 # Will use this to assess more 'valid', non-noise-driving markers
 cellClust.idx <- splitit(sce.lc$cellType.merged)
-medianNon0.lc.16 <- lapply(cellClust.idx, function(x){
+medianNon0.lc.19 <- lapply(cellClust.idx, function(x){
   apply(as.matrix(assay(sce.lc, "logcounts")), 1, function(y){
     median(y[x]) > 0
   })
 })
 
-sapply(medianNon0.lc.16, table)
-    #       Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
-    # FALSE 31841      30158   25733   26424   25886   26037   25987   28280   29485
-    # TRUE    400       2083    6508    5817    6355    6204    6254    3961    2756
-    
-    #       Inhib_B Inhib_C Micro Neuron.5HT Neuron.NE Oligo   OPC
-    # FALSE   23514   28229 31987      23828     26325 30201 31124
-    # TRUE     8727    4012   254       8413      5916  2040  1117
+sapply(medianNon0.lc.19, table)
+    #      Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
+    # FALSE 31823      30140   25715   26406   25868   26019   28262   25969   30767
+    # TRUE    400       2083    6508    5817    6355    6204    3961    6254    1456
+    # Inhib_B Inhib_C Inhib_D Inhib_E Inhib_F Micro Neuron.5HT Neuron.NE Oligo
+    # FALSE   23496   28211   27000   28149   24313 31969      23810     26307 30183
+    # TRUE     8727    4012    5223    4074    7910   254       8413      5916  2040
+    # OPC
+    # FALSE 31106
+    # TRUE   1117
 
 
 
@@ -202,7 +121,15 @@ markers.lc.t.pw <- findMarkers(sce.lc, groups=sce.lc$cellType.merged,
                                direction="up", pval.type="all", full.stats=T)
 
 sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05)})
-    #
+    #      Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
+# FALSE 31899      30853   32158   32182   31894   32199   32204   32039   32209
+# TRUE    324       1370      65      41     329      24      19     184      14
+# Inhib_B Inhib_C Inhib_D Inhib_E Inhib_F Micro Neuron.5HT Neuron.NE Oligo
+# FALSE   32037   31923   32210   32190   32058 32016      31920     31945 31461
+# TRUE      186     300      13      33     165   207        303       278   762
+# OPC
+# FALSE 32068
+# TRUE    155
 
 
 
@@ -210,31 +137,31 @@ sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05)})
 # Add respective 'non0median' column to the stats for each set of markers
 for(i in names(markers.lc.t.pw)){
   markers.lc.t.pw[[i]] <- cbind(markers.lc.t.pw[[i]],
-                                medianNon0.lc.16[[i]][match(rownames(markers.lc.t.pw[[i]]),
-                                                         names(medianNon0.lc.16[[i]]))])
-  colnames(markers.lc.t.pw[[i]])[21] <- "non0median"
+                                medianNon0.lc.19[[i]][match(rownames(markers.lc.t.pw[[i]]),
+                                                         names(medianNon0.lc.19[[i]]))])
+  colnames(markers.lc.t.pw[[i]])[22] <- "non0median"
 }
 
 sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05 & x$non0median == TRUE)["TRUE"]})
-    #   Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
-    #           74             389              29              23             138 
-    # Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE      Inhib_A.NA    Inhib_B.TRUE 
-    #           16              55               8              NA             174 
-    # Inhib_C.TRUE      Micro.TRUE Neuron.5HT.TRUE  Neuron.NE.TRUE      Oligo.TRUE 
-    #          184              59             101             105             495 
-    #     OPC.TRUE 
-    #           68 
+    #     Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
+    # 69             378              25              19             104 
+    # Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
+    # 9               7              51               5             145 
+    # Inhib_C.TRUE    Inhib_D.TRUE    Inhib_E.TRUE    Inhib_F.TRUE      Micro.TRUE 
+    # 168               6               5              22              58 
+    # Neuron.5HT.TRUE  Neuron.NE.TRUE      Oligo.TRUE        OPC.TRUE 
+    # 96             101             483              63 
 
 
 ## Save these
-save(markers.lc.t.pw, medianNon0.lc.16,
+save(markers.lc.t.pw, medianNon0.lc.19,
      file=here("processed_data","SCE",
-               "markers-stats_LC-n3_findMarkers_16cellTypes.rda"))
+               "markers-stats_LC-n3_findMarkers_19cellTypes.rda"))
 
 
     # As needed
     load(here("processed_data","SCE",
-              "markers-stats_LC-n3_findMarkers_16cellTypes.rda"), verbose=T)
+              "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
 
 
 # Print these to pngs
@@ -256,6 +183,10 @@ left.set <- setdiff(names(genes.top40.t), smaller.set)
 smaller.set <- setdiff(smaller.set,
                        names(genes.top40.t)[lengths(genes.top40.t) == 0])
 
+# Because scale_color_manual() has started keeping and printing unused
+#     factor levels as 'NA' in the legend:
+colors2print <- cell_colors.lc[-grep("ambig.lowNTx_", names(cell_colors.lc))]
+
 # Smaller graphical window
 #dir.create(here("plots","snRNA-seq","markers"))
     # Re-named Apr & before iteration to here("plots","snRNA-seq","zobsolete_Apr2022_markers")
@@ -270,7 +201,7 @@ for(i in smaller.set){
                          anno_name = "cellType.merged",
                          ncol=5, point_alpha=0.4,
                          scales="free_y", swap_rownames="gene_name") +
-      scale_color_manual(values = tableau20) +  
+      scale_color_manual(values = colors2print) +  
       ggtitle(label=paste0("LC ", i, " top markers: single-nucleus-level p.w. t-tests (FDR<0.05)")) +
       theme(plot.title = element_text(size = 20))
   )
@@ -289,7 +220,7 @@ for(i in left.set){
                          anno_name = "cellType.merged",
                          ncol=5, point_alpha=0.4,
                          scales="free_y", swap_rownames="gene_name") +
-      scale_color_manual(values = tableau20) +  
+      scale_color_manual(values = colors2print) +  
       ggtitle(label=paste0("LC ", i, " top markers: single-nucleus-level p.w. t-tests (FDR<0.05)")) +
       theme(plot.title = element_text(size = 20))
   )
@@ -335,14 +266,14 @@ for(i in names(markers.lc.t.1vAll)){
   colnames(markers.lc.t.1vAll[[i]][["1"]])[1] <- "std.logFC"
   # Add non0median Boolean - might be informative for both sets of stats
   markers.lc.t.1vAll[[i]][["0"]] <- cbind(markers.lc.t.1vAll[[i]][["0"]],
-                                          medianNon0.lc.16[[i]][match(rownames(markers.lc.t.1vAll[[i]][["0"]]),
-                                                                   names(medianNon0.lc.16[[i]]))])
+                                          medianNon0.lc.19[[i]][match(rownames(markers.lc.t.1vAll[[i]][["0"]]),
+                                                                   names(medianNon0.lc.19[[i]]))])
   colnames(markers.lc.t.1vAll[[i]][["0"]])[4] <- "non0median"
   
   # "1" aka 'enriched'
   markers.lc.t.1vAll[[i]][["1"]] <- cbind(markers.lc.t.1vAll[[i]][["1"]],
-                                          medianNon0.lc.16[[i]][match(rownames(markers.lc.t.1vAll[[i]][["1"]]),
-                                                                   names(medianNon0.lc.16[[i]]))])
+                                          medianNon0.lc.19[[i]][match(rownames(markers.lc.t.1vAll[[i]][["1"]]),
+                                                                   names(medianNon0.lc.19[[i]]))])
   colnames(markers.lc.t.1vAll[[i]][["1"]])[4] <- "non0median"
   
   # Then re-name the entries to more interpretable, because we'll keeping both contrasts
@@ -351,9 +282,9 @@ for(i in names(markers.lc.t.1vAll)){
 
 
 ## Save these
-save(markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.16,
+save(markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.19,
      file=here("processed_data","SCE",
-               "markers-stats_LC-n3_findMarkers_16cellTypes.rda"))
+               "markers-stats_LC-n3_findMarkers_19cellTypes.rda"))
 
 
 
@@ -361,18 +292,17 @@ save(markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.16,
 sapply(markers.lc.t.1vAll, function(x){
   table(x[[2]]$log.FDR < log(.001) & x[[2]]$non0median == TRUE)
 })
-    #       ambig.lowNTx Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E
-    # FALSE        33340 33084      33084   30970   28579   29132   31971   33022
-    # TRUE            13   269        269    2383    4774    4221    1382     331
-    #       Excit_F Inhib_A Inhib_B Inhib_C Inhib_D Micro Neuron.5HT Neuron.5HT_noDDC
-    # FALSE   32870   29283   29154   31883   33149 33072      32544            33153
-    # TRUE      483    4070    4199    1470     204   281        809              200
-    #       Neuron.ambig_A Neuron.ambig_B Neuron.ambig_C Neuron.ambig_D
-    # FALSE          33136          32871          32703          33070
-    # TRUE             217            482            650            283
-    #       Neuron.mixed_A Neuron.mixed_B Neuron.NE Oligo_A Oligo_B   OPC
-    # FALSE          30824          31173     32500   31738   33194 32805
-    # TRUE            2529           2180       853    1615     159   548
+    #       Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
+    # FALSE 32004      31172   28195   28413   31025   28941   31150   31635   31870
+    # TRUE    219       1051    4028    3810    1198    3282    1073     588     353
+
+    #       Inhib_B Inhib_C Inhib_D Inhib_E Inhib_F Micro Neuron.5HT Neuron.NE Oligo
+    # FALSE   26518   30909   30528   30975   30950 32070      31128     31459 30996
+    # TRUE     5705    1314    1695    1248    1273   153       1095       764  1227
+
+    #         OPC
+    # FALSE 31864
+    # TRUE    359
 
 
 ## Print these to pngs
@@ -399,7 +329,7 @@ for(i in names(genes.top40.t)){
                          anno_name = "cellType.merged",
                          ncol=5, point_alpha=0.4,
                          scales="free_y", swap_rownames="gene_name") +
-      scale_color_manual(values = tableau20) +  
+      scale_color_manual(values = colors2print) +  
       ggtitle(label=paste0("LC ", i, " top markers: 'cluster-vs-all-others' t-tests (FDR<0.05)")) +
       theme(plot.title = element_text(size = 20))
   )
@@ -417,17 +347,11 @@ extend.idx <- names(which(lengths(markerList.t.pw) < 40))
 for(i in extend.idx){
   markerList.t.pw[[i]] <- c(markerList.t.pw[[i]], rep("", 40-length(markerList.t.pw[[i]])))
 }
-# 1vAllOthers
-# Many of the PW results don't have 40 markers:
-extend.idx <- names(which(lengths(markerList.t.1vAll) < 40))
-for(i in extend.idx){
-  markerList.t.1vAll[[i]] <- c(markerList.t.1vAll[[i]], rep("", 40-length(markerList.t.1vAll[[i]])))
-}
 
 top40genes <- cbind(sapply(markerList.t.pw, function(x) head(x, n=40)),
                     sapply(markerList.t.1vAll, function(y) head(y, n=40)))
 top40genes <- top40genes[ ,sort(colnames(top40genes))]
-write.csv(top40genes, file=here("code","analyses_sn","top40genesLists_LC-n3_16cellTypes.csv"),
+write.csv(top40genes, file=here("code","analyses_sn","top40genesLists_LC-n3_19cellTypes.csv"),
           row.names=FALSE)
 
 
@@ -435,7 +359,7 @@ write.csv(top40genes, file=here("code","analyses_sn","top40genesLists_LC-n3_16ce
 
 ### Some follow-up ================================================
 load(here("processed_data","SCE",
-          "markers-stats_LC-n3_findMarkers_16cellTypes.rda"), verbose=T)
+          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
 
 ## Oligo_B: there are no pw markers; sizeFactors IQR: [0.12, 0.35] ===
 #     Observation:
@@ -509,8 +433,8 @@ for(i in othersToCheck){
 # (follow set-up, above)
 
 load(here("processed_data","SCE",
-          "markers-stats_LC-n3_findMarkers_16cellTypes.rda"), verbose=T)
-    # markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.16
+          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
+    # markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.19
 
 ## Traditional t-test, pairwise ===
 mod <- with(colData(sce.lc), model.matrix(~ Sample))
@@ -531,8 +455,8 @@ sapply(markers.lc.t.pw.some, function(x){table(x$FDR<0.05)})
 # Add respective 'non0median' column to the stats for each set of markers
 for(i in names(markers.lc.t.pw.some)){
   markers.lc.t.pw.some[[i]] <- cbind(markers.lc.t.pw.some[[i]],
-                                medianNon0.lc.16[[i]][match(rownames(markers.lc.t.pw.some[[i]]),
-                                                            names(medianNon0.lc.16[[i]]))])
+                                medianNon0.lc.19[[i]][match(rownames(markers.lc.t.pw.some[[i]]),
+                                                            names(medianNon0.lc.19[[i]]))])
   colnames(markers.lc.t.pw.some[[i]])[29] <- "non0median"
 }
 
@@ -572,9 +496,9 @@ sapply(markers.lc.t.pw.some, function(x){table(x$FDR<0.05 & x$non0median == TRUE
 
             
             
-save(markers.lc.t.pw.some, medianNon0.lc.16,
+save(markers.lc.t.pw.some, medianNon0.lc.19,
      file=here("processed_data","SCE",
-          "markers-stats_LC-n3_findMarkers-PW-some_16cellTypes.rda"))
+          "markers-stats_LC-n3_findMarkers-PW-some_19cellTypes.rda"))
 
 printSomeMarkers <- c("Excit_A", "Inhib_A", "Inhib_D", "Neuron.5HT_noDDC",
                 paste0("Neuron.ambig_",c("A","B","C","D")), "Oligo_B")
@@ -639,12 +563,122 @@ for(i in printSomeMarkers){
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    #
+    # [1] "2022-05-20 19:18:14 EDT"
 proc.time()
     #     user    system   elapsed 
-    #
+    # 1753.244   21.581 4234.483 
 options(width = 120)
 session_info()
-    #
+    # ─ Session info ─────────────────────────────────────────────────────────────────
+    # setting  value
+    # version  R version 4.1.2 Patched (2021-11-04 r81138)
+    # os       CentOS Linux 7 (Core)
+    # system   x86_64, linux-gnu
+    # ui       X11
+    # language (EN)
+    # collate  en_US.UTF-8
+    # ctype    en_US.UTF-8
+    # tz       US/Eastern
+    # date     2022-05-20
+    # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
+    # 
+    # ─ Packages ─────────────────────────────────────────────────────────────────────
+    # package              * version  date (UTC) lib source
+    # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
+    # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
+    # beachmat               2.10.0   2021-10-26 [2] Bioconductor
+    # beeswarm               0.4.0    2021-06-01 [2] CRAN (R 4.1.2)
+    # Biobase              * 2.54.0   2021-10-26 [2] Bioconductor
+    # BiocGenerics         * 0.40.0   2021-10-26 [2] Bioconductor
+    # BiocNeighbors          1.12.0   2021-10-26 [2] Bioconductor
+    # BiocParallel         * 1.28.3   2021-12-09 [2] Bioconductor
+    # BiocSingular           1.10.0   2021-10-26 [2] Bioconductor
+    # bitops                 1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
+    # bluster                1.4.0    2021-10-26 [2] Bioconductor
+    # cli                    3.3.0    2022-04-25 [2] CRAN (R 4.1.2)
+    # cluster                2.1.3    2022-03-28 [3] CRAN (R 4.1.2)
+    # colorspace             2.0-3    2022-02-21 [2] CRAN (R 4.1.2)
+    # cowplot                1.1.1    2020-12-30 [2] CRAN (R 4.1.2)
+    # crayon                 1.5.1    2022-03-26 [2] CRAN (R 4.1.2)
+    # DBI                    1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
+    # DelayedArray           0.20.0   2021-10-26 [2] Bioconductor
+    # DelayedMatrixStats     1.16.0   2021-10-26 [2] Bioconductor
+    # digest                 0.6.29   2021-12-01 [2] CRAN (R 4.1.2)
+    # dplyr                  1.0.9    2022-04-28 [2] CRAN (R 4.1.2)
+    # dqrng                  0.3.0    2021-05-01 [2] CRAN (R 4.1.2)
+    # edgeR                  3.36.0   2021-10-26 [2] Bioconductor
+    # ellipsis               0.3.2    2021-04-29 [2] CRAN (R 4.1.0)
+    # fansi                  1.0.3    2022-03-24 [2] CRAN (R 4.1.2)
+    # farver                 2.1.0    2021-02-28 [2] CRAN (R 4.1.0)
+    # fs                     1.5.2    2021-12-08 [2] CRAN (R 4.1.2)
+    # gargle                 1.2.0    2021-07-02 [2] CRAN (R 4.1.0)
+    # generics               0.1.2    2022-01-31 [2] CRAN (R 4.1.2)
+    # GenomeInfoDb         * 1.30.1   2022-01-30 [2] Bioconductor
+    # GenomeInfoDbData       1.2.7    2021-11-01 [2] Bioconductor
+    # GenomicRanges        * 1.46.1   2021-11-18 [2] Bioconductor
+    # ggbeeswarm             0.6.0    2017-08-07 [2] CRAN (R 4.1.2)
+    # ggplot2              * 3.3.6    2022-05-03 [2] CRAN (R 4.1.2)
+    # ggrepel                0.9.1    2021-01-15 [2] CRAN (R 4.1.0)
+    # glue                   1.6.2    2022-02-24 [2] CRAN (R 4.1.2)
+    # googledrive            2.0.0    2021-07-08 [2] CRAN (R 4.1.0)
+    # gridExtra            * 2.3      2017-09-09 [2] CRAN (R 4.1.0)
+    # gtable                 0.3.0    2019-03-25 [2] CRAN (R 4.1.0)
+    # here                 * 1.0.1    2020-12-13 [2] CRAN (R 4.1.2)
+    # igraph                 1.3.1    2022-04-20 [2] CRAN (R 4.1.2)
+    # IRanges              * 2.28.0   2021-10-26 [2] Bioconductor
+    # irlba                  2.3.5    2021-12-06 [2] CRAN (R 4.1.2)
+    # jaffelab             * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
+    # labeling               0.4.2    2020-10-20 [2] CRAN (R 4.1.0)
+    # lattice                0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
+    # lifecycle              1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
+    # limma                  3.50.3   2022-04-07 [2] Bioconductor
+    # locfit                 1.5-9.5  2022-03-03 [2] CRAN (R 4.1.2)
+    # magrittr               2.0.3    2022-03-30 [2] CRAN (R 4.1.2)
+    # Matrix                 1.4-1    2022-03-23 [3] CRAN (R 4.1.2)
+    # MatrixGenerics       * 1.6.0    2021-10-26 [2] Bioconductor
+    # matrixStats          * 0.62.0   2022-04-19 [2] CRAN (R 4.1.2)
+    # metapod                1.2.0    2021-10-26 [2] Bioconductor
+    # munsell                0.5.0    2018-06-12 [2] CRAN (R 4.1.0)
+    # pillar                 1.7.0    2022-02-01 [2] CRAN (R 4.1.2)
+    # pkgconfig              2.0.3    2019-09-22 [2] CRAN (R 4.1.0)
+    # purrr                  0.3.4    2020-04-17 [2] CRAN (R 4.1.0)
+    # R6                     2.5.1    2021-08-19 [2] CRAN (R 4.1.2)
+    # rafalib              * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
+    # RColorBrewer           1.1-3    2022-04-03 [2] CRAN (R 4.1.2)
+    # Rcpp                   1.0.8.3  2022-03-17 [2] CRAN (R 4.1.2)
+    # RCurl                  1.98-1.6 2022-02-08 [2] CRAN (R 4.1.2)
+    # ResidualMatrix         1.4.0    2021-10-26 [1] Bioconductor
+    # rlang                  1.0.2    2022-03-04 [2] CRAN (R 4.1.2)
+    # rprojroot              2.0.3    2022-04-02 [2] CRAN (R 4.1.2)
+    # rsvd                   1.0.5    2021-04-16 [2] CRAN (R 4.1.2)
+    # S4Vectors            * 0.32.4   2022-03-24 [2] Bioconductor
+    # ScaledMatrix           1.2.0    2021-10-26 [2] Bioconductor
+    # scales                 1.2.0    2022-04-13 [2] CRAN (R 4.1.2)
+    # scater               * 1.22.0   2021-10-26 [2] Bioconductor
+    # scran                * 1.22.1   2021-11-14 [2] Bioconductor
+    # scry                 * 1.6.0    2021-10-26 [2] Bioconductor
+    # scuttle              * 1.4.0    2021-10-26 [2] Bioconductor
+    # segmented              1.3-4    2021-04-22 [1] CRAN (R 4.1.2)
+    # sessioninfo          * 1.2.2    2021-12-06 [2] CRAN (R 4.1.2)
+    # SingleCellExperiment * 1.16.0   2021-10-26 [2] Bioconductor
+    # sparseMatrixStats      1.6.0    2021-10-26 [2] Bioconductor
+    # statmod                1.4.36   2021-05-10 [2] CRAN (R 4.1.0)
+    # SummarizedExperiment * 1.24.0   2021-10-26 [2] Bioconductor
+    # tibble                 3.1.7    2022-05-03 [2] CRAN (R 4.1.2)
+    # tidyselect             1.1.2    2022-02-21 [2] CRAN (R 4.1.2)
+    # utf8                   1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
+    # vctrs                  0.4.1    2022-04-13 [2] CRAN (R 4.1.2)
+    # vipor                  0.4.5    2017-03-22 [2] CRAN (R 4.1.2)
+    # viridis                0.6.2    2021-10-13 [2] CRAN (R 4.1.2)
+    # viridisLite            0.4.0    2021-04-13 [2] CRAN (R 4.1.0)
+    # withr                  2.5.0    2022-03-03 [2] CRAN (R 4.1.2)
+    # XVector                0.34.0   2021-10-26 [2] Bioconductor
+    # zlibbioc               1.40.0   2021-10-26 [2] Bioconductor
+    # 
+    # [1] /users/ntranngu/R/4.1.x
+    # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
+    # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
+    # 
+    # ────────────────────────────────────────────────────────────────────────────────
 
 
