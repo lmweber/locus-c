@@ -139,14 +139,67 @@ write.table(lifted_df, file=here("code","magma","annotation",
 
 ### GWAS SNP location files ====================================================
   # ** As per manual, the column order should be: SNP ID, chromosome, bp position
-# TODO
+
+## GWAS for AD (PGC-ALZ, IGAP, ADSP, UKB meta-meta-analysis: Jansen, et al.2019) ===
+sumStats.AD <- read.table(here("code","magma","GWAS_Results","AD_sumstats_Jansenetal_2019sept.txt"), header=T)
+class(sumStats.AD)
+dim(sumStats.AD)
+    #[1] 13367299       14
+head(sumStats.AD)
+unique(sumStats.AD$CHR)  # 1:22 (no MT genes)
+snploc.AD <- sumStats.AD[ ,c("SNP", "CHR", "BP")]
+write.table(snploc.AD, file=here("code","magma","GWAS_Results","Alzheimers_PGC-IGAP-ADSP-UKB_2019.snploc"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+rm(list=ls(pattern=".AD"))
 
 
+
+## GWAS for ADHD (PGC x iPSYCH ===
+sumStats.ADHD <- read.table(here("code","magma","GWAS_Results",
+                                 "daner_adhd_meta_filtered_NA_iPSYCH23_PGC11_sigPCs_woSEX_2ell6sd_EUR_Neff_70.meta"),
+                            header=T)
+class(sumStats.ADHD)
+dim(sumStats.ADHD)
+    #[1] 8094094      19
+head(sumStats.ADHD)
+unique(sumStats.ADHD$CHR)  # 1:22 as well
+snploc.ADHD <- sumStats.ADHD[ ,c("SNP", "CHR", "BP")]
+write.table(snploc.ADHD, file=here("code","magma","GWAS_Results","ADHD_PGC_2018.snploc"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+rm(list=ls(pattern=".ADHD"))
 
 
 
 ## GWAS for Parkinson's ===
-# TODO
+sumStats.PD <- read.table(here("code","magma","GWAS_Results",
+                                 "nallsEtAl2019_excluding23andMe_allVariants.tab"),
+                            header=T)
+class(sumStats.PD)
+dim(sumStats.PD)
+    #[1] 17510617        9
+head(sumStats.PD)
+    #             SNP A1 A2   freq       b     se      p N_cases N_controls
+    # 1 chr11:88249377  T  C 0.9931  0.1575 0.1783 0.3771    7161       5356
+    # 2  chr1:60320992  A  G 0.9336  0.0605 0.0456 0.1846   26421     442271
+    # 3  chr2:18069070  T  C 0.9988 -0.6774 1.3519 0.6163     582        905
+    
+    # *** strangely, no rsIDs are provided - instead, the chr:bp position...
+    #     MAGMA requires these three columns in the SNP location file, so will need
+    #     reach out to the authors if this can be provided
+
+# --> Let's go ahead and try using the provided SNP ID, but will have to create
+#     the CHR & SNP positions - just call it 'test_[...].snploc'
+    
+sumStats.PD$CHR <- ss(sumStats.PD$SNP,":",1)
+sumStats.PD$CHR <- ss(sumStats.PD$CHR, "chr", 2)
+
+sumStats.PD$BP <- ss(sumStats.PD$SNP,":",2)
+
+unique(sumStats.PD$CHR)  # 1:22 as well
+snploc.PD <- sumStats.PD[ ,c("SNP", "CHR", "BP")]
+write.table(snploc.PD, file=here("code","magma","GWAS_Results","test_Parkinsons_NallsEtAl_Lancet2019.snploc"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+rm(list=ls(pattern=".PD"))
 
 
 
@@ -154,6 +207,7 @@ write.table(lifted_df, file=here("code","magma","annotation",
 
 ### Gene marker sets (analagous to layer marker setup) ==============
   # TODO (pasted from former work)
+
   # We'll just use the 'enriched' stats--i.e. '1vAll'
   # Update May 2021: Apply a filter for markers that median expression in respective subcluster != 0
   #                  (already computed and added to a different .rda file)
