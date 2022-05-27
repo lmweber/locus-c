@@ -113,7 +113,8 @@ for (s in seq_along(sample_ids)) {
       scale_y_reverse() + 
       scale_color_gradient(low = "gray85", high = "red", 
                            trans = "sqrt", breaks = range(df$gene)) + 
-      ggtitle(human_genes[g]) + 
+      ggtitle(human_genes[g], 
+              subtitle = sample_ids[s]) + 
       labs(color = "counts") + 
       theme_bw() + 
       theme(title = element_text(face = "italic"), 
@@ -128,8 +129,8 @@ for (s in seq_along(sample_ids)) {
     }
     fn <- here(dir_plots, "Mulvey", sample_ids[s], 
                paste0(sample_ids[s], "_", human_genes[g]))
-    ggsave(paste0(fn, ".pdf"), plot = p, width = 3.5, height = 2.75)
-    ggsave(paste0(fn, ".png"), plot = p, width = 3.5, height = 2.75)
+    ggsave(paste0(fn, ".pdf"), plot = p, width = 3.5, height = 3)
+    ggsave(paste0(fn, ".png"), plot = p, width = 3.5, height = 3)
   }
 }
 
@@ -274,18 +275,18 @@ df2 <-
   as.data.frame()
 
 
-pal1 <- c("darkorange", "purple4")
-pal2 <- c("dodgerblue", "black")
+pal <- c("#CC79A7", "#0072B2")
 
 
 # LC regions vs. WM regions
 ggplot(df1, aes(x = gene, y = mean, color = regions)) + 
   geom_boxplot(outlier.size = 0.5) + 
-  scale_color_manual(values = pal1) + 
+  scale_color_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
-  ggtitle("Mulvey genes: enrichment in annotated regions") + 
+  ggtitle("Mulvey et al. (2018) genes") + 
   theme_bw() + 
-  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
+                                   face = "italic", hjust = 1))
 
 fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedRegions")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
@@ -295,11 +296,12 @@ ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 # annotated spots vs. not annotated spots
 ggplot(df2, aes(x = gene, y = mean, color = regions)) + 
   geom_boxplot(outlier.size = 0.5) + 
-  scale_color_manual(values = pal2) + 
+  scale_color_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
-  ggtitle("Mulvey genes: enrichment in annotated spots") + 
+  ggtitle("Mulvey et al. (2018) genes") + 
   theme_bw() + 
-  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
+                                   face = "italic", hjust = 1))
 
 fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedSpots")
 ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
