@@ -183,14 +183,14 @@ head(sumStats.PD)
     # 1 chr11:88249377  T  C 0.9931  0.1575 0.1783 0.3771    7161       5356
     # 2  chr1:60320992  A  G 0.9336  0.0605 0.0456 0.1846   26421     442271
     # 3  chr2:18069070  T  C 0.9988 -0.6774 1.3519 0.6163     582        905
-    
+
     # *** strangely, no rsIDs are provided - instead, the chr:bp position...
     #     MAGMA requires these three columns in the SNP location file, so will need
     #     reach out to the authors if this can be provided
 
 # --> Let's go ahead and try using the provided SNP ID, but will have to create
 #     the CHR & SNP positions - just call it 'test_[...].snploc'
-    
+
 sumStats.PD$CHR <- ss(sumStats.PD$SNP,":",1)
 sumStats.PD$CHR <- ss(sumStats.PD$CHR, "chr", 2)
 
@@ -200,6 +200,17 @@ unique(sumStats.PD$CHR)  # 1:22 as well
 snploc.PD <- sumStats.PD[ ,c("SNP", "CHR", "BP")]
 write.table(snploc.PD, file=here("code","magma","GWAS_Results","test_Parkinsons_NallsEtAl_Lancet2019.snploc"),
             sep="\t", col.names=T, row.names=F, quote=F)
+
+## Create an 'Neff' using METAL's recommended computation for meta-GWAS (https://doi.org/10.1093/bioinformatics/btq340)
+ #      instead of sum(N_cases, N_controls)
+sumStats.PD$N_effective <- 4/(1/sumStats.PD$N_cases + 1/sumStats.PD$N_controls)
+
+# Save
+write.table(sumStats.PD, file=here("code","magma","GWAS_Results",
+                                   "nallsEtAl2019_excluding23andMe_allVariants_Neff-ADDED-MNT.tab"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+
+
 rm(list=ls(pattern=".PD"))
 
 
