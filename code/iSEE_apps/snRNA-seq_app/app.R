@@ -1,1 +1,37 @@
+
+
+
+library("SingleCellExperiment")
 library("iSEE")
+library("shiny")
+library("RColorBrewer")
+
+load("sce_lc_small.Rdata", verbose = TRUE)
+
+
+source("initial.R", print.eval = TRUE)
+
+## Fix donor
+sce.lc$donor <- gsub("_LC", "", sce.lc$Sample)
+
+## From https://github.com/LieberInstitute/10xPilot_snRNAseq-human/blob/810b47364af4c8afe426bd2a6b559bd6a9f1cc98/shiny_apps/tran2021_AMY/app.R#L10-L14
+## Related to https://github.com/iSEE/iSEE/issues/568
+colData(sce.lc) <- cbind(
+  colData(sce.lc)[, !colnames(colData(sce.lc)) %in% c("donor", "cellType.merged")],
+  colData(sce.lc)[, c("cellType.merged", "donor")]
+)
+
+iSEE(sce.lc,
+     appTitle = "snRNA-seq LC 2022",
+     initial = initial,
+     colormap = ExperimentColorMap(colData = list(
+       donor = function(n) {
+         cols <- RColorBrewer::brewer.pal(3, "Dark2")
+         names(cols) <- unique(sce.lc$donor)
+         return(cols)
+       },
+       cellType.merged = function(n) {
+         cell_colors.lc
+       }
+     ))
+)
