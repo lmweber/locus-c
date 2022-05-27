@@ -232,20 +232,19 @@ ggplot(df, aes(x = logFC, y = -log10(FDR),
   geom_text_repel(data = df[df$sig_high, ], 
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
-  scale_color_manual(values = pal, name = "selected") + 
+  scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = 3, lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -1, lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = 1, lty = "dashed", color = "royalblue") + 
   xlim(c(-3, 3.5)) + 
   ylim(c(0, 4.5)) + 
   ggtitle("Pseudobulk DE tests: LC vs. WM") + 
-  guides(color = guide_legend(override.aes = list(size = 2))) + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_volcano")
-ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
-ggsave(paste0(fn, ".png"), width = 5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
+ggsave(paste0(fn, ".png"), width = 4, height = 4)
 
 
 # -------
