@@ -253,15 +253,15 @@ ggsave(paste0(fn, ".png"), width = 4, height = 4)
 
 # calculate mean logcounts in LC and WM regions
 # where mean is calculated as unweighted mean across samples
-mat_WM <- mat[, 1:8]
 mat_LC <- mat[, 9:16]
+mat_WM <- mat[, 1:8]
 
-mean_WM <- rowMeans(mat_WM)
 mean_LC <- rowMeans(mat_LC)
+mean_WM <- rowMeans(mat_WM)
 
 hmat <- cbind(
-  WM = mean_WM, 
-  LC = mean_LC
+  LC = mean_LC, 
+  WM = mean_WM
 )
 
 
@@ -274,15 +274,16 @@ top_names <- names(top)
 hmat <- hmat[top_names, ]
 
 # format p-values in row names
-nms <- paste0(names(top), " (", signif(top, 2), ")")
+nms <- paste0(names(top), " (", format(signif(top, 2)), ")")
 rownames(hmat) <- nms
 
 
 # create heatmap
 hm <- Heatmap(
-  hmat, 
+  t(hmat), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
-  row_names_gp = gpar(fontsize = 7), 
+  row_names_side = "left", row_names_gp = gpar(fontsize = 10), 
+  column_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   name = "mean\nlogcounts"
 )
 
@@ -292,11 +293,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_heatmap")
 
-pdf(paste0(fn, ".pdf"), width = 3.5, height = 6)
+pdf(paste0(fn, ".pdf"), width = 7, height = 3)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.5 * 200, height = 6 * 200, res = 200)
+png(paste0(fn, ".png"), width = 7 * 200, height = 3 * 200, res = 200)
 hm
 dev.off()
 
