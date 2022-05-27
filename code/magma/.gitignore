@@ -1,2 +1,5 @@
 # Large files/directories
 GWAS_Results/
+annotation/
+logs/
+SNP_Data/
