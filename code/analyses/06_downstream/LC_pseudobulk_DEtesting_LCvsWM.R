@@ -327,19 +327,18 @@ ggplot(df, aes(x = mean, y = logFC,
   geom_text_repel(data = df[df$sig_high, ], 
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1) + 
-  scale_color_manual(values = pal, name = "selected") + 
+  scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = 1, lty = "dashed", color = "royalblue") + 
   geom_hline(yintercept = -1, lty = "dashed", color = "royalblue") + 
   labs(x = "mean logcounts (pseudobulked LC and WM)", 
        y = "log fold change") + 
   ggtitle("Pseudobulk DE tests: LC vs. WM") + 
-  guides(color = guide_legend(override.aes = list(size = 2))) + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_MAplot")
-ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
-ggsave(paste0(fn, ".png"), width = 5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
+ggsave(paste0(fn, ".png"), width = 4, height = 4)
 
 
 # ----------------
