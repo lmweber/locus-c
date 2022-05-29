@@ -3,3 +3,6 @@ GWAS_Results/
 annotation/
 logs/
 SNP_Data/
+Results/
+lcMarkerSets_fdr1e-6.txt
+
