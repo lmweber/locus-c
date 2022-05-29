@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -cwd
-#$ -N magma_steps1-2_AD
-#$ -o ./logs/magma-gsa_steps1-2_AD_MNT29May2022.o
-#$ -e ./logs/magma-gsa_steps1-2_AD_MNT29May2022.e
+#$ -N magma_step3-gsa_AD
+#$ -o ./logs/magma-gsa_step3_AD_MNT29May2022.o
+#$ -e ./logs/magma-gsa_step3_AD_MNT29May2022.e
 #$ -l bluejay,mem_free=16G,h_vmem=20G
 
 echo "**** Job starts ****"
@@ -21,7 +21,7 @@ BFILE=/dcl02/lieber/ajaffe/SpatialTranscriptomics/HumanPilot/Analysis/Layer_Gues
 
 setcol=1
 genecol=2
-# TODO gs_lc=
+gs_lc=/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/magma/lcMarkerSets_fdr1e-6.txt
 
 SUMMSTATS=/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/magma/GWAS_Results/AD_sumstats_Jansenetal_2019sept.txt
 
@@ -29,14 +29,14 @@ SUMMSTATS=/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/magma/GWAS_Resu
 echo "MNT comment 29May2022: just run steps 1-2 to confirm concordance b/tw GWAS SNP and reference SNP IDs"
 
 ## Step 1 - Annotation (SNP : gene mapping)
-magma --annotate window=35,10 --snp-loc ./GWAS_Results/Alzheimers_PGC-IGAP-ADSP-UKB_2019.snploc --gene-loc $ANNO --out SNP_Data/AD_Jansen2019_LC
+# magma --annotate window=35,10 --snp-loc ./GWAS_Results/Alzheimers_PGC-IGAP-ADSP-UKB_2019.snploc --gene-loc $ANNO --out SNP_Data/AD_Jansen2019_LC
 
 ## Step 2 - Gene analysis (from SNP-level summary stats)
-magma --bfile $BFILE --gene-annot SNP_Data/AD_Jansen2019_LC.genes.annot --pval $SUMMSTATS use=SNP,P ncol=Neff --gene-model ${model} --out SNP_Data/AD_Jansen2019_LC_${model}
+# magma --bfile $BFILE --gene-annot SNP_Data/AD_Jansen2019_LC.genes.annot --pval $SUMMSTATS use=SNP,P ncol=Neff --gene-model ${model} --out SNP_Data/AD_Jansen2019_LC_${model}
 
 
 ## Step 3 - Gene set analyses (using gene-level output)
-# magma --gene-results SNP_Data/PD_Nalls2019_LC_snp-wise.genes.raw --set-annot $gs_lc gene-col=${genecol} set-col=${setcol} --out Results/lc_PD
+magma --gene-results SNP_Data/AD_Jansen2019_LC_snp-wise.genes.raw --set-annot $gs_lc gene-col=${genecol} set-col=${setcol} --out Results/lc_Alzheimers
 
 
 echo "**** Job ends ****"
