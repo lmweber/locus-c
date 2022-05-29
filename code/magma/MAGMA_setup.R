@@ -218,56 +218,56 @@ rm(list=ls(pattern=".PD"))
 
 
 ### Gene marker sets (analagous to layer marker setup) ==============
-  # TODO (pasted from former work)
-
-  # We'll just use the 'enriched' stats--i.e. '1vAll'
-  # Update May 2021: Apply a filter for markers that median expression in respective subcluster != 0
-  #                  (already computed and added to a different .rda file)
-  # UPDATE FOR REVISION: the 'log.FDR' are on the natural log scale, NOT BASE 10
-  #                      -> Will switch to log.FDR <= log(1e-6), since this is ~= log10(1e-12)
-  #                         (log(1e-12) == -27.63, way too strict)
+  # We'll use the 'enriched' stats--i.e. '1vAll' with the medianNon0
+  # Remember from `scran::findMarkers()`:
+  #           - the 'log.FDR' are on the natural log scale, NOT BASE 10
   
 library(SingleCellExperiment)
 
-## DLPFC ===
-load("rdas/revision/markers-stats_DLPFC-n3_findMarkers-SN-LEVEL_MNT_v2_2021.rda", verbose=T)
-    # markers.dlpfc.t.1vAll, medianNon0.dlpfc
+## Load marker stats
+load(here("processed_data","SCE",
+          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
+    # markers.lc.t.1vAll, medianNon0.lc
 
-# For EnsemblIDs
-load("rdas/revision/regionSpecific_DLPFC-n3_cleaned-combined_SCE_MNT2021.rda", verbose=T)
-    
+# Already in Ensembl IDs?
+head(rownames(markers.lc.t.1vAll[["Astro"]][["Astro_enriched"]]))
+
 ## These stats now have both an '_enriched' & '_depleted' result - take the '_enriched'
-names(markers.dlpfc.t.1vAll[[1]])
-markers.dlpfc.enriched <- lapply(markers.dlpfc.t.1vAll, function(x){x[[2]]})
+sapply(markers.lc.t.1vAll, names)
+markers.lc.enriched <- lapply(markers.lc.t.1vAll, function(x){x[[2]]})
     
-sapply(markers.dlpfc.enriched, function(x){table(x$log.FDR < log(1e-6) & x$non0median==TRUE)})
-    #       Astro Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A Inhib_B
-    # FALSE 28620   26037   26423   25833   27548   26947   26999   27592   27788
-    # TRUE    690    3273    2887    3477    1762    2363    2311    1718    1522
-    
-    #      Inhib_C Inhib_D Inhib_E Inhib_F Macrophage Micro Mural Oligo   OPC Tcell
-    # FALSE   27371   26679   29211   29236      29110 28734 29148 28444 28393 29194
-    # TRUE     1939    2631      99      74        200   576   162   866   917   116
+sapply(markers.lc.enriched, function(x){table(x$log.FDR < log(1e-6) & x$non0median==TRUE)})
+    #       Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
+    # FALSE 32016      31388   29649   29578   31468   30078   31652   31974   31952
+    # TRUE    207        835    2574    2645     755    2145     571     249     271
+
+    #       Inhib_B Inhib_C Inhib_D Inhib_E Inhib_F Micro Neuron.5HT Neuron.NE Oligo
+    # FALSE   28191   31347   31202   31528   31772 32085      31706     31861 31085
+    # TRUE     4032     876    1021     695     451   138        517       362  1138
+
+    #         OPC
+    # FALSE 31906
+    # TRUE    317
 
 
-dlpfc.markerSet <- data.frame()
-for(i in names(markers.dlpfc.enriched)){
-  dlpfc.i <- data.frame(Set=rep(i, sum(markers.dlpfc.enriched[[i]]$log.FDR < log(1e-6) &
-                                         markers.dlpfc.enriched[[i]]$non0median==TRUE)),
-             Gene=rownames(markers.dlpfc.enriched[[i]])[markers.dlpfc.enriched[[i]]$log.FDR < log(1e-6) &
-                                                          markers.dlpfc.enriched[[i]]$non0median==TRUE])
-  dlpfc.markerSet <- rbind(dlpfc.markerSet, dlpfc.i)
+lc.markerSet <- data.frame()
+for(i in names(markers.lc.enriched)){
+  lc.i <- data.frame(Set=rep(i, sum(markers.lc.enriched[[i]]$log.FDR < log(1e-6) &
+                                         markers.lc.enriched[[i]]$non0median==TRUE)),
+             Gene=rownames(markers.lc.enriched[[i]])[markers.lc.enriched[[i]]$log.FDR < log(1e-6) &
+                                                          markers.lc.enriched[[i]]$non0median==TRUE])
+  lc.markerSet <- rbind(lc.markerSet, lc.i)
 }
 
-head(dlpfc.markerSet)
-table(dlpfc.markerSet$Set)  # looks good
+head(lc.markerSet)
+table(lc.markerSet$Set)  # looks good
 
-dlpfc.markerSet$Gene <- rowData(sce.dlpfc)$gene_id[match(dlpfc.markerSet$Gene, rownames(sce.dlpfc))]
-    # (btw:)
-    length(unique(dlpfc.markerSet$Gene)) #[1] 6925
+nrow(lc.markerSet)  # [1] 19799
+    # and btw:
+    length(unique(lc.markerSet$Gene)) #[1] 7919
 
 # Write out
-write.table(dlpfc.markerSet, file="./MAGMA/dlpfcMarkerSets_fdr1e-6.txt", sep="\t",
+write.table(lc.markerSet, file=here("code","magma","/lcMarkerSets_fdr1e-6.txt"), sep="\t",
             row.names=F, col.names=T, quote=F)
 
 
@@ -277,13 +277,13 @@ write.table(dlpfc.markerSet, file="./MAGMA/dlpfcMarkerSets_fdr1e-6.txt", sep="\t
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    # [1] "2022-05-27 16:22:49 EDT"
+    # [1] "2022-05-29 16:56:28 EDT"
 proc.time()
     #    user   system  elapsed 
-    # 584.786   20.774 6550.537 
+    #  46.493    1.946 1202.705 
 options(width = 120)
 session_info()
-    #─ Session info ─────────────────────────────────────────────────────────────────────
+    #─ Session info ─────────────────────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -293,10 +293,10 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-05-27
+    # date     2022-05-29
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ─────────────────────────────────────────────────────────────────────────
+    # ─ Packages ─────────────────────────────────────────────────────────────────────────────────
     # package                           * version  date (UTC) lib source
     # AnnotationDbi                     * 1.56.2   2021-11-09 [2] Bioconductor
     # assertthat                          0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
@@ -393,7 +393,7 @@ session_info()
     # tzdb                                0.3.0    2022-03-28 [2] CRAN (R 4.1.2)
     # utf8                                1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
     # VariantAnnotation                   1.40.0   2021-10-26 [2] Bioconductor
-    #vctrs                               0.4.1    2022-04-13 [2] CRAN (R 4.1.2)
+    # vctrs                               0.4.1    2022-04-13 [2] CRAN (R 4.1.2)
     # XML                                 3.99-0.9 2022-02-24 [2] CRAN (R 4.1.2)
     # xml2                                1.3.3    2021-11-30 [2] CRAN (R 4.1.2)
     # XVector                             0.34.0   2021-10-26 [2] Bioconductor
@@ -404,6 +404,5 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ────────────────────────────────────────────────────────────────────────────────────
-
+    # ────────────────────────────────────────────────────────────────────────────────────────────
 
