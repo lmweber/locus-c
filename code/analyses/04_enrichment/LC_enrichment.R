@@ -182,15 +182,16 @@ df2 <-
   as.data.frame()
 
 
-pal <- c("#CC79A7", "#0072B2")
+pal <- c("darkmagenta", "gray30")
 
 
 # LC regions vs. WM regions
 set.seed(123)
-ggplot(df1, aes(x = gene, y = mean, color = regions)) + 
-  geom_boxplot(outlier.shape = NA) + 
+ggplot(df1, aes(x = gene, y = mean, color = regions, fill = regions)) + 
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) + 
   geom_jitter(position = position_jitterdodge()) + 
   scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Enrichment in annotated regions") + 
   theme_bw() + 
@@ -203,10 +204,11 @@ ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
 # annotated spots vs. not annotated spots
 set.seed(123)
-ggplot(df2, aes(x = gene, y = mean, color = regions)) + 
-  geom_boxplot(outlier.shape = NA) + 
+ggplot(df2, aes(x = gene, y = mean, color = regions, fill = regions)) + 
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) + 
   geom_jitter(position = position_jitterdodge()) + 
   scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Enrichment in annotated spots") + 
   theme_bw() + 
