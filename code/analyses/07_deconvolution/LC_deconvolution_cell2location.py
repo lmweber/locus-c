@@ -299,14 +299,17 @@ scvi.data.view_anndata_setup(adata_vis)
 # note: change N_cells_per_location=30 depending on tissue cell density
 
 # create and train the model
+
+# note: using 'detection_alpha=20'
+# see https://cell2location.readthedocs.io/en/latest/notebooks/cell2location_tutorial.html
 mod = cell2location.models.Cell2location(
     adata_vis, cell_state_df=inf_aver,
     # the expected average cell abundance: tissue-dependent
     # hyper-prior which can be estimated from paired histology:
-    N_cells_per_location=3,
+    N_cells_per_location=5,
     # hyperparameter controlling normalisation of
     # within-experiment variation in RNA detection (using default here):
-    detection_alpha=200
+    detection_alpha=20
 )
 
 mod.train(max_epochs=30000,
