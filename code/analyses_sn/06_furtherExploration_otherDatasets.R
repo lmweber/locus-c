@@ -13,6 +13,7 @@ library(jaffelab)
 library(gridExtra)
 library(here)
 library(sessioninfo)
+library(pheatmap)
 
 
 ### Palette taken from `scater`
@@ -29,8 +30,8 @@ here()
 
 source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotExpressionCustom.R")
 
-
-
+load(here("processed_data","SCE", "sce_updated_LC.rda"), verbose=T)
+# sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc, cell_colors.lc
 
 
 ## Exploring mouse markers of interest ===========================
@@ -59,24 +60,101 @@ intersect(markers.Mulvey.human, markers.Grimm.human)
 markers2print <- list(Mulvey.etal = markers.Mulvey.human,
                       Grimm.etal = markers.Grimm.human)
 
+
+# First remove 'ambig.lowNTx' ('low N transcripts')-driven or -associated clusters
+#     (this is a lot of nuclei btw...)
+sce.lc <- sce.lc[ ,-grep("ambig.lowNTx_", sce.lc$cellType.merged)]
+sce.lc$cellType.merged <- droplevels(sce.lc$cellType.merged)
+
+# Because scale_color_manual() has started keeping and printing unused
+#     factor levels as 'NA' in the legend:
+colors2print <- cell_colors.lc[-grep("ambig.lowNTx_", names(cell_colors.lc))]
+
+
 #dir.create(here("plots","snRNA-seq","exploration"))
-for(i in names(markers2print)){
-png(here("plots","snRNA-seq","exploration",
-         paste0("LC_snRNA-seq_", i, "_vlnPlots.png")), height=1900, width=1200)
-  print(
-    plotExpressionCustom(sce = sce.lc,
-                         exprs_values = "logcounts",
-                         features = markers2print[[i]], 
-                         features_name = i,
-                         anno_name = "cellType.merged",
-                         ncol=5, point_alpha=0.4,
-                         scales="free_y", swap_rownames="gene_name") +
-      scale_color_manual(values = c(tableau20, tableau10medium)) +  
-      ggtitle(label=paste0("LC snRNA-seq expression from ", i, " markers")) +
-      theme(plot.title = element_text(size = 20))
-  )
+#for(i in names(markers2print)){
+# png(here("plots","snRNA-seq","exploration",
+#          paste0("LC_snRNA-seq_", i, "_vlnPlots.png")), height=1900, width=1200)
+#   print(
+#     plotExpressionCustom(sce = sce.lc,
+#                          exprs_values = "logcounts",
+#                          features = markers2print[[i]], 
+#                          features_name = i,
+#                          anno_name = "cellType.merged",
+#                          ncol=5, point_alpha=0.4,
+#                          scales="free_y", swap_rownames="gene_name") +
+#       scale_color_manual(values = c(tableau20, tableau10medium)) +  
+#       ggtitle(label=paste0("LC snRNA-seq expression from ", i, " markers")) +
+#       theme(plot.title = element_text(size = 20))
+#   )
+# dev.off()
+# }
+
+
+## Let's do a heatmap instead ===
+genes <- c('SNAP25','SLC17A7','SLC17A6','GAD1','GAD2',
+           # NE neuron markers
+           "TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC",
+           # serotonergic markers (includes DDC but repetitive)
+           "SLC6A4", "TPH2",  # (TPH1 not expressed by these clusters)
+           
+           ## Non-neuronal:
+           # Astro
+           'AQP4','GFAP',
+           # Endo, Mural (RBPMS)
+           'CLDN5','FLT1','RBPMS',
+           # Macrophage, Microglia
+           'CD163','C3',
+           # Oligo
+           'MBP',
+           # OPC
+           'PDGFRA','VCAN')
+
+cell.idx <- splitit(sce.lc$cellType.merged)
+dat <- as.matrix(assay(sce.lc, "logcounts"))
+rownames(dat) <- rowData(sce.lc)$gene_name
+
+
+
+pdf(here("plots","snRNA-seq","heatmap_broadMarkers_by19MergedClusters.pdf"), height=7, width=7)
+## Means version:
+current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[genes, ii])))
+# Set neuronal pops first
+neuronPosition <- c(grep("Excit", colnames(current_dat)),
+                    grep("Inhib", colnames(current_dat)),
+                    grep("Neuron", colnames(current_dat)))
+reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
+current_dat <- current_dat[ ,reorderedCols]
+# Put NE neurons before the 5-HT ones
+current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+# Print
+pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
+         breaks = seq(0.02, 4, length.out = 101),
+         color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
+         main="19 LC cell class broad marker expression profiles (means)",
+         fontsize=11, fontsize_row = 12, fontsize_col=12)
+grid::grid.text(label="log2-\nExprs", x=0.96, y=0.63, gp=grid::gpar(fontsize=10))
+
+## or medians version:
+current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[genes, ii])))
+# For some reason rownames aren't kept:
+rownames(current_dat) <- genes
+# Set neuronal pops first
+neuronPosition <- c(grep("Excit", colnames(current_dat)),
+                    grep("Inhib", colnames(current_dat)),
+                    grep("Neuron", colnames(current_dat)))
+reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
+current_dat <- current_dat[ ,reorderedCols]
+# Put NE neurons before the 5-HT ones
+current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+# Print
+pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
+         breaks = seq(0.02, 4, length.out = 101),
+         color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
+         main="19 LC cell class broad marker expression profiles (medians)",
+         fontsize=11, fontsize_row = 12, fontsize_col=12)
+grid::grid.text(label="log2-\nExprs", x=0.96, y=0.63, gp=grid::gpar(fontsize=10))
 dev.off()
-}
 
 
 
