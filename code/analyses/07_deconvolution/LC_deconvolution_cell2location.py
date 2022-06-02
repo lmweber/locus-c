@@ -55,22 +55,16 @@ dim(sce.lc)
 
 # check sample IDs
 table(colData(sce.lc)$Sample)
-# check annotated cell types / clusters
-table(colData(sce.lc)$cellType.collapsed)
+# check annotated cell type clusters
+table(colData(sce.lc)$cellType.merged)
 
-# merge 5-HT clusters ("Neuron.5HT", "Neuron.5HT_noDDC") into a single cluster
-ix_5HT_all <- colData(sce.lc)$cellType.collapsed %in% c("Neuron.5HT", "Neuron.5HT_noDDC")
-table(ix_5HT_all)
-colData(sce.lc)$cellType.collapsed[ix_5HT_all] <- "Neuron.5HT"
-colData(sce.lc)$cellType.collapsed <- droplevels(colData(sce.lc)$cellType.collapsed)
-table(colData(sce.lc)$cellType.collapsed)
-
-# remove ambiguous cell types / clusters ("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed")
-ix_remove <- colData(sce.lc)$cellType.collapsed %in% c("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed")
+# remove ambiguous cell type clusters ("ambig.lowNTx_A" to "ambig.lowNTx_F")
+ambig_names <- paste0("ambig.lowNTx_", LETTERS[1:6])
+ix_remove <- colData(sce.lc)$cellType.merged %in% ambig_names
 table(ix_remove)
 sce.lc <- sce.lc[, !ix_remove]
-colData(sce.lc)$cellType.collapsed <- droplevels(colData(sce.lc)$cellType.collapsed)
-table(colData(sce.lc)$cellType.collapsed)
+colData(sce.lc)$cellType.merged <- droplevels(colData(sce.lc)$cellType.merged)
+table(colData(sce.lc)$cellType.merged)
 
 dim(sce.lc)
 
@@ -228,7 +222,7 @@ scvi.data.setup_anndata(adata=adata_ref,
                         # 10X reaction / sample / batch
                         batch_key='Sample',
                         # cell type, covariate used for constructing signatures
-                        labels_key='cellType.collapsed'
+                        labels_key='cellType.merged'
                        )
 scvi.data.view_anndata_setup(adata_ref)
 
@@ -306,7 +300,7 @@ mod = cell2location.models.Cell2location(
     adata_vis, cell_state_df=inf_aver,
     # the expected average cell abundance: tissue-dependent
     # hyper-prior which can be estimated from paired histology:
-    N_cells_per_location=5,
+    N_cells_per_location=3,
     # hyperparameter controlling normalisation of
     # within-experiment variation in RNA detection (using default here):
     detection_alpha=20
