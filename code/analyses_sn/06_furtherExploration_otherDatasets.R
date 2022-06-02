@@ -116,7 +116,8 @@ rownames(dat) <- rowData(sce.lc)$gene_name
 
 
 
-pdf(here("plots","snRNA-seq","heatmap_broadMarkers_by19MergedClusters.pdf"), height=7, width=7)
+pdf(here("plots","snRNA-seq","heatmap_broadMarkers_by19MergedClusters.pdf"), height=7, width=7.5)
+par(mar=c(5,8,4,2))
 ## Means version:
 current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[genes, ii])))
 # Set neuronal pops first
@@ -127,12 +128,18 @@ reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
 current_dat <- current_dat[ ,reorderedCols]
 # Put NE neurons before the 5-HT ones
 current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+
+italicnames <- lapply(
+  rownames(current_dat),
+  function(x) bquote(italic(.(x))))
+
 # Print
 pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
          breaks = seq(0.02, 4, length.out = 101),
          color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
-         main="19 LC cell class broad marker expression profiles (means)",
-         fontsize=11, fontsize_row = 12, fontsize_col=12)
+         main="\t\t\t19 LC cell class broad marker expression profiles (means)",
+         labels_col = as.expression(italicnames),
+         fontsize=12, fontsize_row = 15, fontsize_col=14)
 grid::grid.text(label="log2-\nExprs", x=0.96, y=0.63, gp=grid::gpar(fontsize=10))
 
 ## or medians version:
@@ -151,10 +158,14 @@ current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
 pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
          breaks = seq(0.02, 4, length.out = 101),
          color = colorRampPalette(RColorBrewer::brewer.pal(n = 7, name = "OrRd"))(100),
-         main="19 LC cell class broad marker expression profiles (medians)",
-         fontsize=11, fontsize_row = 12, fontsize_col=12)
+         main="\t\t\t\t19 LC cell class broad marker expression profiles (medians)",
+         labels_col = as.expression(italicnames),
+         fontsize=12, fontsize_row = 15, fontsize_col=14)
 grid::grid.text(label="log2-\nExprs", x=0.96, y=0.63, gp=grid::gpar(fontsize=10))
 dev.off()
+
+
+
 
 
 
