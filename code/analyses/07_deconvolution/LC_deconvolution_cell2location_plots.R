@@ -33,10 +33,12 @@ sample_ids
 
 # names of columns containing deconvolved cell types
 cols <- c(
-  "q05cell_abundance_w_sf_Astro", "q05cell_abundance_w_sf_Endo.Mural", 
-  "q05cell_abundance_w_sf_Excit", "q05cell_abundance_w_sf_Inhib", 
-  "q05cell_abundance_w_sf_Micro.Macro", "q05cell_abundance_w_sf_Neuron.5HT", 
-  "q05cell_abundance_w_sf_Neuron.NE", "q05cell_abundance_w_sf_Oligo", 
+  "q05cell_abundance_w_sf_Astro", "q05cell_abundance_w_sf_Endo.Mural", "q05cell_abundance_w_sf_Excit_A", 
+  "q05cell_abundance_w_sf_Excit_B", "q05cell_abundance_w_sf_Excit_C", "q05cell_abundance_w_sf_Excit_D", 
+  "q05cell_abundance_w_sf_Excit_E", "q05cell_abundance_w_sf_Excit_F", "q05cell_abundance_w_sf_Inhib_A", 
+  "q05cell_abundance_w_sf_Inhib_B", "q05cell_abundance_w_sf_Inhib_C", "q05cell_abundance_w_sf_Inhib_D", 
+  "q05cell_abundance_w_sf_Inhib_E", "q05cell_abundance_w_sf_Inhib_F", "q05cell_abundance_w_sf_Micro", 
+  "q05cell_abundance_w_sf_Neuron.5HT", "q05cell_abundance_w_sf_Neuron.NE", "q05cell_abundance_w_sf_Oligo", 
   "q05cell_abundance_w_sf_OPC"
 )
 
@@ -61,7 +63,7 @@ for (s in seq_along(sample_ids)) {
       coord_fixed() + 
       scale_y_reverse() + 
       scale_color_viridis(option = "magma", name = "abundance") + 
-      labs(title = gsub("^.*_", "", cols[q]), 
+      labs(title = gsub("^.*sf_", "", cols[q]), 
            subtitle = sample_ids[s]) + 
       theme_bw() + 
       theme(panel.background = element_rect(fill = "gray80"), 
@@ -73,7 +75,8 @@ for (s in seq_along(sample_ids)) {
     if (!dir.exists(here(dir_plots, sample_ids[s]))) {
       dir.create(here(dir_plots, sample_ids[s]), recursive = TRUE)
     }
-    fn <- here(dir_plots, sample_ids[s], paste0(sample_ids[s], "_", gsub("^.*_", "", cols[q])))
+    fn <- here(dir_plots, sample_ids[s], 
+               paste0(sample_ids[s], "_", gsub("^.*sf_", "", cols[q])))
     ggsave(paste0(fn, ".pdf"), plot = p, width = 4, height = 3)
     ggsave(paste0(fn, ".png"), plot = p, width = 4, height = 3)
   }
