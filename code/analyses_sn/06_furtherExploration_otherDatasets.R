@@ -180,27 +180,60 @@ visiumDE_withinLC <- read.csv(here("outputs","06_downstream","pseudobulkDE","pse
     # 55 DE genes
 
 list.visiumDE <- list(LCvsWM = visiumDE_LCvWM$gene_name,
-                      withinAnnottatedLC = visiumDE_withinLC$gene_name)
+                      withinAnnotatedLC = visiumDE_withinLC$gene_name)
 
 
+## Print heatmaps, as above ===
 for(i in names(list.visiumDE)){
-  png(here("plots","snRNA-seq","exploration",
-           paste0("LC_snRNA-seq_visium-", i, "-DEgenes_vlnPlots.png")), height=2100, width=1200)
-  print(
-    plotExpressionCustom(sce = sce.lc,
-                         exprs_values = "logcounts",
-                         features = list.visiumDE[[i]], 
-                         features_name = i,
-                         anno_name = "cellType.merged",
-                         ncol=5, point_alpha=0.4,
-                         scales="free_y", swap_rownames="gene_name") +
-      scale_color_manual(values = c(tableau20, tableau10medium)) +  
-      ggtitle(label=paste0("LC snRNA-seq expression from ", i, "-DE genes")) +
-      theme(plot.title = element_text(size = 20))
-  )
+  pdf(here("plots","snRNA-seq","exploration",
+           paste0("heatmap_DEgenes_visium-", i, "_snRNA-seq_by19MergedClusters.pdf")), height=6, width=12)
+  ## Means version:
+  current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[list.visiumDE[[i]], ii])))
+  # Set neuronal pops first
+  neuronPosition <- c(grep("Excit", colnames(current_dat)),
+                      grep("Inhib", colnames(current_dat)),
+                      grep("Neuron", colnames(current_dat)))
+  reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
+  current_dat <- current_dat[ ,reorderedCols]
+  # Put NE neurons before the 5-HT ones
+  current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+  
+  italicnames <- lapply(
+    rownames(current_dat),
+    function(x) bquote(italic(.(x))))
+  
+  # Print
+  pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
+           breaks = seq(0.02, 4, length.out = 101),
+           color = viridis::viridis(100),
+           main=paste0("\t\t\t",i,"-DE genes, 19 LC cell classes (means)"),
+           labels_col = as.expression(italicnames),
+           fontsize=12, fontsize_row = 15, fontsize_col=14)
+  grid::grid.text(label="log2-\nExprs", x=0.97, y=0.57, gp=grid::gpar(fontsize=10))
+  
+  ## or medians version:
+  current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[list.visiumDE[[i]], ii])))
+  # For some reason rownames aren't kept:
+  rownames(current_dat) <- list.visiumDE[[i]]
+  # Set neuronal pops first
+  neuronPosition <- c(grep("Excit", colnames(current_dat)),
+                      grep("Inhib", colnames(current_dat)),
+                      grep("Neuron", colnames(current_dat)))
+  reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
+  current_dat <- current_dat[ ,reorderedCols]
+  # Put NE neurons before the 5-HT ones
+  current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+  # Print
+  pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
+           breaks = seq(0.02, 4, length.out = 101),
+           color = viridis::viridis(100),
+           main=paste0("\t\t\t\t",i,"-DE genes, 19 LC cell classes (medians)"),
+           labels_col = as.expression(italicnames),
+           fontsize=12, fontsize_row = 15, fontsize_col=14)
+  grid::grid.text(label="log2-\nExprs", x=0.97, y=0.57, gp=grid::gpar(fontsize=10))
+  
   dev.off()
 }
-
 
 
 
