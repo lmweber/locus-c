@@ -1,8 +1,11 @@
 ##############################################
 # LC project
 # Script to plot enrichment of LC marker genes
-# Lukas Weber, May 2022
+# Lukas Weber, Jun 2022
 ##############################################
+
+# marker genes for 5-HT neurons
+
 
 # module load conda_R/4.1.x
 # Rscript filename.R
@@ -49,7 +52,7 @@ sample_ids
 
 
 # select marker genes of interest
-marker_genes <- c("TH", "SLC6A2")
+marker_genes <- c("TPH2", "SLC6A4")
 
 
 # LC regions
@@ -182,7 +185,7 @@ df2 <-
   as.data.frame()
 
 
-pal <- c("darkmagenta", "gray30")
+pal <- c("deepskyblue3", "gray30")
 
 
 # LC regions vs. WM regions
@@ -197,7 +200,7 @@ ggplot(df1, aes(x = gene, y = mean, color = regions, fill = regions)) +
   theme_bw() + 
   theme(axis.text.x = element_text(face = "italic"))
 
-fn <- here(dir_plots, "enrichment_annotatedRegions")
+fn <- here(dir_plots, "enrichment_annotatedRegions_5HT")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5, height = 4)
 
@@ -214,7 +217,7 @@ ggplot(df2, aes(x = gene, y = mean, color = regions, fill = regions)) +
   theme_bw() + 
   theme(axis.text.x = element_text(face = "italic"))
 
-fn <- here(dir_plots, "enrichment_annotatedSpots")
+fn <- here(dir_plots, "enrichment_annotatedSpots_5HT")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 4)
 
