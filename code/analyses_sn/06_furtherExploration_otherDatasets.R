@@ -66,9 +66,10 @@ markers2print <- list(Mulvey.etal = markers.Mulvey.human,
 sce.lc <- sce.lc[ ,-grep("ambig.lowNTx_", sce.lc$cellType.merged)]
 sce.lc$cellType.merged <- droplevels(sce.lc$cellType.merged)
 
-# Because scale_color_manual() has started keeping and printing unused
-#     factor levels as 'NA' in the legend:
-colors2print <- cell_colors.lc[-grep("ambig.lowNTx_", names(cell_colors.lc))]
+# Load marker stats so can order by enrichment statistics
+load(here("processed_data","SCE",
+          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
+    # markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.19
 
 
 ## Heatmap ===
@@ -85,6 +86,20 @@ for(i in names(markers2print)){
   current_dat <- current_dat[ ,reorderedCols]
   # Put NE neurons before the 5-HT ones
   current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+  
+  markers.NE.enriched <- markers.lc.t.1vAll[["Neuron.NE"]][["Neuron.NE_enriched"]]
+  rownames(markers.NE.enriched) <- rowData(sce.lc)$gene_name[match(rownames(markers.NE.enriched), rowData(sce.lc)$gene_id)]
+  
+  # Because of the similarities/confounding b/tw NE & 5-HT neurons:
+      markers.5HT.enriched <- markers.lc.t.1vAll[["Neuron.5HT"]][["Neuron.5HT_enriched"]]
+      rownames(markers.5HT.enriched) <- rowData(sce.lc)$gene_name[match(rownames(markers.5HT.enriched), rowData(sce.lc)$gene_id)]
+      # Re-order to same as above
+      markers.5HT.enriched <- markers.5HT.enriched[rownames(markers.NE.enriched), ]
+      # Average the logFC
+      markers.NE.enriched$std.logFC.alt <- (markers.NE.enriched$std.logFC + markers.5HT.enriched$std.logFC) / 2
+      
+  genes.ordered <- order(markers.NE.enriched[markers2print[[i]], ]$std.logFC.alt, decreasing=T)
+  current_dat <- current_dat[genes.ordered, ]
   
   italicnames <- lapply(
     rownames(current_dat),
@@ -111,6 +126,8 @@ for(i in names(markers2print)){
   current_dat <- current_dat[ ,reorderedCols]
   # Put NE neurons before the 5-HT ones
   current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+  current_dat <- current_dat[genes.ordered, ]
+  
   # Print
   pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE,
            breaks = seq(0.02, 4, length.out = 101),
