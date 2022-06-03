@@ -1,7 +1,7 @@
 ############################################################################
 # LC project
 # Script for downstream analyses: pseudobulk differential expression testing
-# Lukas Weber, May 2022
+# Lukas Weber, June 2022
 ############################################################################
 
 # adapting code by Leonardo Collado-Torres, Abby Spangler, and Sowmya Parthiban from:
@@ -278,7 +278,7 @@ nms <- paste0(names(top), " (", format(signif(top, 2)), ")")
 rownames(hmat) <- nms
 
 
-# create heatmap
+# create heatmap (horizontal format)
 hm <- Heatmap(
   t(hmat), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
@@ -289,15 +289,37 @@ hm <- Heatmap(
 
 hm
 
-
-# save heatmap
-fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_heatmap")
+# save heatmap (horizontal format)
+fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_heatmap_horizontal")
 
 pdf(paste0(fn, ".pdf"), width = 7, height = 3)
 hm
 dev.off()
 
 png(paste0(fn, ".png"), width = 7 * 200, height = 3 * 200, res = 200)
+hm
+dev.off()
+
+
+# create heatmap (vertical format)
+hm <- Heatmap(
+  hmat, 
+  cluster_rows = FALSE, cluster_columns = FALSE, 
+  column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
+  row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  name = "mean\nlogcounts"
+)
+
+hm
+
+# save heatmap (vertical format)
+fn <- file.path(dir_plots, "pseudobulk_LCvsWM", "pseudobulkDE_LCvsWM_heatmap_vertical")
+
+pdf(paste0(fn, ".pdf"), width = 3.5, height = 7)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 3.5 * 200, height = 7 * 200, res = 200)
 hm
 dev.off()
 
