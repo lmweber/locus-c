@@ -165,7 +165,7 @@ dim(sumStats.ADHD)
 head(sumStats.ADHD)
 unique(sumStats.ADHD$CHR)  # 1:22 as well
 snploc.ADHD <- sumStats.ADHD[ ,c("SNP", "CHR", "BP")]
-write.table(snploc.ADHD, file=here("code","magma","GWAS_Results","ADHD_PGC_2018.snploc"),
+write.table(snploc.ADHD, file=here("code","magma","GWAS_Results","ADHD_PGC_2019.snploc"),
             sep="\t", col.names=T, row.names=F, quote=F)
 rm(list=ls(pattern=".ADHD"))
 
@@ -191,13 +191,70 @@ head(sumStats.PD)
 # --> Let's go ahead and try using the provided SNP ID, but will have to create
 #     the CHR & SNP positions - just call it 'test_[...].snploc'
 
+
+
 sumStats.PD$CHR <- ss(sumStats.PD$SNP,":",1)
 sumStats.PD$CHR <- ss(sumStats.PD$CHR, "chr", 2)
 
 sumStats.PD$BP <- ss(sumStats.PD$SNP,":",2)
 
 unique(sumStats.PD$CHR)  # 1:22 as well
-snploc.PD <- sumStats.PD[ ,c("SNP", "CHR", "BP")]
+
+
+    # * So the provided SNP IDs have to be compatible with those in the 1000 genomes
+    #     reference, so try using biomaRt to convert
+    #     See: https://support.bioconductor.org/p/133105/
+library(biomaRt)
+
+snpMart = useEnsembl(GRCh=37,
+                     biomart = "snps", 
+                     dataset = "hsapiens_snp")
+
+query.snps <- paste0(sumStats.PD$CHR,":",sumStats.PD$BP,":",sumStats.PD$BP)
+
+out.biomaRt <- getBM(
+  attributes = c('refsnp_id', 'chr_name', 'chrom_start', 'chrom_end', 'allele'),
+  filters = c('chromosomal_region'),
+  values = query.snps.test, 
+  mart = snpMart)
+    #Error in curl::curl_fetch_memory(url, handle = handle) : 
+    #Timeout was reached: [grch37.ensembl.org:443] Operation timed out after 300001 milliseconds with 0 bytes received
+    
+    # Try a small test
+    query.snps.test <- head(query.snps, n=10)
+        # Hmm, same error ('Operation timed out after 300000 milliseconds with 0 bytes received')
+
+    # What if tried 'GRCh=38'?
+        #Ensembl site unresponsive, trying asia mirror
+        #Warning message:
+        #  Only 37 can be specified for GRCh version. Using the current version. 
+      # --> still same error....
+    
+    
+    ## Tried querying just chr1 SNP information (we get *some* info)
+     out.biomaRt <- getBM(
+         attributes = c('refsnp_id', 'chr_name', 'chrom_start', 'chrom_end', 'allele'),
+         filters = c('chr_name'),
+         #values = query.snps.test, 
+         values = "22",
+         mart = snpMart)
+            # With `values = "1"`
+            #Error in curl::curl_fetch_memory(url, handle = handle) : 
+            #   Timeout was reached: [grch37.ensembl.org:443] Operation timed out after 300001 milliseconds
+            #   with 139085 bytes received
+     
+            # With `values = "22"`:   '...286541 bytes received'
+            
+    
+    
+# How did it do?
+out.biomaRt <- as.data.frame(out.biomaRt)
+table(!is.na(out.biomaRt$refsnp_id))
+
+# Replace
+sumStats.PD$SNPid <- out.biomaRt$refsnp_id
+
+snploc.PD <- sumStats.PD[ ,c("SNPid", "CHR", "BP")]
 write.table(snploc.PD, file=here("code","magma","GWAS_Results","test_Parkinsons_NallsEtAl_Lancet2019.snploc"),
             sep="\t", col.names=T, row.names=F, quote=F)
 
