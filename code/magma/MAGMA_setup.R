@@ -192,7 +192,6 @@ head(sumStats.PD)
 #     the CHR & SNP positions - just call it 'test_[...].snploc'
 
 
-
 sumStats.PD$CHR <- ss(sumStats.PD$SNP,":",1)
 sumStats.PD$CHR <- ss(sumStats.PD$CHR, "chr", 2)
 
@@ -200,71 +199,217 @@ sumStats.PD$BP <- ss(sumStats.PD$SNP,":",2)
 
 unique(sumStats.PD$CHR)  # 1:22 as well
 
+## **The provided SNP IDs DO have to be compatible with those in the 1000 genomes**
 
-    # * So the provided SNP IDs have to be compatible with those in the 1000 genomes
-    #     reference, so try using biomaRt to convert
-    #     See: https://support.bioconductor.org/p/133105/
-library(biomaRt)
+### With SNPlocs package ===
+  #   See (https://support.bioconductor.org/p/133105/) for the similar query
+#BiocManager::install("SNPlocs.Hsapiens.dbSNP144.GRCh37")
+library(SNPlocs.Hsapiens.dbSNP144.GRCh37)
 
-snpMart = useEnsembl(GRCh=37,
-                     biomart = "snps", 
-                     dataset = "hsapiens_snp")
+# Following the manual:
+snps <- SNPlocs.Hsapiens.dbSNP144.GRCh37
+snpcount(snps)
+    #       1        2        3        4        5        6        7        8 
+    #10608552 11307550  9317862  8934852  8345195  7741566  7523385  7269554 
+    #       9       10       11       12       13       14       15       16 
+    # 5789347  6326781  6574397  6228871  4446965  4252324  3925441  4468782 
+    #      17       18       19       20       21       22        X        Y 
+    # 3923227  3540821  3159370  2990255  1771468  1838410  4797151   192840 
+    #      MT 
+    #    1760
 
-query.snps <- paste0(sumStats.PD$CHR,":",sumStats.PD$BP,":",sumStats.PD$BP)
+# Try it with the smallest autosome:
+chr22_snps <- snpsBySeqname(snps, "22")
+class(chr22_snps)
+head(chr22_snps)
+    #UnstitchedGPos object with 6 positions and 2 metadata columns:
+    #     seqnames       pos strand |   RefSNP_id alleles_as_ambig
+    #        <Rle> <integer>  <Rle> | <character>      <character>
+    # [1]       22  16050036      * | rs374742143                M
+    # [2]       22  16050075      * | rs587697622                R
+    # [3]       22  16050115      * | rs587755077                R
+    # [4]       22  16050159      * | rs375383604                Y
+    # [5]       22  16050213      * | rs587654921                Y
+    # [6]       22  16050252      * | rs199856444                W
 
-out.biomaRt <- getBM(
-  attributes = c('refsnp_id', 'chr_name', 'chrom_start', 'chrom_end', 'allele'),
-  filters = c('chromosomal_region'),
-  values = query.snps.test, 
-  mart = snpMart)
-    #Error in curl::curl_fetch_memory(url, handle = handle) : 
-    #Timeout was reached: [grch37.ensembl.org:443] Operation timed out after 300001 milliseconds with 0 bytes received
-    
-    # Try a small test
-    query.snps.test <- head(query.snps, n=10)
-        # Hmm, same error ('Operation timed out after 300000 milliseconds with 0 bytes received')
+chr22_snps <- as.data.frame(chr22_snps)
+chr22_snps$chr.bp <- paste0("chr",chr22_snps$seqnames,":",chr22_snps$pos)
 
-    # What if tried 'GRCh=38'?
-        #Ensembl site unresponsive, trying asia mirror
-        #Warning message:
-        #  Only 37 can be specified for GRCh version. Using the current version. 
-      # --> still same error....
-    
-    
-    ## Tried querying just chr1 SNP information (we get *some* info)
-     out.biomaRt <- getBM(
-         attributes = c('refsnp_id', 'chr_name', 'chrom_start', 'chrom_end', 'allele'),
-         filters = c('chr_name'),
-         #values = query.snps.test, 
-         values = "22",
-         mart = snpMart)
-            # With `values = "1"`
-            #Error in curl::curl_fetch_memory(url, handle = handle) : 
-            #   Timeout was reached: [grch37.ensembl.org:443] Operation timed out after 300001 milliseconds
-            #   with 139085 bytes received
-     
-            # With `values = "22"`:   '...286541 bytes received'
-            
-    
-    
-# How did it do?
-out.biomaRt <- as.data.frame(out.biomaRt)
-table(!is.na(out.biomaRt$refsnp_id))
+# Inspect with chr22 SNPs in summary stats
+table(sumStats.PD$CHR == "22")  # 233335
+sumStats.PD.chr22 <- sumStats.PD[sumStats.PD$CHR=="22", ]
 
-# Replace
-sumStats.PD$SNPid <- out.biomaRt$refsnp_id
+table(sumStats.PD.chr22$SNP %in% chr22_snps$chr.bp)
+    #FALSE   TRUE 
+    # 6710 226625   - 97.12%   - this is probably ok
+    #               - generally 70-75% SNPs map to one gene in MAGMA step 1 in any case
 
-snploc.PD <- sumStats.PD[ ,c("SNPid", "CHR", "BP")]
-write.table(snploc.PD, file=here("code","magma","GWAS_Results","test_Parkinsons_NallsEtAl_Lancet2019.snploc"),
+sumStats.PD.keep <- data.frame()
+
+## What about across all snps?
+rownames(sumStats.PD) <- sumStats.PD$SNP
+
+for(i in seqnames(snps)){
+  cat("Querying chr: ",i,"...\n")
+  temp.snps <- as.data.frame(snpsBySeqname(snps, i))
+  temp.snps$chr.bp <- paste0("chr",temp.snps$seqnames,":",temp.snps$pos)
+  
+  # Subset sumStats to quantify % intersecting per chromosome
+  sumStats.temp <- sumStats.PD[sumStats.PD$CHR==i, ]
+  
+  cat(paste0("\tPercent of summary statistics SNPs in chr:",i," with rsIDs:\n"))
+  print(table(sumStats.temp$SNP %in% temp.snps$chr.bp)["TRUE"] / nrow(sumStats.temp) * 100)
+  cat("\n")
+  
+  temp.df <- sumStats.temp[intersect(sumStats.temp$SNP, temp.snps$chr.bp), ]
+  temp.df$rsID <- temp.snps$RefSNP_id[match(temp.df$SNP, temp.snps$chr.bp)]
+  
+  # Rbind
+  sumStats.PD.keep <- rbind(sumStats.PD.keep, temp.df)
+}
+    ## output (for reference) =====
+    # Querying chr:  1 ...
+    # Percent of summary statistics SNPs in chr:1 with rsIDs:
+    #   TRUE 
+    # 96.97527 
+    # 
+    # Querying chr:  2 ...
+    # Percent of summary statistics SNPs in chr:2 with rsIDs:
+    #   TRUE 
+    # 96.90126 
+    # 
+    # Querying chr:  3 ...
+    # Percent of summary statistics SNPs in chr:3 with rsIDs:
+    #   TRUE 
+    # 97.02049 
+    # 
+    # Querying chr:  4 ...
+    # Percent of summary statistics SNPs in chr:4 with rsIDs:
+    #   TRUE 
+    # 97.12509 
+    # 
+    # Querying chr:  5 ...
+    # Percent of summary statistics SNPs in chr:5 with rsIDs:
+    #   TRUE 
+    # 96.92542 
+    # 
+    # Querying chr:  6 ...
+    # Percent of summary statistics SNPs in chr:6 with rsIDs:
+    #   TRUE 
+    # 93.05022 
+    # 
+    # Querying chr:  7 ...
+    # Percent of summary statistics SNPs in chr:7 with rsIDs:
+    #   TRUE 
+    # 96.96064 
+    # 
+    # Querying chr:  8 ...
+    # Percent of summary statistics SNPs in chr:8 with rsIDs:
+    #   TRUE 
+    # 97.02902 
+    # 
+    # Querying chr:  9 ...
+    # Percent of summary statistics SNPs in chr:9 with rsIDs:
+    #   TRUE 
+    # 97.10707 
+    # 
+    # Querying chr:  10 ...
+    # Percent of summary statistics SNPs in chr:10 with rsIDs:
+    #   TRUE 
+    # 97.19488 
+    # 
+    # Querying chr:  11 ...
+    # Percent of summary statistics SNPs in chr:11 with rsIDs:
+    #   TRUE 
+    # 97.0591 
+    # 
+    # Querying chr:  12 ...
+    # Percent of summary statistics SNPs in chr:12 with rsIDs:
+    #   TRUE 
+    # 96.69084 
+    # 
+    # Querying chr:  13 ...
+    # Percent of summary statistics SNPs in chr:13 with rsIDs:
+    #   TRUE 
+    # 97.2008 
+    # 
+    # Querying chr:  14 ...
+    # Percent of summary statistics SNPs in chr:14 with rsIDs:
+    #   TRUE 
+    # 97.08841 
+    # 
+    # Querying chr:  15 ...
+    # Percent of summary statistics SNPs in chr:15 with rsIDs:
+    #   TRUE 
+    # 97.14355 
+    # 
+    # Querying chr:  16 ...
+    # Percent of summary statistics SNPs in chr:16 with rsIDs:
+    #   TRUE 
+    # 96.991 
+    # 
+    # Querying chr:  17 ...
+    # Percent of summary statistics SNPs in chr:17 with rsIDs:
+    #   TRUE 
+    # 96.45481 
+    # 
+    # Querying chr:  18 ...
+    # Percent of summary statistics SNPs in chr:18 with rsIDs:
+    #   TRUE 
+    # 97.13909 
+    # 
+    # Querying chr:  19 ...
+    # Percent of summary statistics SNPs in chr:19 with rsIDs:
+    #   TRUE 
+    # 95.20838 
+    # 
+    # Querying chr:  20 ...
+    # Percent of summary statistics SNPs in chr:20 with rsIDs:
+    #   TRUE 
+    # 96.97235 
+    # 
+    # Querying chr:  21 ...
+    # Percent of summary statistics SNPs in chr:21 with rsIDs:
+    #   TRUE 
+    # 97.30634 
+    # 
+    # Querying chr:  22 ...
+    # Percent of summary statistics SNPs in chr:22 with rsIDs:
+    #   TRUE 
+    # 97.12431 
+    # 
+    # Querying chr:  X ...
+    # Percent of summary statistics SNPs in chr:X with rsIDs:
+    #   [1] NA
+    # 
+    # Querying chr:  Y ...
+    # Percent of summary statistics SNPs in chr:Y with rsIDs:
+    #   [1] NA
+    # 
+    # Querying chr:  MT ...
+    # Percent of summary statistics SNPs in chr:MT with rsIDs:
+    #   [1] NA
+    ## end output =====
+
+# Total SNPs in summary stats with rsIDs:
+dim(sumStats.PD.keep)
+    #[1] 16934405       12
+# Overall % SNPs keeping
+(nrow(sumStats.PD.keep) / nrow(sumStats.PD)) * 100
+    #[1] 96.70936
+
+
+snploc.PD <- sumStats.PD.keep[ ,c("rsID", "CHR", "BP")]
+write.table(snploc.PD, file=here("code","magma","GWAS_Results","Parkinsons_NallsEtAl_Lancet2019.snploc"),
             sep="\t", col.names=T, row.names=F, quote=F)
 
 ## Create an 'Neff' using METAL's recommended computation for meta-GWAS (https://doi.org/10.1093/bioinformatics/btq340)
  #      instead of sum(N_cases, N_controls)
-sumStats.PD$N_effective <- 4/(1/sumStats.PD$N_cases + 1/sumStats.PD$N_controls)
+sumStats.PD.keep$N_effective <- 4/(1/sumStats.PD.keep$N_cases + 1/sumStats.PD.keep$N_controls)
 
 # Save
-write.table(sumStats.PD, file=here("code","magma","GWAS_Results",
-                                   "nallsEtAl2019_excluding23andMe_allVariants_Neff-ADDED-MNT.tab"),
+write.table(sumStats.PD.keep, file=here("code","magma","GWAS_Results",
+                                   "nallsEtAl2019_excluding23andMe_allVariants_Neff-and-rsID-ADDED-MNT.tab"),
             sep="\t", col.names=T, row.names=F, quote=F)
 
 
