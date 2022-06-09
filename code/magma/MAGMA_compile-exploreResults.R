@@ -20,7 +20,79 @@ here()
 ### Compile GSA (step 3) results ====================================
   #   (into heatmap similar to in Tran, Maynard, et al. Neuron 2021)
 
+magmaStats <- list()
 
+magmaStats[["LC"]][["PD.meta2019"]] <- read.table(here("code","magma","Results","lc_PD.gsa.out"), header=T)
+magmaStats[["LC"]][["ADHD.PGC.iPsych"]] <- read.table(here("code","magma","Results","lc_ADHD.gsa.out"), header=T)
+magmaStats[["LC"]][["AD.metaPh3"]] <- read.table(here("code","magma","Results","lc_Alzheimers.gsa.out"), header=T)
+
+
+## Merge to assess significance thresholds ===
+magmaStats_list = lapply(magmaStats, function(m) {
+  z = sapply(m, "[[", "P")
+  rownames(z) = m[[1]]$VARIABLE
+  z
+})
+
+magmaStats_wide = as.data.frame(do.call("rbind", magmaStats_list))
+magmaStats_wide$Region = rep("LC", 
+                             times = sapply(magmaStats_list, nrow))
+magmaStats_wide$CellType = rownames(magmaStats_wide)
+## reshape to long
+magmaStats_long = reshape2::melt(magmaStats_wide)
+colnames(magmaStats_long)[3:4] = c("GWAS", "P")
+dim(magmaStats_long)
+# [1] 57    4     - 57 bc 19 reported cell classes x 3 GWAS'
+
+table(p.adjust(magmaStats_long$P, "fdr") < 0.1)
+    #FALSE  TRUE 
+    #   54     3    (none at < 0.05)
+betacut.fdr <- max(magmaStats_long$P[p.adjust(magmaStats_long$P, "fdr") < 0.1])
+    # [1] 0.003785  (allowing for FDR < 0.1)
+
+magmaStats_long$P.adj.fdr <- p.adjust(magmaStats_long$P, "fdr")
+magmaStats_long[which(magmaStats_long$P.adj.fdr < 0.1), ]
+    #    Region CellType       GWAS          P P.adj.fdr
+    # 39     LC    Astro AD.metaPh3 0.00178800  0.050958
+    # 53     LC    Micro AD.metaPh3 0.00099219  0.050958
+    # 57     LC    Oligo AD.metaPh3 0.00378500  0.071915
+
+
+# Bonferroni significance?
+table(p.adjust(magmaStats_long$P, "bonf") < 0.05) # none, but otherwise Microglia for AD at < 0.1
+#betacut.bonf <- max(magmaStats_long$P[p.adjust(magmaStats_long$P, "bonf") < 0.05])
+
+
+
+# For betas ===
+magmaStats_list.beta = lapply(magmaStats, function(m) {
+  z = sapply(m, "[[", "BETA")
+  rownames(z) = m[[1]]$VARIABLE
+  z
+})
+magmaStats_wide.beta = as.data.frame(do.call("rbind", magmaStats_list.beta))
+magmaStats_wide.beta$Region = rep("LC", 
+                                  times = sapply(magmaStats_list.beta, nrow))
+magmaStats_wide.beta$CellType = rownames(magmaStats_wide.beta)
+## reshape to long
+magmaStats_long.beta = reshape2::melt(magmaStats_wide.beta)
+colnames(magmaStats_long.beta)[3:4] = c("GWAS", "Beta")
+
+# Check before appending
+table(paste0(magmaStats_long$CellType,":",magmaStats_long$GWAS) ==
+        paste0(magmaStats_long.beta$CellType,":", magmaStats_long.beta$GWAS))
+
+# cbind Beta
+magmaStats_long$Beta <- magmaStats_long.beta$Beta
+# Reorder
+magmaStats_long <- magmaStats_long[ ,c("Region", "CellType", "GWAS", "Beta", "P", "P.adj.fdr")]
+
+
+
+## Print to CSV ===
+write.csv(magmaStats_long, file = here("code","magma","Results",
+                                       "table_magma-GSA_19mergedClusters_3xGWAS.csv"),
+          row.names=F, quote=F)
 
 
 
