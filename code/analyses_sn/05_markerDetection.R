@@ -144,13 +144,13 @@ for(i in names(markers.lc.t.pw)){
 
 sapply(markers.lc.t.pw, function(x){table(x$FDR<0.05 & x$non0median == TRUE)["TRUE"]})
     #     Astro.TRUE Endo.Mural.TRUE    Excit_A.TRUE    Excit_B.TRUE    Excit_C.TRUE 
-    # 69             378              25              19             104 
-    # Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
-    # 9               7              51               5             145 
-    # Inhib_C.TRUE    Inhib_D.TRUE    Inhib_E.TRUE    Inhib_F.TRUE      Micro.TRUE 
-    # 168               6               5              22              58 
-    # Neuron.5HT.TRUE  Neuron.NE.TRUE      Oligo.TRUE        OPC.TRUE 
-    # 96             101             483              63 
+    #             69             378              25              19             104 
+    #   Excit_D.TRUE    Excit_E.TRUE    Excit_F.TRUE    Inhib_A.TRUE    Inhib_B.TRUE 
+    #              9               7              51               5             145 
+    #   Inhib_C.TRUE    Inhib_D.TRUE    Inhib_E.TRUE    Inhib_F.TRUE      Micro.TRUE 
+    #            168               6               5              22              58 
+    #Neuron.5HT.TRUE  Neuron.NE.TRUE      Oligo.TRUE        OPC.TRUE 
+    #             96             101             483              63 
 
 
 ## Save these
@@ -359,22 +359,61 @@ write.csv(top40genes, file=here("code","analyses_sn","top40genesLists_LC-n3_19ce
 
 ### Some follow-up ================================================
 
+## Neuronal subpop. markers that are depleted in NE/5-HT neurons?
+load(here("processed_data","SCE",
+          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
+    # markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.19
+
+# Re-create marker list from strict PW tests
+markerList.t.pw <- lapply(markers.lc.t.pw, function(x){
+  rownames(x)[x$FDR < 0.05 & x$non0median == TRUE]
+}
+)
+
+# Remove if median expression in NE/5-HT neurons is > 0
+otherNeurons <- c(paste0("Excit_",c("A","B","C","D","E","F")),
+                  paste0("Inhib_", c("A","B","C","D","E","F")))
+
+markers.NE.5HT.depleted <- list()
+
+for(i in otherNeurons){
+  markers.NE.5HT.depleted[[i]] <- markerList.t.pw[[i]]
+  # Get median expression info for NE neurons - set to TRUE if median == 0
+  medians0.NE <- !medianNon0.lc.19[["Neuron.NE"]]
+  # Subset/reorder if meets marker significance for the query cell type
+  medians0.NE <- medians0.NE[markers.NE.5HT.depleted[[i]]]
+  
+  # Same for 5HT
+  medians0.5HT <- !medianNon0.lc.19[["Neuron.5HT"]]
+  medians0.5HT <- medians0.5HT[markers.NE.5HT.depleted[[i]]]
+  
+  markers.NE.5HT.depleted[[i]] <- markers.NE.5HT.depleted[[i]][medians0.NE & medians0.5HT]
+}
+
+lengths(markers.NE.5HT.depleted)
+    # Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A Inhib_B Inhib_C Inhib_D 
+    #      15      15      62       6       2      38       3      47      75       5 
+    # Inhib_E Inhib_F 
+    #       3      19 
 
 
-
+# Save these out for reference
+README.mnt <- "These are lists of top PW markers (in Ensembl ID) per neuronal population that were subsetted for 0 expression in both NE & 5-HT neurons"
+save(README.mnt, markers.NE.5HT.depleted,
+     file=here("processed_data","SCE","forRef_neuronalMarkers_NE-5HT-depleted.rda"))
 
 
 
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    # [1] "2022-05-20 19:18:14 EDT"
+    # [1] "2022-06-10 18:28:43 EDT"
 proc.time()
     #     user    system   elapsed 
-    # 1753.244   21.581 4234.483 
+    #     93.699    3.906 3006.923 
 options(width = 120)
 session_info()
-    # ─ Session info ─────────────────────────────────────────────────────────────────
+    #─ Session info ──────────────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -384,10 +423,10 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-05-20
+    # date     2022-06-10
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ─────────────────────────────────────────────────────────────────────
+    # ─ Packages ──────────────────────────────────────────────────────────────────────────
     # package              * version  date (UTC) lib source
     # assertthat             0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
     # batchelor            * 1.10.0   2021-10-26 [1] Bioconductor
@@ -403,18 +442,15 @@ session_info()
     # cli                    3.3.0    2022-04-25 [2] CRAN (R 4.1.2)
     # cluster                2.1.3    2022-03-28 [3] CRAN (R 4.1.2)
     # colorspace             2.0-3    2022-02-21 [2] CRAN (R 4.1.2)
-    # cowplot                1.1.1    2020-12-30 [2] CRAN (R 4.1.2)
     # crayon                 1.5.1    2022-03-26 [2] CRAN (R 4.1.2)
     # DBI                    1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
     # DelayedArray           0.20.0   2021-10-26 [2] Bioconductor
     # DelayedMatrixStats     1.16.0   2021-10-26 [2] Bioconductor
-    # digest                 0.6.29   2021-12-01 [2] CRAN (R 4.1.2)
     # dplyr                  1.0.9    2022-04-28 [2] CRAN (R 4.1.2)
     # dqrng                  0.3.0    2021-05-01 [2] CRAN (R 4.1.2)
     # edgeR                  3.36.0   2021-10-26 [2] Bioconductor
     # ellipsis               0.3.2    2021-04-29 [2] CRAN (R 4.1.0)
     # fansi                  1.0.3    2022-03-24 [2] CRAN (R 4.1.2)
-    # farver                 2.1.0    2021-02-28 [2] CRAN (R 4.1.0)
     # fs                     1.5.2    2021-12-08 [2] CRAN (R 4.1.2)
     # gargle                 1.2.0    2021-07-02 [2] CRAN (R 4.1.0)
     # generics               0.1.2    2022-01-31 [2] CRAN (R 4.1.2)
@@ -433,17 +469,18 @@ session_info()
     # IRanges              * 2.28.0   2021-10-26 [2] Bioconductor
     # irlba                  2.3.5    2021-12-06 [2] CRAN (R 4.1.2)
     # jaffelab             * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
-    # labeling               0.4.2    2020-10-20 [2] CRAN (R 4.1.0)
     # lattice                0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
     # lifecycle              1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
     # limma                  3.50.3   2022-04-07 [2] Bioconductor
     # locfit                 1.5-9.5  2022-03-03 [2] CRAN (R 4.1.2)
     # magrittr               2.0.3    2022-03-30 [2] CRAN (R 4.1.2)
+    # MASS                   7.3-56   2022-03-23 [3] CRAN (R 4.1.2)
     # Matrix                 1.4-1    2022-03-23 [3] CRAN (R 4.1.2)
     # MatrixGenerics       * 1.6.0    2021-10-26 [2] Bioconductor
     # matrixStats          * 0.62.0   2022-04-19 [2] CRAN (R 4.1.2)
     # metapod                1.2.0    2021-10-26 [2] Bioconductor
     # munsell                0.5.0    2018-06-12 [2] CRAN (R 4.1.0)
+    # nlme                   3.1-157  2022-03-25 [3] CRAN (R 4.1.2)
     # pillar                 1.7.0    2022-02-01 [2] CRAN (R 4.1.2)
     # pkgconfig              2.0.3    2019-09-22 [2] CRAN (R 4.1.0)
     # purrr                  0.3.4    2020-04-17 [2] CRAN (R 4.1.0)
@@ -451,7 +488,7 @@ session_info()
     # rafalib              * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
     # RColorBrewer           1.1-3    2022-04-03 [2] CRAN (R 4.1.2)
     # Rcpp                   1.0.8.3  2022-03-17 [2] CRAN (R 4.1.2)
-    # RCurl                  1.98-1.6 2022-02-08 [2] CRAN (R 4.1.2)
+    # RCurl                  1.98-1.7 2022-06-09 [2] CRAN (R 4.1.2)
     # ResidualMatrix         1.4.0    2021-10-26 [1] Bioconductor
     # rlang                  1.0.2    2022-03-04 [2] CRAN (R 4.1.2)
     # rprojroot              2.0.3    2022-04-02 [2] CRAN (R 4.1.2)
@@ -463,7 +500,7 @@ session_info()
     # scran                * 1.22.1   2021-11-14 [2] Bioconductor
     # scry                 * 1.6.0    2021-10-26 [2] Bioconductor
     # scuttle              * 1.4.0    2021-10-26 [2] Bioconductor
-    # segmented              1.3-4    2021-04-22 [1] CRAN (R 4.1.2)
+    # segmented              1.6-0    2022-05-31 [1] CRAN (R 4.1.2)
     # sessioninfo          * 1.2.2    2021-12-06 [2] CRAN (R 4.1.2)
     # SingleCellExperiment * 1.16.0   2021-10-26 [2] Bioconductor
     # sparseMatrixStats      1.6.0    2021-10-26 [2] Bioconductor
@@ -484,6 +521,6 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ────────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────────────────
 
 
