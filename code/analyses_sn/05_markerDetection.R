@@ -196,7 +196,7 @@ for(i in smaller.set){
   print(
     plotExpressionCustom(sce = sce.hold,
                          exprs_values = "logcounts",
-                         features = head(genes.top40.t[[i]],n=4), 
+                         features = genes.top40.t[[i]], 
                          features_name = i,
                          anno_name = "cellType.merged",
                          ncol=5, point_alpha=0.4,
