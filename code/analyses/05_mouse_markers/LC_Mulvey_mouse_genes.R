@@ -1,7 +1,7 @@
 #################################################
 # LC project
 # Script to plot Mulvey et al. (2018) mouse genes
-# Lukas Weber, May 2022
+# Lukas Weber, June 2022
 #################################################
 
 # module load conda_R/4.1.x
@@ -15,6 +15,7 @@ library(SpatialExperiment)
 library(here)
 library(dplyr)
 library(tidyr)
+library(forcats)
 library(ggplot2)
 
 
@@ -80,7 +81,7 @@ sum(human_genes %in% rowData(spe)$gene_name)
 # mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
 # 
 # genes <- getLDS(
-#   attributes = c("mgi_symbol"), filters = "mgi_symbol", values = mouse_markers, 
+#   attributes = c("mgi_symbol"), filters = "mgi_symbol", values = mouse_genes, 
 #   mart = mouse, attributesL = c("hgnc_symbol"), martL = human, uniqueRows = TRUE
 # )
 # 
@@ -262,8 +263,14 @@ df1 <-
                           levels = c("LC", "WM"), 
                           labels = c("LC regions", "WM regions"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
+  na.omit() %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
+
+df1_rev <- 
+  df1 %>% 
+  mutate(regions = fct_rev(regions)) %>% 
+  mutate(gene = fct_rev(gene))
 
 df2 <- 
   full_join(df_enrichment_spots, df_enrichment_nonspots) %>% 
@@ -271,14 +278,23 @@ df2 <-
                           levels = c("spots", "nonspots"), 
                           labels = c("annotated spots", "not annotated spots"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
+  na.omit() %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
   as.data.frame()
 
+df2_rev <- 
+  df2 %>% 
+  mutate(regions = fct_rev(regions)) %>% 
+  mutate(gene = fct_rev(gene))
+
 
 pal <- c("darkmagenta", "gray30")
+pal_rev <- rev(pal)
 
 
 # LC regions vs. WM regions
+
+# horizontal format
 ggplot(df1, aes(x = gene, y = mean, color = regions, fill = regions)) + 
   geom_boxplot(alpha = 0.5, outlier.size = 0.5) + 
   scale_color_manual(values = pal, name = "annotation") + 
@@ -289,12 +305,32 @@ ggplot(df1, aes(x = gene, y = mean, color = regions, fill = regions)) +
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
                                    face = "italic", hjust = 1))
 
-fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedRegions")
+fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedRegions_horizontal")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
 
+# vertical format
+ggplot(df1_rev, aes(x = mean, y = gene, color = regions, fill = regions)) + 
+  geom_boxplot(alpha = 0.5, outlier.size = 0.5) + 
+  scale_color_manual(values = pal_rev, name = "annotation", 
+                     guide = guide_legend(reverse = TRUE)) + 
+  scale_fill_manual(values = pal_rev, name = "annotation", 
+                    guide = guide_legend(reverse = TRUE)) + 
+  labs(x = "mean logcounts per spot") + 
+  ggtitle("Mulvey et al. (2018) genes") + 
+  theme_bw() + 
+  theme(axis.text.y = element_text(size = 9, face = "italic"), 
+        axis.title.y = element_blank())
+
+fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedRegions_vertical")
+ggsave(paste0(fn, ".pdf"), width = 5, height = 7.5)
+ggsave(paste0(fn, ".png"), width = 5, height = 7.5)
+
+
 # annotated spots vs. not annotated spots
+
+# horizontal format
 ggplot(df2, aes(x = gene, y = mean, color = regions, fill = regions)) + 
   geom_boxplot(alpha = 0.5, outlier.size = 0.5) + 
   scale_color_manual(values = pal, name = "annotation") + 
@@ -305,7 +341,25 @@ ggplot(df2, aes(x = gene, y = mean, color = regions, fill = regions)) +
   theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
                                    face = "italic", hjust = 1))
 
-fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedSpots")
+fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedSpots_horizontal")
 ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
 ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# vertical format
+ggplot(df2_rev, aes(x = mean, y = gene, color = regions, fill = regions)) + 
+  geom_boxplot(alpha = 0.5, outlier.size = 0.5) + 
+  scale_color_manual(values = pal_rev, name = "annotation", 
+                     guide = guide_legend(reverse = TRUE)) + 
+  scale_fill_manual(values = pal_rev, name = "annotation", 
+                    guide = guide_legend(reverse = TRUE)) + 
+  labs(x = "mean logcounts per spot") + 
+  ggtitle("Mulvey et al. (2018) genes") + 
+  theme_bw() + 
+  theme(axis.text.y = element_text(size = 9, face = "italic"), 
+        axis.title.y = element_blank())
+
+fn <- here(dir_plots, "enrichment", "Mulvey_enrichment_annotatedSpots_vertical")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 7.5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 7.5)
 
