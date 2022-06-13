@@ -121,14 +121,14 @@ load(here("processed_data","SCE","sce_updated_LC.rda"), verbose=T)
     # sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc, cell_colors.lc
 
 adhd.gene.out <- read.table(here("code","magma","SNP_Data","ADHD_Demontis2019_LC_snp-wise.genes.out"),
-                            sep="\t", header=T)
-    # Not a tsv...
-    # Just grep those genes from the 12 risk loci (see Supp Table 7)
+                            sep="", header=T)
+    # Not a tsv, so use the defeault `sep=""` (parses thru spaces and creates a data.frame)
+
 head(adhd.gene.out)
-    #  GENE.............CHR......START.......STOP...NSNPS..NPARAM......N........ZSTAT............P
-    # 1 ENSG00000237491    1     679127     755445      14       1  18603       1.3908     0.082142
-    # 2 ENSG00000177757    1     717751     765217      33       1  18428       1.2629      0.10331
-    # 3 ENSG00000228794    1     725518     813582      62       2  17884      0.98915       0.1613
+    #              GENE CHR  START   STOP NSNPS NPARAM     N    ZSTAT        P
+    # 1 ENSG00000237491   1 679127 755445    14      1 18603  1.39080 0.082142
+    # 2 ENSG00000177757   1 717751 765217    33      1 18428  1.26290 0.103310
+    # 3 ENSG00000228794   1 725518 813582    62      2 17884  0.98915 0.161300
 
 
 adhd.loci <- c("ST3GAL3", "PTPRF", "SPAG16", "PCDH7", "LINC00461", "MEF2C", "FOXP2",
@@ -136,27 +136,51 @@ adhd.loci <- c("ST3GAL3", "PTPRF", "SPAG16", "PCDH7", "LINC00461", "MEF2C", "FOX
 adhd.loci %in% rowData(sce.lc)$gene_name  # all TRUE
 names(adhd.loci) <- rowData(sce.lc)$gene_id[match(adhd.loci, rowData(sce.lc)$gene_name)]
 
-sapply(names(adhd.loci), function(x){
-  adhd.gene.out[grep(x, adhd.gene.out[ ,1]), ]
-})
-    # "ENSG00000126091    1   44136495   44406837     539      20  22519       6.7357   8.1549e-12" 
-    # "ENSG00000142949    1   43955858   44099337     309      16  22610        6.306    1.432e-10" 
-    # "ENSG00000144451    2  214114103  215285225    3094      67  22525       2.1837     0.014491" 
-    # "ENSG00000169851    4   30687037   31158427    1203      55  22452       3.4483   0.00028209" 
-    # "ENSG00000245526    5   87793363   88021874     407      35  22422       4.8311   6.7885e-07" 
-    # "ENSG00000081189    5   88002934   88235074     386      27  22445       5.0497   2.2126e-07" 
-    # "ENSG00000128573    7  113691382  114343827     890      44  22312       4.4626   4.0481e-06" 
-    # "ENSG00000254344    8   34606546   34732882     199      10  21790      0.34547      0.36487" 
-    # "ENSG00000156395   10  106366048  107035000    1915      51  22626       5.6459   8.2183e-09" 
-    # "ENSG00000139318   12   89731012   89781278     135      16  22100       6.0285   8.2769e-10" 
-    # "ENSG00000137872   15   47441298   48076420    1609      59  22503       5.5963   1.0949e-08" 
-    # "ENSG00000261008   16   72260180   72733913     863      25  22519       2.5675    0.0051221" 
+rownames(adhd.gene.out) <- adhd.gene.out$GENE
 
-    #       - so the z-score recapitulates significance in all but one: ENSG00000254344 (LINC01288)
+adhd.gene.out[names(adhd.loci), ]
+    #                            GENE CHR     START      STOP NSNPS NPARAM     N
+    # ENSG00000126091 ENSG00000126091   1  44136495  44406837   539     20 22519
+    # ENSG00000142949 ENSG00000142949   1  43955858  44099337   309     16 22610
+    # ENSG00000144451 ENSG00000144451   2 214114103 215285225  3094     67 22525
+    # ENSG00000169851 ENSG00000169851   4  30687037  31158427  1203     55 22452
+    # ENSG00000245526 ENSG00000245526   5  87793363  88021874   407     35 22422
+    # ENSG00000081189 ENSG00000081189   5  88002934  88235074   386     27 22445
+    # ENSG00000128573 ENSG00000128573   7 113691382 114343827   890     44 22312
+    # ENSG00000254344 ENSG00000254344   8  34606546  34732882   199     10 21790
+    # ENSG00000156395 ENSG00000156395  10 106366048 107035000  1915     51 22626
+    # ENSG00000139318 ENSG00000139318  12  89731012  89781278   135     16 22100
+    # ENSG00000137872 ENSG00000137872  15  47441298  48076420  1609     59 22503
+    # ENSG00000261008 ENSG00000261008  16  72260180  72733913   863     25 22519
+    #                   ZSTAT          P
+    # ENSG00000126091 6.73570 8.1549e-12
+    # ENSG00000142949 6.30600 1.4320e-10
+    # ENSG00000144451 2.18370 1.4491e-02
+    # ENSG00000169851 3.44830 2.8209e-04
+    # ENSG00000245526 4.83110 6.7885e-07
+    # ENSG00000081189 5.04970 2.2126e-07
+    # ENSG00000128573 4.46260 4.0481e-06
+    # ENSG00000254344 0.34547 3.6487e-01
+    # ENSG00000156395 5.64590 8.2183e-09
+    # ENSG00000139318 6.02850 8.2769e-10
+    # ENSG00000137872 5.59630 1.0949e-08
+    # ENSG00000261008 2.56750 5.1221e-03
+
+    #       - so the z-score recapitulates 'significance' in all but one: ENSG00000254344 (LINC01288)
     #           - discrepancy b/tw available summary stats vs. full data results?
 
+quantile(adhd.gene.out$ZSTAT, probs=seq(0.9,1,by=0.01))
+round(quantile(adhd.gene.out$ZSTAT, probs=seq(0.9,1,by=0.01)),3)
+    #   90%   91%   92%   93%   94%   95%   96%   97%   98%   99%  100% 
+    # 1.760 1.832 1.909 2.001 2.099 2.216 2.352 2.514 2.783 3.191 7.101 
+        # So there's 1% that have a gene-level Z-score higher than 3.19
 
+round(quantile(adhd.gene.out$ZSTAT, probs=seq(0.95,1,by=0.0025)),3)
+    #   95% 95.25%  95.5% 95.75%    96% 96.25%  96.5% 96.75%    97% 97.25%  97.5% 
+    # 2.216  2.245  2.280  2.313  2.352  2.383  2.428  2.469  2.514  2.559  2.624 
 
+    #97.75%    98% 98.25%  98.5% 98.75%    99% 99.25%  99.5% 99.75%   100% 
+    # 2.703  2.783  2.861  2.960  3.074  3.191  3.331  3.622  3.949  7.101 
 
 
 
