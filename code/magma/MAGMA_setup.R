@@ -164,6 +164,12 @@ dim(sumStats.ADHD)
     #[1] 8094094      19
 head(sumStats.ADHD)
 unique(sumStats.ADHD$CHR)  # 1:22 as well
+
+table(sumStats.ADHD$P < 5e-8) # Reported 304 variants (12 loci) surpassing this threshold
+    #   FALSE    TRUE 
+    # 8093777     317   - this is pretty good; unfortunately the PD GWAS/supplement doesn't report
+    #                     the number of total SNPs reaching genome-wide signif; just 90 [index] SNPs
+
 snploc.ADHD <- sumStats.ADHD[ ,c("SNP", "CHR", "BP")]
 write.table(snploc.ADHD, file=here("code","magma","GWAS_Results","ADHD_PGC_2019.snploc"),
             sep="\t", col.names=T, row.names=F, quote=F)
