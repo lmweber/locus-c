@@ -7,6 +7,9 @@ library(rtracklayer)
 library(GenomicRanges)
 library(jaffelab)
 library(SingleCellExperiment)
+library(fields)
+library(RColorBrewer)
+library(grid)
 library(sessioninfo)
 library(here)
 
@@ -22,9 +25,9 @@ here()
 
 magmaStats <- list()
 
-magmaStats[["LC"]][["PD.meta2019"]] <- read.table(here("code","magma","Results","lc_PD.gsa.out"), header=T)
-magmaStats[["LC"]][["ADHD.PGC.iPsych"]] <- read.table(here("code","magma","Results","lc_ADHD.gsa.out"), header=T)
-magmaStats[["LC"]][["AD.metaPh3"]] <- read.table(here("code","magma","Results","lc_Alzheimers.gsa.out"), header=T)
+magmaStats[["LC"]][["PD.Nalls.2019"]] <- read.table(here("code","magma","Results","lc_PD.gsa.out"), header=T)
+magmaStats[["LC"]][["ADHD.Demontis.2018"]] <- read.table(here("code","magma","Results","lc_ADHD.gsa.out"), header=T)
+magmaStats[["LC"]][["AD.Jansen.2019"]] <- read.table(here("code","magma","Results","lc_Alzheimers.gsa.out"), header=T)
 
 
 ## Merge to assess significance thresholds ===
@@ -96,19 +99,62 @@ write.csv(magmaStats_long, file = here("code","magma","Results",
 
 
 
+## Make heatmap ===
+midpoint = function(x) x[-length(x)] + diff(x)/2
 
+MAGMAplot = function(region, Pthresh, fdrThresh, ...) {
+  ## Set up -log10(p's)
+  wide_p = sapply(magmaStats[[region]], function(x){cbind(-log10(x$P))})
+  rownames(wide_p) <- magmaStats[[region]][[1]]$VARIABLE
+  wide_p[wide_p > Pthresh] = Pthresh
+  wide_p <- round(wide_p[rev(sort(rownames(wide_p))), ], 3)
+  
+  
+  ## Set up betas
+  wide_beta <- sapply(magmaStats[[region]], function(x){cbind(x$BETA)})
+  rownames(wide_beta) <- magmaStats[[region]][[1]]$VARIABLE
+  wide_beta <- round(wide_beta[rev(sort(rownames(wide_beta))), ], 2)
+  
+  # # Use empirical cutoff (independentp=0.05) for printing betas 
+  wide_beta[wide_p < -log10(0.05)] = ""
+  # and Bonf. cutoff for bolding
+  customFont <- ifelse(wide_p < -log10(fdrThresh), 1, 2)
+  customCex <- ifelse(wide_p < -log10(fdrThresh), 0.9, 1.0)
+  
+  
+  ## Plot
+  clusterHeights <- seq(0,160,length.out=nrow(wide_p)+1)
+  mypal = c("white", colorRampPalette(brewer.pal(9,"YlOrRd"))(60))[1:30]
+  xlabs <- colnames(wide_p)
+  
+  # Heatmap of p's
+  image.plot(x = seq(0,ncol(wide_p),by=1), y = clusterHeights, z = as.matrix(t(wide_p)),
+             col = mypal,xaxt="n", yaxt="n",xlab = "", ylab="", ...)
+  axis(2, rownames(wide_p), at=midpoint(clusterHeights), las=1)
+  axis(1, rep("", ncol(wide_p)), at = seq(0.5,ncol(wide_p)-0.5))
+  text(x = seq(0.5,ncol(wide_p)-0.5), y=-1*max(nchar(xlabs))/2, xlabs,
+       xpd=TRUE, srt=45, cex=1.2, adj= 1)
+  abline(h=clusterHeights,v=0:ncol(wide_p))
+  
+  # Print top decile of betas
+  text(x = rep(seq(0.5,ncol(wide_p)-0.5),each = nrow(wide_p)), 
+       y = rep(midpoint(clusterHeights), ncol(wide_p)),
+       as.character(wide_beta),
+       # If Bonf, a little bigger
+       cex=customCex,
+       # If Bonf, 2 (bold)
+       font=customFont)
+}
 
-
-
-
-
-
-
-
-
-
-
-
+# Plot
+pdf(here("plots","snRNA-seq","heatmap_LC_MAGMA-GSAresults_AD-ADHD-PD_GWAS.pdf"), w=6)
+par(mar=c(8.5,7.5,6,1), cex.axis=1.0, cex.lab=0.5)
+MAGMAplot(region="LC", Pthresh=12, fdrThresh=betacut.fdr)
+abline(v=7,lwd=3)
+text(x = 1.5, y=185, "MAGMA gene set analyses: LC cell classes", xpd=TRUE, cex=1.5, font=2)
+text(x = 1.5, y=175, "(Betas for empirically significant associations, p < 0.05)", xpd=TRUE, cex=1, font=1)
+grid::grid.text(label="-log10(p-value)", x=0.92, y=0.825, gp=gpar(fontsize=9))
+dev.off()
 
 
 
@@ -247,10 +293,110 @@ round(quantile(pd.gene.out[pd.gene.out$gene.symbol %in% fig2.genes, ]$ZSTAT,
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-# 
+    # 
 proc.time()
-#    user   system  elapsed 
-# 
+    #    user   system  elapsed 
+    #  13.706    1.579 1609.032 
 options(width = 120)
 session_info()
+    #─ Session info ──────────────────────────────────────────────────────────────────
+    # setting  value
+    # version  R version 4.1.2 Patched (2021-11-04 r81138)
+    # os       CentOS Linux 7 (Core)
+    # system   x86_64, linux-gnu
+    # ui       X11
+    # language (EN)
+    # collate  en_US.UTF-8
+    # ctype    en_US.UTF-8
+    # tz       US/Eastern
+    # date     2022-06-13
+    # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
+    # 
+    # ─ Packages ──────────────────────────────────────────────────────────────────────
+    # package              * version   date (UTC) lib source
+    # assertthat             0.2.1     2019-03-21 [2] CRAN (R 4.1.0)
+    # Biobase              * 2.54.0    2021-10-26 [2] Bioconductor
+    # BiocGenerics         * 0.40.0    2021-10-26 [2] Bioconductor
+    # BiocIO                 1.4.0     2021-10-26 [2] Bioconductor
+    # BiocParallel           1.28.3    2021-12-09 [2] Bioconductor
+    # Biostrings             2.62.0    2021-10-26 [2] Bioconductor
+    # bitops                 1.0-7     2021-04-24 [2] CRAN (R 4.1.0)
+    # cli                    3.3.0     2022-04-25 [2] CRAN (R 4.1.2)
+    # colorspace             2.0-3     2022-02-21 [2] CRAN (R 4.1.2)
+    # crayon                 1.5.1     2022-03-26 [2] CRAN (R 4.1.2)
+    # DBI                    1.1.2     2021-12-20 [2] CRAN (R 4.1.2)
+    # DelayedArray           0.20.0    2021-10-26 [2] Bioconductor
+    # dotCall64              1.0-1     2021-02-11 [2] CRAN (R 4.1.0)
+    # dplyr                  1.0.9     2022-04-28 [2] CRAN (R 4.1.2)
+    # ellipsis               0.3.2     2021-04-29 [2] CRAN (R 4.1.0)
+    # fansi                  1.0.3     2022-03-24 [2] CRAN (R 4.1.2)
+    # fields               * 13.3      2021-10-30 [2] CRAN (R 4.1.2)
+    # fs                     1.5.2     2021-12-08 [2] CRAN (R 4.1.2)
+    # gargle                 1.2.0     2021-07-02 [2] CRAN (R 4.1.0)
+    # generics               0.1.2     2022-01-31 [2] CRAN (R 4.1.2)
+    # GenomeInfoDb         * 1.30.1    2022-01-30 [2] Bioconductor
+    # GenomeInfoDbData       1.2.7     2021-11-01 [2] Bioconductor
+    # GenomicAlignments      1.30.0    2021-10-26 [2] Bioconductor
+    # GenomicRanges        * 1.46.1    2021-11-18 [2] Bioconductor
+    # ggplot2                3.3.6     2022-05-03 [2] CRAN (R 4.1.2)
+    # glue                   1.6.2     2022-02-24 [2] CRAN (R 4.1.2)
+    # googledrive            2.0.0     2021-07-08 [2] CRAN (R 4.1.0)
+    # gridExtra              2.3       2017-09-09 [2] CRAN (R 4.1.0)
+    # gtable                 0.3.0     2019-03-25 [2] CRAN (R 4.1.0)
+    # here                 * 1.0.1     2020-12-13 [2] CRAN (R 4.1.2)
+    # IRanges              * 2.28.0    2021-10-26 [2] Bioconductor
+    # jaffelab             * 0.99.31   2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
+    # lattice                0.20-45   2021-09-22 [3] CRAN (R 4.1.2)
+    # lifecycle              1.0.1     2021-09-24 [2] CRAN (R 4.1.2)
+    # limma                  3.50.3    2022-04-07 [2] Bioconductor
+    # magrittr               2.0.3     2022-03-30 [2] CRAN (R 4.1.2)
+    # maps                   3.4.0     2021-09-25 [2] CRAN (R 4.1.2)
+    # MASS                   7.3-56    2022-03-23 [3] CRAN (R 4.1.2)
+    # Matrix                 1.4-1     2022-03-23 [3] CRAN (R 4.1.2)
+    # MatrixGenerics       * 1.6.0     2021-10-26 [2] Bioconductor
+    # matrixStats          * 0.62.0    2022-04-19 [2] CRAN (R 4.1.2)
+    # munsell                0.5.0     2018-06-12 [2] CRAN (R 4.1.0)
+    # nlme                   3.1-157   2022-03-25 [3] CRAN (R 4.1.2)
+    # pillar                 1.7.0     2022-02-01 [2] CRAN (R 4.1.2)
+    # pkgconfig              2.0.3     2019-09-22 [2] CRAN (R 4.1.0)
+    # plyr                   1.8.7     2022-03-24 [2] CRAN (R 4.1.2)
+    # purrr                  0.3.4     2020-04-17 [2] CRAN (R 4.1.0)
+    # R6                     2.5.1     2021-08-19 [2] CRAN (R 4.1.2)
+    # rafalib              * 1.0.0     2015-08-09 [1] CRAN (R 4.1.2)
+    # RColorBrewer         * 1.1-3     2022-04-03 [2] CRAN (R 4.1.2)
+    # Rcpp                   1.0.8.3   2022-03-17 [2] CRAN (R 4.1.2)
+    # RCurl                  1.98-1.7  2022-06-09 [2] CRAN (R 4.1.2)
+    # reshape2               1.4.4     2020-04-09 [2] CRAN (R 4.1.0)
+    # restfulr               0.0.14    2022-06-05 [2] CRAN (R 4.1.2)
+    # rjson                  0.2.21    2022-01-09 [2] CRAN (R 4.1.2)
+    # rlang                  1.0.2     2022-03-04 [2] CRAN (R 4.1.2)
+    # rprojroot              2.0.3     2022-04-02 [2] CRAN (R 4.1.2)
+    # Rsamtools              2.10.0    2021-10-26 [2] Bioconductor
+    # rtracklayer          * 1.54.0    2021-10-26 [2] Bioconductor
+    # S4Vectors            * 0.32.4    2022-03-24 [2] Bioconductor
+    # scales                 1.2.0     2022-04-13 [2] CRAN (R 4.1.2)
+    # segmented              1.6-0     2022-05-31 [1] CRAN (R 4.1.2)
+    # sessioninfo          * 1.2.2     2021-12-06 [2] CRAN (R 4.1.2)
+    # SingleCellExperiment * 1.16.0    2021-10-26 [2] Bioconductor
+    # spam                 * 2.8-0     2022-01-06 [2] CRAN (R 4.1.2)
+    # stringi                1.7.6     2021-11-29 [2] CRAN (R 4.1.2)
+    # stringr                1.4.0     2019-02-10 [2] CRAN (R 4.1.0)
+    # SummarizedExperiment * 1.24.0    2021-10-26 [2] Bioconductor
+    # tibble                 3.1.7     2022-05-03 [2] CRAN (R 4.1.2)
+    # tidyselect             1.1.2     2022-02-21 [2] CRAN (R 4.1.2)
+    # utf8                   1.2.2     2021-07-24 [2] CRAN (R 4.1.0)
+    # vctrs                  0.4.1     2022-04-13 [2] CRAN (R 4.1.2)
+    # viridis              * 0.6.2     2021-10-13 [2] CRAN (R 4.1.2)
+    # viridisLite          * 0.4.0     2021-04-13 [2] CRAN (R 4.1.0)
+    # XML                    3.99-0.10 2022-06-09 [2] CRAN (R 4.1.2)
+    # XVector                0.34.0    2021-10-26 [2] Bioconductor
+    # yaml                   2.3.5     2022-02-21 [2] CRAN (R 4.1.2)
+    # zlibbioc               1.40.0    2021-10-26 [2] Bioconductor
+    # 
+    # [1] /users/ntranngu/R/4.1.x
+    # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
+    # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
+    # 
+    # ─────────────────────────────────────────────────────────────────────────────────
+
 
