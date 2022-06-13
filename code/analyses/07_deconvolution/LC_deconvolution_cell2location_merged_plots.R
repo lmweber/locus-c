@@ -87,6 +87,9 @@ for (s in seq_along(sample_ids)) {
 
 # plot each cell type across samples
 
+min_all <- min(as.matrix(colData(spe)[, cols]))
+max_all <- max(as.matrix(colData(spe)[, cols]))
+
 for (q in seq_along(cols)) {
   
   # select cell type
@@ -100,7 +103,8 @@ for (q in seq_along(cols)) {
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.25) + 
     scale_y_reverse() + 
-    scale_color_viridis(option = "magma", name = "abundance", trans = "sqrt") + 
+    scale_color_viridis(option = "magma", name = "abundance", trans = "sqrt", 
+                        limits = c(0, max_all)) + 
     labs(title = gsub("^.*sf_", "", cols[q])) + 
     theme_bw() + 
     theme(panel.background = element_rect(fill = "gray80"), 
