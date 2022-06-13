@@ -46,15 +46,16 @@ table(colData(spe)$sample_id)
 # load gene list
 # --------------
 
-# top markers for 5-HT neurons (1 vs all tests) from snRNA-seq data
+# top markers for NE neurons (1 vs all tests) from snRNA-seq data
 # https://github.com/lmweber/locus-c/blob/main/code/analyses_sn/top40genesLists_LC-n3_19cellTypes.csv
 
-markers_5HT <- c(
-  "SLC6A4", "TPH2", "DDC", "AC104984.4", "FEV", "LINC01242", "SLC18A2", "NPNT", 
-  "LINC01997", "ITGBL1", "GATA3", "SLC10A4", "AC122707.1", "GCH1", "GPR149", 
-  "NDNF", "TMPRSS9", "GPC3", "LINC02082", "AL356737.2")
+markers_NE <- c(
+  "AC105389.3", "SLC6A2", "SLC5A7", "SLC18A2", "SHOX", "AL136119.1", "ARHGAP36", 
+  "PMFBP1", "DBH", "TH", "SCUBE1", "HMCN2", "GPR139", "GEM", "AC005355.1", 
+  "AC016831.1", "CHRNA7", "DCBLD2", "LINC02150", "TXK"
+)
 
-length(markers_5HT)
+length(markers_NE)
 
 
 # ---------------
@@ -63,9 +64,9 @@ length(markers_5HT)
 
 # plot each gene across samples
 
-for (q in seq_along(markers_5HT)) {
+for (q in seq_along(markers_NE)) {
   
-  ix <- which(rowData(spe)$gene_name == markers_5HT[q])
+  ix <- which(rowData(spe)$gene_name == markers_NE[q])
   
   if (length(ix) == 0) next
   
@@ -83,7 +84,7 @@ for (q in seq_along(markers_5HT)) {
     scale_color_gradient(low = "gray85", high = "red", 
                          trans = "sqrt", breaks = range(df$marker), 
                          name = "counts") + 
-    ggtitle(markers_5HT[q]) + 
+    ggtitle(markers_NE[q]) + 
     theme_bw() + 
     theme(title = element_text(face = "italic"), 
           legend.title = element_text(face = "plain"), 
@@ -92,7 +93,7 @@ for (q in seq_along(markers_5HT)) {
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  fn <- here(dir_plots, "5HT", markers_5HT[q])
+  fn <- here(dir_plots, "NE", markers_NE[q])
   ggsave(paste0(fn, ".pdf"), plot = p, width = 7, height = 4.75)
   ggsave(paste0(fn, ".png"), plot = p, width = 7, height = 4.75)
 }
