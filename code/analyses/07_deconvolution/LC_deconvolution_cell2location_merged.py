@@ -40,7 +40,7 @@ dim(spe)
 
 
 # remove samples from donors that were not included in matched snRNA-seq data 
-# (Br8153, Br5459) and/or NE neurons were not capture in Visium data (Br5459_LC_round2)
+# (Br8153, Br5459) and/or NE neurons were not captured in Visium data (Br5459_LC_round2)
 samples_remove <- c("Br8153_LC_round2", "Br5459_LC_round2", "Br8153_LC_round3")
 spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
 colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
