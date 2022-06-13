@@ -186,6 +186,64 @@ round(quantile(adhd.gene.out$ZSTAT, probs=seq(0.95,1,by=0.0025)),3)
 
 
 
+## Parkinson's ===
+pd.gene.out <- read.table(here("code","magma","SNP_Data","PD_Nalls2019_LC_snp-wise.genes.out"),
+                            sep="", header=T)
+
+head(pd.gene.out)
+
+round(quantile(pd.gene.out$ZSTAT, probs=seq(0.9,1,by=0.01)),3)
+round(quantile(pd.gene.out$ZSTAT, probs=seq(0.95,1,by=0.0025)),3)
+    #   95% 95.25%  95.5% 95.75%    96% 96.25%  96.5% 96.75%    97% 97.25%  97.5% 
+    # 1.868  1.898  1.934  1.974  2.016  2.063  2.121  2.169  2.219  2.274  2.337 
+
+    #97.75%    98% 98.25%  98.5% 98.75%    99% 99.25%  99.5% 99.75%   100% 
+    # 2.399  2.473  2.566  2.684  2.867  3.048  3.342  3.734  5.088  7.916 
+
+topGenes.pd <- pd.gene.out$GENE[pd.gene.out$ZSTAT > 5.0]  # 83 (90 reported index SNPs)
+table(topGenes.pd %in% rowData(sce.lc)$gene_id) # all there
+topGenes.pd <- rowData(sce.lc)$gene_name[match(topGenes.pd, rowData(sce.lc)$gene_id)]
+topGenes.pd
+
+# Take those from Figure 2 with significant variants at p < 5e-9 (red; olive label)
+fig2.genes <- c("PMVK", "ITPKB", "SIPA1L2", "GBA", "NUCKS1", "KRTCAP2", "STK39", "RAB29", "TMEM163",
+                "SATB1", "IP6K2", "GAK", "BST1", "MCCC1", "TMEM175", "SNCA", "HLA-DRB5", "ELOVL7",
+                "FAM47E", "STBD1", "CAMK2D", "SCARB2", "GPNMB", "LOC100131289", "CTSB", "BIN3", "FGF20",
+                "SH3GL2", "ITGA8", "IGSF9B", "BAG2", "DLG2", "INPP5F", "LRRK2", "GCH1", "CHD9",
+                "GALC", "SYT17", "CASC16", "VPS13C", "SETD1A", "RETREG3", "WNT3", "CRHR1", "RIT2", "SPPL2B"
+                )
+    # 46
+table(fig2.genes %in% rowData(sce.lc)$gene_name)  # 45/46; "LOC100131289" is missing
+
+    # Btw--  SH3GL2, CRHR1, labeled twice; so is FGF20, but on different chromosomes...
+
+
+intersect(fig2.genes, topGenes.pd)
+    # [1] "NUCKS1"  "RAB29"   "TMEM163" "GAK"     "BST1"    "TMEM175" "SNCA"   
+    # [8] "ELOVL7"  "FAM47E"  "STBD1"   "SCARB2"  "IGSF9B"  "LRRK2"   "SETD1A" 
+    # [15] "WNT3"    "CRHR1" 
+
+# Where is GCH1?  (rate-limiting enzyme for BH4 production, an essential
+#                  cofactor for tyrosine & tryptophan hydroxylases)
+#     - It's like in the top ~1.5% of z-scores, along with TH
+pd.gene.out$gene.symbol <- rowData(sce.lc)$gene_name[match(pd.gene.out$GENE, rowData(sce.lc)$gene_id)]
+pd.gene.out[pd.gene.out$gene.symbol %in% c("GCH1", "TH"), ]
+    #                  GENE CHR    START     STOP NSNPS NPARAM     N  ZSTAT         P gene.symbol
+    # 16778 ENSG00000180176  11  2175159  2228107   372     48 65561 2.7565 0.0029210          TH
+    # 21328 ENSG00000131979  14 55298726 55404544   517     41 65179 2.7693 0.0028086        GCH1
+
+# Distribution of z-scores for those reported loci
+round(quantile(pd.gene.out[pd.gene.out$gene.symbol %in% fig2.genes, ]$ZSTAT,
+               probs=seq(0.1,1,by=0.1)), 3)
+    #   10%   20%   30%   40%   50%   60%   70%   80%   90%  100% 
+    # 0.291 0.699 2.037 2.693 3.579 4.859 5.322 5.892 7.003 7.916 
+
+    ## Keep in mind that they tagged genes within -/+ 1MB of index SNPs, whereas these
+     #    ZSTATs were computed by -35kb, +10kb of the genes
+
+
+
+
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
