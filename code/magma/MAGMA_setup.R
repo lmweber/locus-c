@@ -18,7 +18,7 @@ here()
 
 ## get GTF
 gtf = import("/dcs04/lieber/lcolladotor/annotationFiles_LIBD001/10x/refdata-gex-GRCh38-2020-A/genes/genes.gtf")
-## of length 2565061
+    ## of length 2765969
 gtf = gtf[gtf$type == "gene"]
 length(gtf)
     ## == nrow(sce.lc)
@@ -69,8 +69,6 @@ gene_df = read.delim(here("code","magma","annotation",
                      header=FALSE)
 colnames(gene_df)= c("GeneID", "Chr", "Start", "End", "Strand", "Symbol")
 
-# add 'chr' prefix
-gene_df$Chr = paste0("chr", gene_df$Chr)
 gr = makeGRangesFromDataFrame(gene_df, keep=TRUE)
 names(gr) = gr$GeneID
 
