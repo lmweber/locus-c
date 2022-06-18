@@ -16,6 +16,9 @@ library(here)
 here()
 #[1] "/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c"
 
+source("/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn/plotExpressionCustom.R")
+
+
 # ==
 
 
@@ -166,6 +169,12 @@ dev.off()
 load(here("processed_data","SCE","sce_updated_LC.rda"), verbose=T)
     # sce.lc, annotationTab.lc, medianNon0.lc, hdgs.lc, cell_colors.lc
 
+# Also load marker stats (are any high risk-scoring genes are cell type markers?)
+load(here("processed_data","SCE","markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
+    # markers.lc.t.pw, markers.lc.t.1vAll, medianNon0.lc.19
+
+
+
 adhd.gene.out <- read.table(here("code","magma","SNP_Data","ADHD_Demontis2019_LC_snp-wise.genes.out"),
                             sep="", header=T)
     # Not a tsv, so use the defeault `sep=""` (parses thru spaces and creates a data.frame)
@@ -227,6 +236,63 @@ round(quantile(adhd.gene.out$ZSTAT, probs=seq(0.95,1,by=0.0025)),3)
 
     #97.75%    98% 98.25%  98.5% 98.75%    99% 99.25%  99.5% 99.75%   100% 
     # 2.703  2.783  2.861  2.960  3.074  3.191  3.331  3.622  3.949  7.101 
+
+
+## Print these in the 19 populations ===
+sce.lc <- sce.lc[ ,-grep("ambig.lowNTx_", sce.lc$cellType.merged)]
+sce.lc$cellType.merged <- droplevels(sce.lc$cellType.merged)
+
+colors2print <- cell_colors.lc[-grep("ambig.lowNTx_", names(cell_colors.lc))]
+
+pdf(here("plots","snRNA-seq","exploration","MAGMA_ADHD-reported-loci_vlnPlots_19clusters.pdf"), width=9)
+plotExpressionCustom(sce = sce.lc,
+                     exprs_values = "logcounts",
+                     features = adhd.loci, 
+                     features_name = "",
+                     anno_name = "cellType.merged",
+                     ncol=4, point_alpha=0.4,
+                     scales="free_y", swap_rownames="gene_name") +
+  scale_color_manual(values = colors2print) +  
+  ggtitle(label=paste0("ADHD 12 reported loci in LC (n=3) snRNA-seq clusters")) +
+  theme(plot.title = element_text(size = 12))
+dev.off()
+
+
+
+# What about intersection of cell class markers x MAGMA-computed high Z-scores?
+markerList.t.pw <- lapply(markers.lc.t.pw, function(x){
+  rownames(x)[x$FDR < 0.05 & x$non0median == TRUE]
+}
+)
+
+# Try at some Z cutoffs, based on above distributions
+table(adhd.gene.out$ZSTAT >= 4) # 70
+table(adhd.gene.out$ZSTAT >= 3.6) # 155
+topGenes.adhd <- adhd.gene.out$GENE[adhd.gene.out$ZSTAT > 3.6]
+
+topGenes.markers.adhd <- intersect(unlist(markerList.t.pw), topGenes.adhd)
+
+names(topGenes.markers.adhd) <- rowData(sce.lc)$gene_name[match(topGenes.markers.adhd,
+                                                                rowData(sce.lc)$gene_id)]
+    #[1] "RPLP2"     "CUBN"      "LINC02163" "CEND1"     "COL19A1"   "KIZ"      
+    #[7] "MEF2C"     "LINC01524"
+        # At Z-stats >= 3.6:
+        # [1] "SNRK"      "RPLP2"     "XRN2"      "CUBN"      "LINC02163" "KCNIP1"   
+        # [7] "CEND1"     "COL19A1"   "KIZ"       "GPM6A"     "MEF2C"     "LINC01524"
+        # [13] "RGS9"  
+
+pdf(here("plots","snRNA-seq","exploration","MAGMA_ADHD_highZs-vs-markers_vlnPlots_19clusters.pdf"), width=9)
+plotExpressionCustom(sce = sce.lc,
+                     exprs_values = "logcounts",
+                     features = names(topGenes.markers.adhd), 
+                     features_name = "",
+                     anno_name = "cellType.merged",
+                     ncol=4, point_alpha=0.4,
+                     scales="free_y", swap_rownames="gene_name") +
+  scale_color_manual(values = colors2print) +  
+  ggtitle(label=paste0("ADHD: high MAGMA-computed Z's (>= 3.6) in LC (n=3) snRNA-seq clusters")) +
+  theme(plot.title = element_text(size = 12))
+dev.off()
 
 
 
