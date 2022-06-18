@@ -312,7 +312,9 @@ round(quantile(pd.gene.out$ZSTAT, probs=seq(0.95,1,by=0.0025)),3)
     #97.75%    98% 98.25%  98.5% 98.75%    99% 99.25%  99.5% 99.75%   100% 
     # 2.399  2.473  2.566  2.684  2.867  3.048  3.342  3.734  5.088  7.916 
 
-topGenes.pd <- pd.gene.out$GENE[pd.gene.out$ZSTAT > 5.0]  # 83 (90 reported index SNPs)
+table(pd.gene.out$ZSTAT >= 5.0) # 83
+    # 83 (90 reported index SNPs)
+topGenes.pd <- pd.gene.out$GENE[pd.gene.out$ZSTAT >= 3.7]
 table(topGenes.pd %in% rowData(sce.lc)$gene_id) # all there
 topGenes.pd <- rowData(sce.lc)$gene_name[match(topGenes.pd, rowData(sce.lc)$gene_id)]
 topGenes.pd
@@ -331,9 +333,14 @@ table(fig2.genes %in% rowData(sce.lc)$gene_name)  # 45/46; "LOC100131289" is mis
 
 
 intersect(fig2.genes, topGenes.pd)
-    # [1] "NUCKS1"  "RAB29"   "TMEM163" "GAK"     "BST1"    "TMEM175" "SNCA"   
-    # [8] "ELOVL7"  "FAM47E"  "STBD1"   "SCARB2"  "IGSF9B"  "LRRK2"   "SETD1A" 
-    # [15] "WNT3"    "CRHR1" 
+    # [1] "NUCKS1"  "STK39"   "RAB29"   "TMEM163" "GAK"     "BST1"    "MCCC1"  
+    # [8] "TMEM175" "SNCA"    "ELOVL7"  "FAM47E"  "STBD1"   "SCARB2"  "GPNMB"  
+    # [15] "SH3GL2"  "IGSF9B"  "LRRK2"   "CASC16"  "SETD1A"  "WNT3"    "CRHR1"  
+    # [22] "RIT2" 
+    # At just Z >= 5:
+        # [1] "NUCKS1"  "RAB29"   "TMEM163" "GAK"     "BST1"    "TMEM175" "SNCA"   
+        # [8] "ELOVL7"  "FAM47E"  "STBD1"   "SCARB2"  "IGSF9B"  "LRRK2"   "SETD1A" 
+        # [15] "WNT3"    "CRHR1" 
 
 # Where is GCH1?  (rate-limiting enzyme for BH4 production, an essential
 #                  cofactor for tyrosine & tryptophan hydroxylases)
@@ -354,6 +361,50 @@ round(quantile(pd.gene.out[pd.gene.out$gene.symbol %in% fig2.genes, ]$ZSTAT,
      #    ZSTATs were computed by -35kb, +10kb of the genes
 
 
+## Print the intersection
+print.intersecting <- intersect(fig2.genes, topGenes.pd)
+
+pdf(here("plots","snRNA-seq","exploration","MAGMA_Zabove3.7_and_PD-reported-loci_vlnPlots_19clusters.pdf"), width=9, height=8)
+plotExpressionCustom(sce = sce.lc,
+                     exprs_values = "logcounts",
+                     features = print.intersecting, 
+                     features_name = "",
+                     anno_name = "cellType.merged",
+                     ncol=4, point_alpha=0.4,
+                     scales="free_y", swap_rownames="gene_name") +
+  scale_color_manual(values = colors2print) +  
+  ggtitle(label=paste0("PD risk loci (p<5x10-9) vs. MAGMA (Z>=3.7) in LC (n=3) snRNA-seq clusters")) +
+  theme(plot.title = element_text(size = 12))
+dev.off()
+
+
+## All of those genes in the reported set that are PW markers
+markerList.t.pw <- lapply(markerList.t.pw, function(x){
+  rowData(sce.lc)$gene_name[match(x, rowData(sce.lc)$gene_id)]
+})
+
+print.these <- intersect(unlist(markerList.t.pw), fig2.genes)
+
+pdf(here("plots","snRNA-seq","exploration","MAGMA_PD-reported-loci_vs-markers_vlnPlots_19clusters.pdf"), width=8)
+plotExpressionCustom(sce = sce.lc,
+                     exprs_values = "logcounts",
+                     features = c("MAP4K4", "ABHD6"), 
+                     features_name = "",
+                     anno_name = "cellType.merged",
+                     ncol=3, point_alpha=0.4,
+                     scales="free_y", swap_rownames="gene_name") +
+  scale_color_manual(values = colors2print) +  
+  ggtitle(label=paste0("PD risk loci (p<5x10-9) that are top PW markers in LC (n=3) snRNA-seq clusters")) +
+  theme(plot.title = element_text(size = 12))
+dev.off()
+
+
+## And then ignoring the reported set; highest Z's (>=3.7) and also PW markers
+setdiff(intersect(topGenes.pd, unlist(markerList.t.pw)), print.intersecting)
+    # Just two (at this Z threshold): are most expressed in oligos, but not uniquely
+    # [1] "MAP4K4" "ABHD6" 
+
+
 
 
 ## Reproducibility information ====
@@ -362,10 +413,10 @@ Sys.time()
     # 
 proc.time()
     #    user   system  elapsed 
-    #  13.706    1.579 1609.032 
+    #  281.867     8.167 10593.873 
 options(width = 120)
 session_info()
-    #─ Session info ──────────────────────────────────────────────────────────────────
+    #─ Session info ────────────────────────────────────────────────────────────────────
     # setting  value
     # version  R version 4.1.2 Patched (2021-11-04 r81138)
     # os       CentOS Linux 7 (Core)
@@ -375,27 +426,35 @@ session_info()
     # collate  en_US.UTF-8
     # ctype    en_US.UTF-8
     # tz       US/Eastern
-    # date     2022-06-13
+    # date     2022-06-17
     # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
     # 
-    # ─ Packages ──────────────────────────────────────────────────────────────────────
+    # ─ Packages ────────────────────────────────────────────────────────────────────────
     # package              * version   date (UTC) lib source
     # assertthat             0.2.1     2019-03-21 [2] CRAN (R 4.1.0)
+    # beachmat               2.10.0    2021-10-26 [2] Bioconductor
+    # beeswarm               0.4.0     2021-06-01 [2] CRAN (R 4.1.2)
     # Biobase              * 2.54.0    2021-10-26 [2] Bioconductor
     # BiocGenerics         * 0.40.0    2021-10-26 [2] Bioconductor
     # BiocIO                 1.4.0     2021-10-26 [2] Bioconductor
+    # BiocNeighbors          1.12.0    2021-10-26 [2] Bioconductor
     # BiocParallel           1.28.3    2021-12-09 [2] Bioconductor
+    # BiocSingular           1.10.0    2021-10-26 [2] Bioconductor
     # Biostrings             2.62.0    2021-10-26 [2] Bioconductor
     # bitops                 1.0-7     2021-04-24 [2] CRAN (R 4.1.0)
     # cli                    3.3.0     2022-04-25 [2] CRAN (R 4.1.2)
     # colorspace             2.0-3     2022-02-21 [2] CRAN (R 4.1.2)
+    # cowplot                1.1.1     2020-12-30 [2] CRAN (R 4.1.2)
     # crayon                 1.5.1     2022-03-26 [2] CRAN (R 4.1.2)
     # DBI                    1.1.2     2021-12-20 [2] CRAN (R 4.1.2)
     # DelayedArray           0.20.0    2021-10-26 [2] Bioconductor
+    # DelayedMatrixStats     1.16.0    2021-10-26 [2] Bioconductor
+    # digest                 0.6.29    2021-12-01 [2] CRAN (R 4.1.2)
     # dotCall64              1.0-1     2021-02-11 [2] CRAN (R 4.1.0)
     # dplyr                  1.0.9     2022-04-28 [2] CRAN (R 4.1.2)
     # ellipsis               0.3.2     2021-04-29 [2] CRAN (R 4.1.0)
     # fansi                  1.0.3     2022-03-24 [2] CRAN (R 4.1.2)
+    # farver                 2.1.0     2021-02-28 [2] CRAN (R 4.1.0)
     # fields               * 13.3      2021-10-30 [2] CRAN (R 4.1.2)
     # fs                     1.5.2     2021-12-08 [2] CRAN (R 4.1.2)
     # gargle                 1.2.0     2021-07-02 [2] CRAN (R 4.1.0)
@@ -404,14 +463,18 @@ session_info()
     # GenomeInfoDbData       1.2.7     2021-11-01 [2] Bioconductor
     # GenomicAlignments      1.30.0    2021-10-26 [2] Bioconductor
     # GenomicRanges        * 1.46.1    2021-11-18 [2] Bioconductor
-    # ggplot2                3.3.6     2022-05-03 [2] CRAN (R 4.1.2)
+    # ggbeeswarm             0.6.0     2017-08-07 [2] CRAN (R 4.1.2)
+    # ggplot2              * 3.3.6     2022-05-03 [2] CRAN (R 4.1.2)
+    # ggrepel                0.9.1     2021-01-15 [2] CRAN (R 4.1.0)
     # glue                   1.6.2     2022-02-24 [2] CRAN (R 4.1.2)
     # googledrive            2.0.0     2021-07-08 [2] CRAN (R 4.1.0)
     # gridExtra              2.3       2017-09-09 [2] CRAN (R 4.1.0)
     # gtable                 0.3.0     2019-03-25 [2] CRAN (R 4.1.0)
     # here                 * 1.0.1     2020-12-13 [2] CRAN (R 4.1.2)
     # IRanges              * 2.28.0    2021-10-26 [2] Bioconductor
+    # irlba                  2.3.5     2021-12-06 [2] CRAN (R 4.1.2)
     # jaffelab             * 0.99.31   2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
+    # labeling               0.4.2     2020-10-20 [2] CRAN (R 4.1.0)
     # lattice                0.20-45   2021-09-22 [3] CRAN (R 4.1.2)
     # lifecycle              1.0.1     2021-09-24 [2] CRAN (R 4.1.2)
     # limma                  3.50.3    2022-04-07 [2] Bioconductor
@@ -425,35 +488,38 @@ session_info()
     # nlme                   3.1-157   2022-03-25 [3] CRAN (R 4.1.2)
     # pillar                 1.7.0     2022-02-01 [2] CRAN (R 4.1.2)
     # pkgconfig              2.0.3     2019-09-22 [2] CRAN (R 4.1.0)
-    # plyr                   1.8.7     2022-03-24 [2] CRAN (R 4.1.2)
     # purrr                  0.3.4     2020-04-17 [2] CRAN (R 4.1.0)
     # R6                     2.5.1     2021-08-19 [2] CRAN (R 4.1.2)
     # rafalib              * 1.0.0     2015-08-09 [1] CRAN (R 4.1.2)
     # RColorBrewer         * 1.1-3     2022-04-03 [2] CRAN (R 4.1.2)
     # Rcpp                   1.0.8.3   2022-03-17 [2] CRAN (R 4.1.2)
     # RCurl                  1.98-1.7  2022-06-09 [2] CRAN (R 4.1.2)
-    # reshape2               1.4.4     2020-04-09 [2] CRAN (R 4.1.0)
-    # restfulr               0.0.14    2022-06-05 [2] CRAN (R 4.1.2)
+    # restfulr               0.0.15    2022-06-16 [2] CRAN (R 4.1.2)
     # rjson                  0.2.21    2022-01-09 [2] CRAN (R 4.1.2)
     # rlang                  1.0.2     2022-03-04 [2] CRAN (R 4.1.2)
     # rprojroot              2.0.3     2022-04-02 [2] CRAN (R 4.1.2)
     # Rsamtools              2.10.0    2021-10-26 [2] Bioconductor
+    # rsvd                   1.0.5     2021-04-16 [2] CRAN (R 4.1.2)
     # rtracklayer          * 1.54.0    2021-10-26 [2] Bioconductor
     # S4Vectors            * 0.32.4    2022-03-24 [2] Bioconductor
+    # ScaledMatrix           1.2.0     2021-10-26 [2] Bioconductor
     # scales                 1.2.0     2022-04-13 [2] CRAN (R 4.1.2)
+    # scater                 1.22.0    2021-10-26 [2] Bioconductor
+    # scuttle                1.4.0     2021-10-26 [2] Bioconductor
     # segmented              1.6-0     2022-05-31 [1] CRAN (R 4.1.2)
     # sessioninfo          * 1.2.2     2021-12-06 [2] CRAN (R 4.1.2)
     # SingleCellExperiment * 1.16.0    2021-10-26 [2] Bioconductor
     # spam                 * 2.8-0     2022-01-06 [2] CRAN (R 4.1.2)
-    # stringi                1.7.6     2021-11-29 [2] CRAN (R 4.1.2)
-    # stringr                1.4.0     2019-02-10 [2] CRAN (R 4.1.0)
+    # sparseMatrixStats      1.6.0     2021-10-26 [2] Bioconductor
     # SummarizedExperiment * 1.24.0    2021-10-26 [2] Bioconductor
     # tibble                 3.1.7     2022-05-03 [2] CRAN (R 4.1.2)
     # tidyselect             1.1.2     2022-02-21 [2] CRAN (R 4.1.2)
     # utf8                   1.2.2     2021-07-24 [2] CRAN (R 4.1.0)
     # vctrs                  0.4.1     2022-04-13 [2] CRAN (R 4.1.2)
+    # vipor                  0.4.5     2017-03-22 [2] CRAN (R 4.1.2)
     # viridis              * 0.6.2     2021-10-13 [2] CRAN (R 4.1.2)
     # viridisLite          * 0.4.0     2021-04-13 [2] CRAN (R 4.1.0)
+    # withr                  2.5.0     2022-03-03 [2] CRAN (R 4.1.2)
     # XML                    3.99-0.10 2022-06-09 [2] CRAN (R 4.1.2)
     # XVector                0.34.0    2021-10-26 [2] Bioconductor
     # yaml                   2.3.5     2022-02-21 [2] CRAN (R 4.1.2)
@@ -463,6 +529,6 @@ session_info()
     # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
     # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
     # 
-    # ─────────────────────────────────────────────────────────────────────────────────
+    # ───────────────────────────────────────────────────────────────────────────────────
 
 
