@@ -295,6 +295,72 @@ for(i in names(list.visiumDE)){
 
 
 
+## Within-region pairwise correlation? ===============
+#  - How does it compare to cluster modularity ratio?
+
+## Using cluster-vs-all-others stats, gather Cohen's d (~ t-statistic as employed in previous work)
+#    See https://github.com/MarioniLab/scran/issues/57 for discussion/recommendation
+
+library(pheatmap)
+library(RColorBrewer)
+
+
+clusters.d <- lapply(markers.lc.t.1vAll, function(x){x[[2]]$std.logFC})
+# Take unique of top 100 / cell class
+topGenes.space <- unique(unlist(lapply(clusters.d, function(x){head(names(x), 100)})))
+# of length 1599
+
+# out of curiosity:
+length(intersect(topGenes.space, hdgs.lc))  # only 615
+
+
+# Subset and combine into matrix
+clusters.d <- lapply(clusters.d, function(x){x[topGenes.space]})
+clusters.d.mat <- do.call(cbind, clusters.d)
+
+# Correlation matrix
+cor.d.topMarkers <- cor(clusters.d.mat)
+
+# Reproduce cluster modularity (from '04_clusterAgglomeration.R') so it's in the same pdf
+library(bluster)
+
+load(here("processed_data","SCE","graph_communities_glmpcamnn_LC.rda"), verbose=T)
+    # snn.gr.glmpcamnn, clusters.glmpcamnn
+
+mod.ratio.merged.HC <- pairwiseModularity(graph = snn.gr.glmpcamnn,
+                                          clusters = sce.lc$cellType.merged,
+                                          as.ratio=TRUE)
+
+# Remove 'ambig.lowNTx_' annotations
+mod.ratio.merged.HC <- mod.ratio.merged.HC[-grep("ambig.lowNTx_", rownames(mod.ratio.merged.HC)),
+                                           -grep("ambig.lowNTx_", colnames(mod.ratio.merged.HC))]
+
+theSeq.all = seq(-1, 1, by = 0.025)
+my.col.all <- colorRampPalette(brewer.pal(7, "PRGn"))(length(theSeq.all)-1)
+
+
+pdf(here("plots", "snRNA-seq", "heatmaps_correlation_CohensD_vs_clusterMod_19cellClasses.pdf"))
+pheatmap(cor.d.topMarkers,
+         color=my.col.all,
+         breaks=theSeq.all,
+         display_numbers=T, fontsize_number=7,
+         fontsize_row=9, fontsize_col=9,
+         main="Correlation of within-region cluster Cohen's D \n (top 100 enriched genes/cluster space)")
+grid::grid.text(label="Pearson's r",x=0.96,y=0.48, gp=grid::gpar(fontsize=7))
+
+# Cluster modularity
+pheatmap(log2(mod.ratio.merged.HC+1), cluster_rows=FALSE, cluster_cols=FALSE,
+         color=colorRampPalette(c("white", "blue"))(100),
+         main="Modularity ratio for 19 HC-merged clusters in LC (n=3)",
+         fontsize_row=7, fontsize_col=7, angle_col=90,
+         display_numbers=T, number_format="%.1f", na_col="darkgrey")
+grid::grid.text(label="log2(ratio)",x=0.97,y=0.64, gp=grid::gpar(fontsize=7))
+dev.off()
+
+
+
+
+
 
 ## Reproducibility information ====
 print('Reproducibility information:')
