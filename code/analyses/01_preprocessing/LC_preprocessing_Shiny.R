@@ -1,12 +1,12 @@
 ####################################################
 # LC project
 # Preprocessing (with additional info for Shiny app)
-# Lukas Weber, Mar 2022
+# Lukas Weber, Jun 2022
 ####################################################
 
-# note: using SpatialExperiment version 1.5.4 (Bioconductor version 3.15)
+# note: using R 4.2, Bioconductor 3.15, SpatialExperiment 1.6.0
 
-# module load conda_R/4.1.x
+# module load conda_R/devel
 # Rscript filename.R
 
 # file location:
