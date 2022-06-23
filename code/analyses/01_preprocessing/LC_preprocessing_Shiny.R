@@ -1,8 +1,7 @@
-########################################################
-# LC project
-# Preprocessing and additional information for Shiny app
+############################
+# LC analyses: preprocessing
 # Lukas Weber, Jun 2022
-########################################################
+############################
 
 # note: using R 4.2, Bioconductor 3.15, SpatialExperiment 1.6.0
 
@@ -15,8 +14,6 @@
 
 library(SpatialExperiment)
 library(here)
-library(scater)
-library(scran)
 
 
 # -------------------
@@ -367,57 +364,12 @@ colData(spe)$counts_TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
 colData(spe)$counts_SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
 
-# --------------------
-# quality control (QC)
-# --------------------
-
-# note: keep all spots for Shiny app
-# QC for downstream analyses will be performed in next script
-
-
-# ---------------------------
-# normalization and logcounts
-# ---------------------------
-
-# using scater and scran packages
-
-# quick clustering for pool-based size factors
-# with blocks by sample
-set.seed(123)
-qclus <- quickCluster(spe, block = colData(spe)$sample_id)
-
-table(qclus)
-table(colData(spe)$sample_id, qclus)
-
-# calculate size factors
-spe <- computeSumFactors(spe, cluster = qclus)
-summary(sizeFactors(spe))
-
-# note: remove small number of spots with size factors == 0
-table(sizeFactors(spe) == 0)
-sum(is.na(sizeFactors(spe)))
-dim(spe)
-
-spe <- spe[, !(sizeFactors(spe) == 0)]
-dim(spe)
-
-# calculate logcounts
-spe <- logNormCounts(spe)
-assayNames(spe)
-
-
-## Genes of interest
-## logcounts per spot for some key genes of interest
-colData(spe)$logcounts_TH <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"), ]
-colData(spe)$logcounts_SLC6A2 <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
-
-
 # -----------
 # save object
 # -----------
 
 # save as .rds and .RData
-fn_out <- here("processed_data", "SPE", "LC_Shiny")
+fn_out <- here("processed_data", "SPE", "LC_preprocessing")
 saveRDS(spe, paste0(fn_out, ".rds"))
 save(spe, file = paste0(fn_out, ".RData"))
 
