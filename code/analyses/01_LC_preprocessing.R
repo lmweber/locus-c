@@ -138,8 +138,12 @@ head(spatialCoords(spe))
 
 
 # -------------------------------------
-# add additional sample info in colData
+# add additional information in colData
 # -------------------------------------
+
+# convert sample IDs to factor
+colData(spe)$sample_id <- factor(colData(spe)$sample_id, levels = sample_ids)
+
 
 # get number of spots per sample (with samples in correct order)
 n_spots <- table(colData(spe)$sample_id)[sample_ids]
@@ -151,14 +155,14 @@ stopifnot(length(round_ids) == length(n_spots))
 rep_donor_ids <- rep(donor_ids, times = n_spots)
 stopifnot(length(rep_donor_ids) == ncol(spe))
 
-colData(spe)$donor_id <- rep_donor_ids
+colData(spe)$donor_id <- factor(rep_donor_ids, levels = unique(donor_ids))
 
 
 # round IDs for each spot
 rep_round_ids <- rep(round_ids, times = n_spots)
 stopifnot(length(rep_round_ids) == ncol(spe))
 
-colData(spe)$round_id <- rep_round_ids
+colData(spe)$round_id <- factor(rep_round_ids, levels = unique(round_ids))
 
 
 # key IDs (unique combination of sample IDs and barcode IDs)
