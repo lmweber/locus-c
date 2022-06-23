@@ -1,8 +1,8 @@
-####################################################
+########################################################
 # LC project
-# Preprocessing (with additional info for Shiny app)
+# Preprocessing and additional information for Shiny app
 # Lukas Weber, Jun 2022
-####################################################
+########################################################
 
 # note: using R 4.2, Bioconductor 3.15, SpatialExperiment 1.6.0
 
@@ -23,7 +23,7 @@ library(scran)
 # experiment metadata
 # -------------------
 
-# sample IDs, additional sample info, paths to input files, other metadata
+# sample IDs, other metadata, paths to input files
 
 # sample IDs
 sample_ids <- c(
@@ -32,12 +32,15 @@ sample_ids <- c(
   "Br6522_LC_round3", "Br8079_LC_round3", "Br2701_LC_round3", "Br8153_LC_round3"
 )
 
-# number of samples per round
+# donor IDs
+donor_ids <- gsub("_.*$", "", sample_ids)
+
+# round IDs
 n_round1 <- 2
 n_round2 <- 3
 n_round3 <- 4
 
-rounds <- c(
+round_ids <- c(
   rep("round1", n_round1), 
   rep("round2", n_round2), 
   rep("round3", n_round3)
@@ -94,7 +97,8 @@ part_ids <- list(
 n_parts <- unname(sapply(files_annot, length))
 
 
-stopifnot(length(sample_ids) == length(rounds))
+stopifnot(length(sample_ids) == length(donor_ids))
+stopifnot(length(sample_ids) == length(round_ids))
 stopifnot(length(sample_ids) == length(paths_spaceranger))
 stopifnot(length(sample_ids) == length(paths_vistoseg))
 stopifnot(length(sample_ids) == length(files_annot))
@@ -104,10 +108,11 @@ stopifnot(all(sample_ids == names(files_annot)))
 stopifnot(all(sample_ids == names(part_ids)))
 
 
-# combined data frame (except lists)
+# combined data frame of sample-level information
 df_samples <- data.frame(
   sample_id = sample_ids, 
-  round_id = rounds, 
+  donor_id = donor_ids, 
+  round_id = round_ids, 
   n_parts = n_parts, 
   path_spaceranger = paths_spaceranger, 
   path_vistoseg = paths_vistoseg
@@ -116,15 +121,9 @@ df_samples <- data.frame(
 df_samples
 
 
-# to do:
-# - add column for donor ID
-# - add column for round ID
-# - add sample_part_id without NAs
-
-
-# ----------------------------------
-# load data from spaceranger outputs
-# ----------------------------------
+# -----------------------------------
+# load data from Space Ranger outputs
+# -----------------------------------
 
 spe <- read10xVisium(
   samples = here(df_samples$path_spaceranger, df_samples$sample_id, "outs"), 
@@ -137,6 +136,7 @@ spe <- read10xVisium(
 
 spe
 dim(spe)
+table(colData(spe)$sample_id)
 head(spatialCoords(spe))
 
 
@@ -144,26 +144,35 @@ head(spatialCoords(spe))
 # add additional sample info in colData
 # -------------------------------------
 
-# round IDs
-
 # get number of spots per sample (with samples in correct order)
 n_spots <- table(colData(spe)$sample_id)[sample_ids]
 n_spots
-stopifnot(length(rounds) == length(n_spots))
+stopifnot(length(round_ids) == length(n_spots))
 
-# repeat round IDs for each spot
-rep_rounds <- rep(rounds, times = n_spots)
-stopifnot(length(rep_rounds) == ncol(spe))
 
-colData(spe)$round_id <- rep_rounds
+# donor IDs for each spot
+rep_donor_ids <- rep(donor_ids, times = n_spots)
+stopifnot(length(rep_donor_ids) == ncol(spe))
+
+colData(spe)$donor_id <- rep_donor_ids
+
+
+# round IDs for each spot
+rep_round_ids <- rep(round_ids, times = n_spots)
+stopifnot(length(rep_round_ids) == ncol(spe))
+
+colData(spe)$round_id <- rep_round_ids
 
 
 # key IDs (unique combination of sample IDs and barcode IDs)
-
 key_ids <- paste(colData(spe)$sample_id, rownames(colData(spe)), sep = "_")
 
+# store in column names, colData, and row names of colData
+stopifnot(length(key_ids) == ncol(spe))
+colnames(spe) <- key_ids
 colData(spe)$key_id <- key_ids
-rownames(colData(spe)) <- key_ids
+
+stopifnot(all(rownames(colData(spe)) == key_ids))
 
 
 # -------------------------------
@@ -215,7 +224,7 @@ colData(spe)$cell_count <- vistoseg_all$count
 # load .csv files containing manual annotations and store as follows:
 # - one column with region-level annotations
 # - one column with spot-level annotations
-# - one column identifying parts of sample
+# - one column identifying parts of each sample
 
 colData(spe)$annot_region <- as.logical(NA)
 colData(spe)$part_id <- as.character(NA)
@@ -249,15 +258,15 @@ for (i in seq_along(files_annot)) {
   }
 }
 
-# replace NA values with FALSE
+# replace NA values for annotations with FALSE
 colData(spe)$annot_region[is.na(colData(spe)$annot_region)] <- FALSE
 colData(spe)$annot_spot[is.na(colData(spe)$annot_spot)] <- FALSE
 
-# combined sample IDs and part IDs
-is_nas <- is.na(colData(spe)$part_id)
-colData(spe)$sample_part_id <- as.character(NA)
-colData(spe)[!is_nas, "sample_part_id"] <- 
-  paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")[!is_nas]
+# replace NA values for part IDs with "none"
+colData(spe)$part_id[is.na(colData(spe)$part_id)] <- "none"
+
+# store combined sample IDs and part IDs
+colData(spe)$sample_part_id <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
 
 
 # -----------------------------
@@ -269,7 +278,9 @@ colData(spe)[!is_nas, "sample_part_id"] <-
 
 ## Spot info
 
-colData(spe)$key <- paste(colData(spe)$sample_id, rownames(colData(spe)), sep = "_")
+# using expected column name
+colData(spe)$key <- colData(spe)$key_id
+
 colData(spe)$sum_umi <- colSums(counts(spe))
 colData(spe)$sum_gene <- colSums(counts(spe) > 0)
 
@@ -280,7 +291,7 @@ colData(spe)$sum_gene <- colSums(counts(spe) > 0)
 gtf <- rtracklayer::import(
   here("data", "refdata-gex-GRCh38-2020-A/genes/genes.gtf")
 )
-## Subject to genes only
+## Genes only
 gtf <- gtf[gtf$type == "gene"]
 ## Set the names to be the gene IDs
 names(gtf) <- gtf$gene_id
@@ -291,9 +302,9 @@ stopifnot(all(!is.na(match_genes)))
 ## Keep only some columns from the gtf
 mcols(gtf) <- mcols(gtf)[, c("source", "type", "gene_id", "gene_version", 
                              "gene_name", "gene_type")]
-## Add the gene info to our SPE object
+## Add the gene info to SPE object
 rowRanges(spe) <- gtf[match_genes]
-## Inspect the gene annotation data we added
+## Inspect the gene annotation data
 rowRanges(spe)
 
 
@@ -319,7 +330,7 @@ no_expr <- which(rowSums(counts(spe)) == 0)
 length(no_expr)
 ## Proportion of genes with no counts
 length(no_expr) / nrow(spe)
-## Filter object
+## Remove from object
 spe <- spe[-no_expr, , drop = FALSE]
 
 ## Remove spots with no counts
@@ -328,7 +339,7 @@ spots_no_counts <- which(colData(spe)$sum_umi == 0)
 length(spots_no_counts)
 ## Proportion of spots with no counts
 length(spots_no_counts) / ncol(spe)
-## Filter object
+## Remove from object
 spe <- spe[, -spots_no_counts, drop = FALSE]
 
 dim(spe)
@@ -351,52 +362,43 @@ colData(spe)$ManualAnnotation <- "NA"
 
 
 ## Genes of interest
-## UMIs per spot for genes of interest
-colData(spe)$TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
-colData(spe)$DBH <- counts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
-colData(spe)$SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
-colData(spe)$SLC6A4 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A4"), ]
-colData(spe)$SLC18A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), ]
-colData(spe)$DDC <- counts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
-colData(spe)$GCH1 <- counts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
-colData(spe)$MAOA <- counts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
-
-## to do: add TPH2
+## UMIs per spot for some key genes of interest
+colData(spe)$counts_TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
+colData(spe)$counts_SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
 
 # --------------------
 # quality control (QC)
 # --------------------
 
-# using scater package
-
 # note: keep all spots for Shiny app
-# QC for downstream analyses is performed in next script
+# QC for downstream analyses will be performed in next script
 
 
 # ---------------------------
 # normalization and logcounts
 # ---------------------------
 
-# using scran package
+# using scater and scran packages
 
 # quick clustering for pool-based size factors
 # with blocks by sample
 set.seed(123)
 qclus <- quickCluster(spe, block = colData(spe)$sample_id)
-table(qclus)
 
+table(qclus)
 table(colData(spe)$sample_id, qclus)
 
 # calculate size factors
 spe <- computeSumFactors(spe, cluster = qclus)
 summary(sizeFactors(spe))
-hist(sizeFactors(spe), breaks = 40)
 
 # note: remove small number of spots with size factors == 0
-table(sizeFactors(spe) > 0)
+table(sizeFactors(spe) == 0)
+sum(is.na(sizeFactors(spe)))
 dim(spe)
-spe <- spe[, sizeFactors(spe) > 0]
+
+spe <- spe[, !(sizeFactors(spe) == 0)]
 dim(spe)
 
 # calculate logcounts
@@ -405,22 +407,14 @@ assayNames(spe)
 
 
 ## Genes of interest
-## logcounts per spot for genes of interest
-colData(spe)$TH_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"), ]
-colData(spe)$DBH_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
-colData(spe)$SLC6A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
-colData(spe)$SLC6A4_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A4"), ]
-colData(spe)$SLC18A2_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC18A2"), ]
-colData(spe)$DDC_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "DDC"), ]
-colData(spe)$GCH1_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "GCH1"), ]
-colData(spe)$MAOA_logcounts <- logcounts(spe)[which(rowData(spe)$gene_name == "MAOA"), ]
-
-## to do: add TPH2
+## logcounts per spot for some key genes of interest
+colData(spe)$logcounts_TH <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"), ]
+colData(spe)$logcounts_SLC6A2 <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
 
-# -------------------------
-# save object for Shiny app
-# -------------------------
+# -----------
+# save object
+# -----------
 
 # save as .rds and .RData
 fn_out <- here("processed_data", "SPE", "LC_Shiny")
