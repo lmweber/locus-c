@@ -321,9 +321,14 @@ colData(spe)$expr_chrM <- colSums(counts(spe)[is_mito, , drop = FALSE])
 colData(spe)$expr_chrM_ratio <- colData(spe)$expr_chrM / colData(spe)$sum_umi
 
 
-## Filter zeros (genes and spots)
-
+## Spots over tissue
+## Keep only spots over tissue
+spe <- spe[, colData(spe)$in_tissue]
 dim(spe)
+
+
+## Filter zeros (genes and spots)
+## Note: do this after subsetting spots over tissue to avoid creating new zeros
 
 ## Remove genes with no counts
 no_expr <- which(rowSums(counts(spe)) == 0)
@@ -343,12 +348,6 @@ length(spots_no_counts) / ncol(spe)
 ## Remove from object
 spe <- spe[, -spots_no_counts, drop = FALSE]
 
-dim(spe)
-
-
-## Spots over tissue
-## Keep only spots over tissue
-spe <- spe[, colData(spe)$in_tissue]
 dim(spe)
 
 
