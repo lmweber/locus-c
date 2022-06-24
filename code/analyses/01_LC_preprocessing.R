@@ -270,20 +270,12 @@ colData(spe)$part_id[is.na(colData(spe)$part_id)] <- "none"
 colData(spe)$sample_part_id <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
 
 
-# -----------------------------
-# additional info for Shiny app
-# -----------------------------
+# ---------------------------
+# additional gene information
+# ---------------------------
 
 # using code from Leonardo Collado-Torres available at:
 # http://research.libd.org/spatialLIBD/articles/TenX_data_download.html
-
-## Spot info
-
-# using expected column name
-colData(spe)$key <- colData(spe)$key_id
-
-colData(spe)$sum_umi <- colSums(counts(spe))
-colData(spe)$sum_gene <- colSums(counts(spe) > 0)
 
 
 ## Gene info
@@ -307,64 +299,6 @@ mcols(gtf) <- mcols(gtf)[, c("source", "type", "gene_id", "gene_version",
 rowRanges(spe) <- gtf[match_genes]
 ## Inspect the gene annotation data
 rowRanges(spe)
-
-
-## Additional info for spatialLIBD
-
-## Add information used by spatialLIBD
-rowData(spe)$gene_search <- paste(
-  rowData(spe)$gene_name, rowData(spe)$gene_id, sep = "; "
-)
-## Compute chrM expression and chrM expression ratio
-is_mito <- which(seqnames(spe) == "chrM")
-colData(spe)$expr_chrM <- colSums(counts(spe)[is_mito, , drop = FALSE])
-colData(spe)$expr_chrM_ratio <- colData(spe)$expr_chrM / colData(spe)$sum_umi
-
-
-## Spots over tissue
-## Keep only spots over tissue
-spe <- spe[, colData(spe)$in_tissue]
-dim(spe)
-
-
-## Filter zeros (genes and spots)
-## Note: do this after subsetting spots over tissue to avoid creating new zeros
-
-## Remove genes with zero counts
-no_expr <- which(rowSums(counts(spe)) == 0)
-## Number of genes with no counts
-length(no_expr)
-## Proportion of genes with no counts
-length(no_expr) / nrow(spe)
-## Remove from object
-spe <- spe[-no_expr, , drop = FALSE]
-
-## Remove spots with zero counts
-spots_no_counts <- which(colData(spe)$sum_umi == 0)
-## Number of spots with no counts
-length(spots_no_counts)
-## Proportion of spots with no counts
-length(spots_no_counts) / ncol(spe)
-## Remove from object
-spe <- spe[, -spots_no_counts, drop = FALSE]
-
-dim(spe)
-
-
-## Default cluster labels
-## Add a column of default cluster labels
-colData(spe)$all <- "all"
-
-
-## Manual annotations
-## Add a variable for saving manual annotations
-colData(spe)$ManualAnnotation <- "NA"
-
-
-## Genes of interest
-## UMIs per spot for some key genes of interest
-colData(spe)$counts_TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
-colData(spe)$counts_SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
 
 # -----------
