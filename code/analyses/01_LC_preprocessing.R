@@ -330,7 +330,7 @@ dim(spe)
 ## Filter zeros (genes and spots)
 ## Note: do this after subsetting spots over tissue to avoid creating new zeros
 
-## Remove genes with no counts
+## Remove genes with zero counts
 no_expr <- which(rowSums(counts(spe)) == 0)
 ## Number of genes with no counts
 length(no_expr)
@@ -339,7 +339,7 @@ length(no_expr) / nrow(spe)
 ## Remove from object
 spe <- spe[-no_expr, , drop = FALSE]
 
-## Remove spots with no counts
+## Remove spots with zero counts
 spots_no_counts <- which(colData(spe)$sum_umi == 0)
 ## Number of spots with no counts
 length(spots_no_counts)
