@@ -294,7 +294,7 @@ for (g in seq_along(genes_nicotinic_acetylcholine)) {
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  fn <- file.path(dir_plots, "genes_nicotinic_acetylcholine", 
+  fn <- file.path(dir_plots, "nicotinic_acetylcholine", 
                   paste0("counts_", genes_nicotinic_acetylcholine[g]))
   ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
   ggsave(paste0(fn, ".png"), width = 9, height = 4)
@@ -324,7 +324,7 @@ for (g in seq_along(genes_serotonin)) {
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  fn <- file.path(dir_plots, "genes_serotonin", 
+  fn <- file.path(dir_plots, "serotonin", 
                   paste0("counts_", genes_serotonin[g]))
   ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
   ggsave(paste0(fn, ".png"), width = 9, height = 4)
