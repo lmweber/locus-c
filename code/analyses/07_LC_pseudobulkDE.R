@@ -437,7 +437,7 @@ ggplot(df, aes(x = mean, y = logFC, color = sig, label = gene)) +
   geom_hline(yintercept = -log2(2), lty = "dashed", color = "royalblue") + 
   labs(x = "mean logcounts (pseudobulked LC and WM)", 
        y = "log fold change") + 
-  ggtitle("Pseudobuledk DE tests: LC vs. WM") + 
+  ggtitle("Pseudobulked DE tests: LC vs. WM") + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
@@ -481,11 +481,11 @@ df_stringent <- df_stringent[order(df_stringent$FDR), ]
 
 # save .csv files
 fn_all <- file.path(dir_outputs, "LC_pseudobulkDE_all.csv")
-write.csv(df_all, file = fn, row.names = FALSE)
+write.csv(df_all, file = fn_all, row.names = FALSE)
 
 fn_sig <- file.path(dir_outputs, "LC_pseudobulkDE_sigGenes.csv")
-write.csv(df_sig, file = fn, row.names = FALSE)
+write.csv(df_sig, file = fn_sig, row.names = FALSE)
 
 fn_stringent <- file.path(dir_outputs, "LC_pseudobulkDE_stringentGenes.csv")
-write.csv(fn_stringent, file = fn, row.names = FALSE)
+write.csv(fn_stringent, file = fn_stringent, row.names = FALSE)
 
