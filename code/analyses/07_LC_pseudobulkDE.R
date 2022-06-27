@@ -458,7 +458,7 @@ df_all <- data.frame(
   mean_logcounts_LC = mean_LC, 
   mean_logcounts_LCWM = (mean_WM + mean_LC) / 2, 
   logFC = logfc, 
-  pvals = p_vals, 
+  pval = p_vals, 
   FDR = fdrs, 
   significant = sig, 
   stringent = stringent
@@ -487,5 +487,5 @@ fn_sig <- file.path(dir_outputs, "LC_pseudobulkDE_sigGenes.csv")
 write.csv(df_sig, file = fn_sig, row.names = FALSE)
 
 fn_stringent <- file.path(dir_outputs, "LC_pseudobulkDE_stringentGenes.csv")
-write.csv(fn_stringent, file = fn_stringent, row.names = FALSE)
+write.csv(df_stringent, file = fn_stringent, row.names = FALSE)
 
