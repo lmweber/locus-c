@@ -166,7 +166,7 @@ for (s in seq_along(sample_ids)) {
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle("TH expression") + 
+    ggtitle(paste0("TH: ", sample_ids[s])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           plot.title = element_text(face = "italic"), 
@@ -191,7 +191,7 @@ for (s in seq_along(sample_ids)) {
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle("SLC6A2 expression") + 
+    ggtitle(paste0("SLC6A2: ", sample_ids[s])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           plot.title = element_text(face = "italic"), 
@@ -216,7 +216,7 @@ for (s in seq_along(sample_ids)) {
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle("TPH2 expression") + 
+    ggtitle(paste0("TPH2: ", sample_ids[s])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           plot.title = element_text(face = "italic"), 
@@ -241,7 +241,7 @@ for (s in seq_along(sample_ids)) {
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle("SLC6A4 expression") + 
+    ggtitle(paste0("SLC6A4: ", sample_ids[s])) + 
     theme_bw() + 
     theme(panel.grid = element_blank(), 
           plot.title = element_text(face = "italic"), 
