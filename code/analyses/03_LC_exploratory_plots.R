@@ -161,7 +161,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = TH)) + 
-    geom_point(size = 0.2) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -186,7 +186,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = SLC6A2)) + 
-    geom_point(size = 0.2) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -211,7 +211,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = TPH2)) + 
-    geom_point(size = 0.2) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -236,7 +236,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = SLC6A4)) + 
-    geom_point(size = 0.2) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
