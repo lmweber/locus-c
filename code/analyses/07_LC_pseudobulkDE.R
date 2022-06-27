@@ -41,7 +41,7 @@ dir_outputs <- here("outputs", "07_pseudobulkDE")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
+fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)

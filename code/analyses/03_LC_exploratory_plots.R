@@ -30,7 +30,7 @@ dir_plots <- here("plots", "03_exploratory_plots")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
+fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
