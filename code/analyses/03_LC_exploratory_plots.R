@@ -37,6 +37,8 @@ dim(spe)
 
 table(colData(spe)$sample_id)
 
+sample_ids <- levels(colData(spe)$sample_id)
+
 
 # ------------------------
 # select genes of interest
@@ -57,23 +59,23 @@ df <- as.data.frame(cbind(
 ))
 
 
-# ----------------------
-# plot genes of interest
-# ----------------------
+# ---------------------------------------
+# plot genes of interest: multiple panels
+# ---------------------------------------
 
 # plot TH expression
-
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                color = TH)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "TH counts") + 
+                       name = "counts") + 
   scale_y_reverse() + 
   ggtitle("TH expression") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
@@ -84,18 +86,18 @@ ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
 
 # plot SLC6A2 expression
-
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                color = SLC6A2)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "SLC6A2 counts") + 
+                       name = "counts") + 
   scale_y_reverse() + 
   ggtitle("SLC6A2 expression") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
@@ -106,18 +108,18 @@ ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
 
 # plot TPH2 expression
-
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                color = TPH2)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "TPH2 counts") + 
+                       name = "counts") + 
   scale_y_reverse() + 
   ggtitle("TPH2 expression") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
@@ -128,18 +130,18 @@ ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
 
 # plot SLC6A4 expression
-
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                color = SLC6A4)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "SLC6A4 counts") + 
+                       name = "counts") + 
   scale_y_reverse() + 
   ggtitle("SLC6A4 expression") + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
@@ -147,6 +149,110 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
 fn <- file.path(dir_plots, "counts_SLC6A4")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
 ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# -----------------------------------------
+# plot genes of interest: individual panels
+# -----------------------------------------
+
+# plot TH expression
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+                     color = TH)) + 
+    geom_point(size = 0.2) + 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                         name = "counts") + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle("TH expression") + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          plot.title = element_text(face = "italic"), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "TH", paste0("counts_TH_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+}
+
+
+# plot SLC6A2 expression
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+                     color = SLC6A2)) + 
+    geom_point(size = 0.2) + 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                         name = "counts") + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle("SLC6A2 expression") + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          plot.title = element_text(face = "italic"), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "SLC6A2", paste0("counts_SLC6A2_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+}
+
+
+# plot TPH2 expression
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+                     color = TPH2)) + 
+    geom_point(size = 0.2) + 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                         name = "counts") + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle("TPH2 expression") + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          plot.title = element_text(face = "italic"), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "TPH2", paste0("counts_TPH2_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+}
+
+
+# plot SLC6A4 expression
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+                     color = SLC6A4)) + 
+    geom_point(size = 0.2) + 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                         name = "counts") + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle("SLC6A4 expression") + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          plot.title = element_text(face = "italic"), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "SLC6A4", paste0("counts_SLC6A4_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+}
 
 
 # ------------------------------
@@ -177,12 +283,13 @@ for (g in seq_along(genes_nicotinic_acetylcholine)) {
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.1) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = paste0(genes_nicotinic_acetylcholine[g], " counts")) + 
+                         name = "counts") + 
     scale_y_reverse() + 
     ggtitle(paste0(genes_nicotinic_acetylcholine[g], " expression")) + 
     theme_bw() + 
     theme(aspect.ratio = 1, 
           panel.grid = element_blank(), 
+          plot.title = element_text(face = "italic"), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
@@ -206,12 +313,13 @@ for (g in seq_along(genes_serotonin)) {
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.1) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = paste0(genes_serotonin[g], " counts")) + 
+                         name = "counts") + 
     scale_y_reverse() + 
     ggtitle(paste0(genes_serotonin[g], " expression")) + 
     theme_bw() + 
     theme(aspect.ratio = 1, 
           panel.grid = element_blank(), 
+          plot.title = element_text(face = "italic"), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
