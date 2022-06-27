@@ -67,7 +67,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
                color = TH)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
-  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                        name = "TH counts") + 
   scale_y_reverse() + 
   ggtitle("TH expression") + 
@@ -89,7 +89,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
                color = SLC6A2)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
-  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                        name = "SLC6A2 counts") + 
   scale_y_reverse() + 
   ggtitle("SLC6A2 expression") + 
@@ -111,7 +111,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
                color = TPH2)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
-  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                        name = "TPH2 counts") + 
   scale_y_reverse() + 
   ggtitle("TPH2 expression") + 
@@ -133,7 +133,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
                color = SLC6A4)) + 
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
-  scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                        name = "SLC6A4 counts") + 
   scale_y_reverse() + 
   ggtitle("SLC6A4 expression") + 
@@ -176,7 +176,7 @@ for (g in seq_along(genes_nicotinic_acetylcholine)) {
                       color = gene)) + 
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.1) + 
-    scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = paste0(genes_nicotinic_acetylcholine[g], " counts")) + 
     scale_y_reverse() + 
     ggtitle(paste0(genes_nicotinic_acetylcholine[g], " expression")) + 
@@ -205,7 +205,7 @@ for (g in seq_along(genes_serotonin)) {
                       color = gene)) + 
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.1) + 
-    scale_color_gradient(low = "gray85", high = "red", trans = "sqrt", 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = paste0(genes_serotonin[g], " counts")) + 
     scale_y_reverse() + 
     ggtitle(paste0(genes_serotonin[g], " expression")) + 
