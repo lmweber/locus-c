@@ -12,15 +12,6 @@
 
 library(SpatialExperiment)
 library(here)
-library(scater)
-library(scran)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-
-
-# directory to save plots
-dir_plots <- here("plots", "02a_filtering")
 
 
 # ---------
