@@ -161,7 +161,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = TH)) + 
-    geom_point(size = 0.3) + 
+    geom_point(size = 0.35) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -175,8 +175,8 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "TH", paste0("counts_TH_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
-  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4, height = 3)
 }
 
 
@@ -186,7 +186,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = SLC6A2)) + 
-    geom_point(size = 0.3) + 
+    geom_point(size = 0.35) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -200,8 +200,8 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "SLC6A2", paste0("counts_SLC6A2_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
-  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4, height = 3)
 }
 
 
@@ -211,7 +211,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = TPH2)) + 
-    geom_point(size = 0.3) + 
+    geom_point(size = 0.35) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -225,8 +225,8 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "TPH2", paste0("counts_TPH2_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
-  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4, height = 3)
 }
 
 
@@ -236,7 +236,7 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = SLC6A4)) + 
-    geom_point(size = 0.3) + 
+    geom_point(size = 0.35) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
@@ -250,8 +250,8 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "SLC6A4", paste0("counts_SLC6A4_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3)
-  ggsave(paste0(fn, ".png"), width = 3.75, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4, height = 3)
 }
 
 
