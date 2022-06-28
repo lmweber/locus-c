@@ -384,6 +384,75 @@ ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
 ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
 
+# -----------------------------------
+# plot annotations: individual panels
+# -----------------------------------
+
+# plot manual annotations before removing low-quality spots
+
+# plot annotated regions
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+    geom_point(aes(color = in_tissue), size = 0.35) + 
+    scale_color_manual(values = "gray80", name = "tissue") + 
+    guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
+    new_scale_color() + 
+    geom_point(data = df_sub[df_sub$annot_region, , drop = FALSE], 
+               aes(color = annot_region), size = 0.35) + 
+    scale_color_manual(values = "red", name = "annotated") + 
+    guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle(paste0("Annotations: ", sample_ids[s])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "annotations_regions", 
+                  paste0("annotations_regions_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 4.25, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.25, height = 3)
+}
+
+
+# plot annotated regions and spots
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
+    geom_point(aes(color = in_tissue), size = 0.35) + 
+    scale_color_manual(values = "gray80", name = "tissue") + 
+    guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
+    new_scale_color() + 
+    geom_point(data = df_sub[df_sub$annot_region, , drop = FALSE], 
+               aes(color = annot_region), size = 0.35) + 
+    scale_color_manual(values = "red", name = "annotated\nregions") + 
+    guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
+    new_scale_color() + 
+    geom_point(data = df_sub[df_sub$annot_spot, , drop = FALSE], 
+               aes(color = annot_spot), size = 0.35) + 
+    scale_color_manual(values = "black", name = "annotated\nspots") + 
+    guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle(paste0("Annotations: ", sample_ids[s])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "annotations_regionsAndSpots", 
+                  paste0("annotations_regionsAndSpots_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 4.25, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.25, height = 3)
+}
+
+
 # --------------------------------------
 # remove discarded spots from SPE object
 # --------------------------------------
