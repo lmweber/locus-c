@@ -163,7 +163,7 @@ for (s in seq_along(sample_ids)) {
                      color = TH)) + 
     geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = "counts") + 
+                         name = "counts", breaks = range(df_sub$TH)) + 
     coord_fixed() + 
     scale_y_reverse() + 
     ggtitle("TH") + 
@@ -188,7 +188,7 @@ for (s in seq_along(sample_ids)) {
                      color = SLC6A2)) + 
     geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = "counts") + 
+                         name = "counts", breaks = range(df_sub$SLC6A2)) + 
     coord_fixed() + 
     scale_y_reverse() + 
     ggtitle("SLC6A2") + 
@@ -213,7 +213,7 @@ for (s in seq_along(sample_ids)) {
                      color = TPH2)) + 
     geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = "counts") + 
+                         name = "counts", breaks = range(df_sub$TPH2)) + 
     coord_fixed() + 
     scale_y_reverse() + 
     ggtitle("TPH2") + 
@@ -238,7 +238,7 @@ for (s in seq_along(sample_ids)) {
                      color = SLC6A4)) + 
     geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = "counts") + 
+                         name = "counts", breaks = range(df_sub$SLC6A4)) + 
     coord_fixed() + 
     scale_y_reverse() + 
     ggtitle("SLC6A4") + 
