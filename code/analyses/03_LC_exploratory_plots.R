@@ -161,22 +161,22 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = TH)) + 
-    geom_point(size = 0.35) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle(paste0("TH: ", sample_ids[s])) + 
+    ggtitle("TH") + 
     theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          plot.title = element_text(face = "italic"), 
+    theme(plot.title = element_text(face = "bold.italic"), 
+          panel.grid = element_blank(), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "TH", paste0("counts_TH_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
-  ggsave(paste0(fn, ".png"), width = 4, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
 }
 
 
@@ -186,22 +186,22 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = SLC6A2)) + 
-    geom_point(size = 0.35) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle(paste0("SLC6A2: ", sample_ids[s])) + 
+    ggtitle("SLC6A2") + 
     theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          plot.title = element_text(face = "italic"), 
+    theme(plot.title = element_text(face = "bold.italic"), 
+          panel.grid = element_blank(), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "SLC6A2", paste0("counts_SLC6A2_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
-  ggsave(paste0(fn, ".png"), width = 4, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
 }
 
 
@@ -211,22 +211,22 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = TPH2)) + 
-    geom_point(size = 0.35) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle(paste0("TPH2: ", sample_ids[s])) + 
+    ggtitle("TPH2") + 
     theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          plot.title = element_text(face = "italic"), 
+    theme(plot.title = element_text(face = "bold.italic"), 
+          panel.grid = element_blank(), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "TPH2", paste0("counts_TPH2_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
-  ggsave(paste0(fn, ".png"), width = 4, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
 }
 
 
@@ -236,22 +236,22 @@ for (s in seq_along(sample_ids)) {
   
   ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                      color = SLC6A4)) + 
-    geom_point(size = 0.35) + 
+    geom_point(size = 0.3) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                          name = "counts") + 
     coord_fixed() + 
     scale_y_reverse() + 
-    ggtitle(paste0("SLC6A4: ", sample_ids[s])) + 
+    ggtitle("SLC6A4") + 
     theme_bw() + 
-    theme(panel.grid = element_blank(), 
-          plot.title = element_text(face = "italic"), 
+    theme(plot.title = element_text(face = "bold.italic"), 
+          panel.grid = element_blank(), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "SLC6A4", paste0("counts_SLC6A4_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 4, height = 3)
-  ggsave(paste0(fn, ".png"), width = 4, height = 3)
+  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
 }
 
 
@@ -288,8 +288,8 @@ for (g in seq_along(genes_nicotinic_acetylcholine)) {
     ggtitle(paste0(genes_nicotinic_acetylcholine[g], " expression")) + 
     theme_bw() + 
     theme(aspect.ratio = 1, 
+          plot.title = element_text(face = "bold.italic"), 
           panel.grid = element_blank(), 
-          plot.title = element_text(face = "italic"), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())
@@ -318,8 +318,8 @@ for (g in seq_along(genes_serotonin)) {
     ggtitle(paste0(genes_serotonin[g], " expression")) + 
     theme_bw() + 
     theme(aspect.ratio = 1, 
+          plot.title = element_text(face = "bold.italic"), 
           panel.grid = element_blank(), 
-          plot.title = element_text(face = "italic"), 
           axis.title = element_blank(), 
           axis.text = element_blank(), 
           axis.ticks = element_blank())

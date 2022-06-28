@@ -138,9 +138,10 @@ ggplot(df_NE, aes(x = gene, y = mean, color = regions, fill = regions)) +
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
-  ggtitle("Enrichment annotated") + 
+  ggtitle("Enrichment") + 
   theme_bw() + 
-  theme(axis.text.x = element_text(face = "italic"))
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.x = element_text(face = "italic"))
 
 fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers")
 ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
@@ -155,9 +156,10 @@ ggplot(df_5HT, aes(x = gene, y = mean, color = regions, fill = regions)) +
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
-  ggtitle("Enrichment annotated") + 
+  ggtitle("Enrichment") + 
   theme_bw() + 
-  theme(axis.text.x = element_text(face = "italic"))
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.x = element_text(face = "italic"))
 
 fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers")
 ggsave(paste0(fn, ".pdf"), width = 4, height = 4)

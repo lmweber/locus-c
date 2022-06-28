@@ -254,9 +254,10 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = sig)) +
   geom_hline(yintercept = -log10(0.05), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(2), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = log2(2), lty = "dashed", color = "royalblue") + 
-  ggtitle("Pseudobulked DE tests: LC vs. WM") + 
+  ggtitle("LC vs. WM regions") + 
   theme_bw() + 
-  theme(panel.grid.minor = element_blank())
+  theme(plot.title = element_text(face = "bold"), 
+        panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "pseudobulkDE_volcano")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
@@ -298,9 +299,10 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent)) +
   geom_hline(yintercept = -log10(1e-3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = log2(3), lty = "dashed", color = "royalblue") + 
-  ggtitle("Pseudobulked DE tests: LC vs. WM") + 
+  ggtitle("LC vs. WM regions") + 
   theme_bw() + 
-  theme(panel.grid.minor = element_blank())
+  theme(plot.title = element_text(face = "bold"), 
+        panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "pseudobulkDE_stringent_volcano")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
@@ -320,9 +322,10 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent, label = gene)) +
   geom_hline(yintercept = -log10(1e-3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = log2(3), lty = "dashed", color = "royalblue") + 
-  ggtitle("Pseudobulked DE tests: LC vs. WM") + 
+  ggtitle("LC vs. WM regions") + 
   theme_bw() + 
-  theme(panel.grid.minor = element_blank())
+  theme(plot.title = element_text(face = "bold"), 
+        panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "pseudobulkDE_stringent_volcanoWithLabels")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
@@ -380,11 +383,11 @@ hm
 # save heatmap (horizontal format)
 fn <- file.path(dir_plots, "pseudobulkDE_heatmap_horizontal")
 
-pdf(paste0(fn, ".pdf"), width = 6, height = 3)
+pdf(paste0(fn, ".pdf"), width = 6.5, height = 3.25)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 6 * 200, height = 3 * 200, res = 200)
+png(paste0(fn, ".png"), width = 6.5 * 200, height = 3.25 * 200, res = 200)
 hm
 dev.off()
 
@@ -395,6 +398,8 @@ hm <- Heatmap(
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  column_title = "LC vs. WM regions", 
+  column_title_gp = gpar(fontface = "bold"), 
   name = "mean\nlogcounts"
 )
 
@@ -403,11 +408,11 @@ hm
 # save heatmap (vertical format)
 fn <- file.path(dir_plots, "pseudobulkDE_heatmap_vertical")
 
-pdf(paste0(fn, ".pdf"), width = 3.5, height = 6)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 6.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.5 * 200, height = 6 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 

@@ -111,8 +111,8 @@ for (s in seq_along(sample_ids)) {
     }
     fn <- here(dir_plots, "Grimm", sample_ids[s], 
                paste0("counts_", human_genes[g], "_", sample_ids[s]))
-    ggsave(paste0(fn, ".pdf"), width = 3.75, height = 3.25)
-    ggsave(paste0(fn, ".png"), width = 3.75, height = 3.25)
+    ggsave(paste0(fn, ".pdf"), width = 4, height = 3.25)
+    ggsave(paste0(fn, ".png"), width = 4, height = 3.25)
   }
 }
 
@@ -216,12 +216,13 @@ ggplot(df, aes(x = gene, y = mean, color = regions, fill = regions)) +
   labs(y = "mean logcounts per spot") + 
   ggtitle("Mulvey et al. (2018) genes") + 
   theme_bw() + 
-  theme(axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
                                    face = "italic", hjust = 1))
 
 fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_horizontal")
-ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 6.5, height = 4)
 
 
 # plot enrichment: vertical format
@@ -234,10 +235,11 @@ ggplot(df_rev, aes(x = mean, y = gene, color = regions, fill = regions)) +
   labs(x = "mean logcounts per spot") + 
   ggtitle("Mulvey et al. (2018) genes") + 
   theme_bw() + 
-  theme(axis.text.y = element_text(size = 9, face = "italic"), 
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.y = element_text(size = 9, face = "italic"), 
         axis.title.y = element_blank())
 
 fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_vertical")
-ggsave(paste0(fn, ".pdf"), width = 4.5, height = 7.5)
-ggsave(paste0(fn, ".png"), width = 4.5, height = 7.5)
+ggsave(paste0(fn, ".pdf"), width = 4.5, height = 5.75)
+ggsave(paste0(fn, ".png"), width = 4.5, height = 5.75)
 
