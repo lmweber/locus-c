@@ -283,7 +283,7 @@ for (g in seq_along(genes_nicotinic_acetylcholine)) {
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.1) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = "counts") + 
+                         name = "counts", breaks = range(df$gene)) + 
     scale_y_reverse() + 
     ggtitle(paste0(genes_nicotinic_acetylcholine[g], " expression")) + 
     theme_bw() + 
@@ -313,7 +313,7 @@ for (g in seq_along(genes_serotonin)) {
     facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
     geom_point(size = 0.1) + 
     scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                         name = "counts") + 
+                         name = "counts", breaks = range(df$gene)) + 
     scale_y_reverse() + 
     ggtitle(paste0(genes_serotonin[g], " expression")) + 
     theme_bw() + 
