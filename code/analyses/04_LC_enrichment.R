@@ -132,9 +132,11 @@ pal <- c("darkmagenta", "gray30")
 
 # plot marker genes for NE neurons
 set.seed(123)
-ggplot(df_NE, aes(x = gene, y = mean, color = regions, fill = regions)) + 
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) + 
-  geom_jitter(position = position_jitterdodge()) + 
+ggplot(df_NE) + 
+  geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
+               alpha = 0.5, outlier.shape = NA) + 
+  geom_point(aes(x = gene, y = mean, color = regions), 
+             position = position_jitterdodge()) + 
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
@@ -150,9 +152,11 @@ ggsave(paste0(fn, ".png"), width = 4, height = 4)
 
 # plot marker genes for 5-HT neurons
 set.seed(123)
-ggplot(df_5HT, aes(x = gene, y = mean, color = regions, fill = regions)) + 
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) + 
-  geom_jitter(position = position_jitterdodge()) + 
+ggplot(df_5HT) + 
+  geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
+               alpha = 0.5, outlier.shape = NA) + 
+  geom_point(aes(x = gene, y = mean, color = regions), 
+             position = position_jitterdodge()) + 
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
@@ -166,19 +170,21 @@ ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
 ggsave(paste0(fn, ".png"), width = 4, height = 4)
 
 
-# --------------------------------------
-# plot excluding sample Br5459_LC_round2
-# --------------------------------------
+# ----------------
+# additional plots
+# ----------------
 
-# excluding samples where NE neurons were not captured (Br5459_LC_round2)
+# plot excluding samples where NE neurons were not captured (Br5459_LC_round2)
 
 df_NE_sub <- df_NE[!(df_NE$sample %in% "Br5459_LC_round2"), ]
 
 # plot marker genes for NE neurons
 set.seed(123)
-ggplot(df_NE_sub, aes(x = gene, y = mean, color = regions, fill = regions)) + 
-  geom_boxplot(alpha = 0.5, outlier.shape = NA) + 
-  geom_jitter(position = position_jitterdodge()) + 
+ggplot(df_NE_sub) + 
+  geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
+               alpha = 0.5, outlier.shape = NA) + 
+  geom_point(aes(x = gene, y = mean, color = regions), 
+             position = position_jitterdodge()) + 
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
@@ -190,4 +196,30 @@ ggplot(df_NE_sub, aes(x = gene, y = mean, color = regions, fill = regions)) +
 fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_excBr5459")
 ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
 ggsave(paste0(fn, ".png"), width = 4, height = 4)
+
+
+# plot with shapes for sample IDs
+
+# plot marker genes for NE neurons
+set.seed(1)
+ggplot(df_NE) + 
+  geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
+               alpha = 0.5, outlier.shape = NA) + 
+  geom_point(aes(x = gene, y = mean, color = regions, shape = sample), 
+             stroke = 0.75, position = position_jitterdodge()) + 
+  scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
+  scale_shape_manual(values = 1:12) + 
+  guides(color = guide_legend(order = 1)) + 
+  guides(fill = guide_legend(order = 1)) + 
+  guides(shape = guide_legend(order = 2)) + 
+  labs(y = "mean logcounts per spot") + 
+  ggtitle("Enrichment") + 
+  theme_bw() + 
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.x = element_text(face = "italic"))
+
+fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_withSamples")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4.5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 4.5)
 
