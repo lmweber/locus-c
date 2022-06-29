@@ -165,3 +165,29 @@ fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers")
 ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
 ggsave(paste0(fn, ".png"), width = 4, height = 4)
 
+
+# --------------------------------------
+# plot excluding sample Br5459_LC_round2
+# --------------------------------------
+
+# excluding samples where NE neurons were not captured (Br5459_LC_round2)
+
+df_NE_sub <- df_NE[!(df_NE$sample %in% "Br5459_LC_round2"), ]
+
+# plot marker genes for NE neurons
+set.seed(123)
+ggplot(df_NE_sub, aes(x = gene, y = mean, color = regions, fill = regions)) + 
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) + 
+  geom_jitter(position = position_jitterdodge()) + 
+  scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
+  labs(y = "mean logcounts per spot") + 
+  ggtitle("Enrichment") + 
+  theme_bw() + 
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.x = element_text(face = "italic"))
+
+fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_excBr5459")
+ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
+ggsave(paste0(fn, ".png"), width = 4, height = 4)
+
