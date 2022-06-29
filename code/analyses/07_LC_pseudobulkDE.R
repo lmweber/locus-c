@@ -455,10 +455,17 @@ ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 # export gene lists
 # -----------------
 
+stopifnot(length(fdrs_gene_ids) == nrow(rowData(spe_pseudo)))
+stopifnot(all(fdrs_gene_ids == rowData(spe_pseudo)$gene_id))
+
 # all genes
 df_all <- data.frame(
   gene_id = fdrs_gene_ids, 
   gene_name = fdrs_gene_names, 
+  source = rowData(spe_pseudo)$source, 
+  type = rowData(spe_pseudo)$type, 
+  gene_version = rowData(spe_pseudo)$gene_version, 
+  gene_type = rowData(spe_pseudo)$gene_type, 
   mean_logcounts_WM = mean_WM, 
   mean_logcounts_LC = mean_LC, 
   mean_logcounts_LCWM = (mean_WM + mean_LC) / 2, 
