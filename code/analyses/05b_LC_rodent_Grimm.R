@@ -214,7 +214,7 @@ ggplot(df, aes(x = gene, y = mean, color = regions, fill = regions)) +
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
-  ggtitle("Mulvey et al. (2018) genes") + 
+  ggtitle("Grimm et al. (2004) genes") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
@@ -233,7 +233,7 @@ ggplot(df_rev, aes(x = mean, y = gene, color = regions, fill = regions)) +
   scale_fill_manual(values = pal_rev, name = "annotation", 
                     guide = guide_legend(reverse = TRUE)) + 
   labs(x = "mean logcounts per spot") + 
-  ggtitle("Mulvey et al. (2018) genes") + 
+  ggtitle("Grimm et al. (2004) genes") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         axis.text.y = element_text(size = 9, face = "italic"), 
