@@ -48,6 +48,8 @@ ix_TH <- which(rowData(spe)$gene_name == "TH")
 ix_SLC6A2 <- which(rowData(spe)$gene_name == "SLC6A2")
 ix_TPH2 <- which(rowData(spe)$gene_name == "TPH2")
 ix_SLC6A4 <- which(rowData(spe)$gene_name == "SLC6A4")
+ix_MOBP <- which(rowData(spe)$gene_name == "MOBP")
+ix_MBP <- which(rowData(spe)$gene_name == "MBP")
 
 df <- as.data.frame(cbind(
   colData(spe), 
@@ -55,7 +57,9 @@ df <- as.data.frame(cbind(
   TH = counts(spe)[ix_TH, ], 
   SLC6A2 = counts(spe)[ix_SLC6A2, ], 
   TPH2 = counts(spe)[ix_TPH2, ], 
-  SLC6A4 = counts(spe)[ix_SLC6A4, ]
+  SLC6A4 = counts(spe)[ix_SLC6A4, ], 
+  MOBP = counts(spe)[ix_MOBP, ], 
+  MBP = counts(spe)[ix_MBP, ]
 ))
 
 
@@ -147,6 +151,50 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "counts_SLC6A4")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot MOBP expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = MOBP)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts") + 
+  scale_y_reverse() + 
+  ggtitle("MOBP expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_MOBP")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot MBP expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = MBP)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts") + 
+  scale_y_reverse() + 
+  ggtitle("MBP expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_MBP")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
 ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
