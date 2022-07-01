@@ -1,10 +1,9 @@
-##################################################################
-# LC project
-# Script for downstream analyses: BayesSpace evaluations and plots
-# Lukas Weber, May 2022
-##################################################################
+######################################################
+# LC analyses: BayesSpace evaluation metrics and plots
+# Lukas Weber, Jun 2022
+######################################################
 
-# module load conda_R/4.1.x
+# module load conda_R/devel
 # Rscript filename.R
 
 # file location:
@@ -20,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_downstream", "BayesSpace")
+dir_plots <- here("plots", "06b_clustering_BayesSpace")
 
 
 # ---------
@@ -36,7 +35,6 @@ dim(spe)
 
 table(colData(spe)$sample_id)
 
-
 sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
@@ -46,13 +44,18 @@ sample_ids
 # -------------
 
 df <- cbind.data.frame(
-  colData(spe), spatialCoords(spe), 
-  reducedDim(spe, "PCA"), reducedDim(spe, "UMAP"), reducedDim(spe, "HARM")
+  colData(spe), 
+  spatialCoords(spe), 
+  reducedDim(spe, "PCA"), 
+  reducedDim(spe, "UMAP"), 
+  reducedDim(spe, "HARM")
 )
 
 df$spatial.cluster <- as.factor(df$spatial.cluster)
 
-pal <- unname(palette.colors(8, palette = "Okabe-Ito"))
+
+#pal <- unname(palette.colors(6, palette = "Okabe-Ito"))
+pal <- c("dodgerblue", "skyblue1", "red", "navy")
 
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                color = spatial.cluster)) + 
@@ -80,12 +83,10 @@ ggsave(paste0(fn, ".png"), width = 7.25, height = 4)
 # -----------
 
 # evaluate performance of BayesSpace for clustering LC regions
-# note: in this dataset we are only interested in the LC regions; ignore other
-# clusters in the WM regions, which we assume are mostly noise
 
 
 # select cluster ID matching most closely to LC regions
-selected <- 5
+selected <- 3
 
 # calculate adjusted Rand index (ARI)
 clus <- as.numeric(colData(spe)$spatial.cluster == selected)
@@ -143,7 +144,9 @@ df_summary
 # plot summary
 # ------------
 
-# clustering performance by sample
+# plot clustering performance by sample
+
+stopifnot(all(rownames(df_summary) == sample_ids))
 
 df <- df_summary %>% 
   mutate(sample_id = factor(rownames(df_summary), levels = rownames(df_summary))) %>% 
@@ -157,15 +160,15 @@ ggplot(df, aes(x = metric, y = value, color = metric)) +
   geom_boxplot(outlier.shape = NA) + 
   geom_jitter(aes(shape = sample_id), width = 0.15, size = 1.25, stroke = 0.75) + 
   scale_color_manual(values = pal) + 
-  scale_shape_manual(values = 0:7) + 
+  scale_shape_manual(values = 1:8) + 
   guides(color = guide_legend(order = 1)) + 
   guides(shape = guide_legend(order = 2)) + 
   ylim(c(0, 1)) + 
-  ggtitle("BayesSpace clustering performance") + 
+  ggtitle("Spatially-aware clustering performance") + 
   theme_bw() + 
   theme(axis.title.y = element_blank())
 
-fn <- file.path(dir_plots, "BayesSpace_clustering_performance")
+fn <- file.path(dir_plots, "BayesSpace_clustering_metrics")
 ggsave(paste0(fn, ".pdf"), width = 5.75, height = 4.5)
 ggsave(paste0(fn, ".png"), width = 5.75, height = 4.5)
 
