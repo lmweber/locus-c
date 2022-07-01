@@ -17,7 +17,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06b_clustering")
+dir_plots <- here("plots", "06b_clustering_BayesSpace")
 
 
 # ---------
@@ -107,10 +107,12 @@ ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 # use.dimred: using Harmony batch integrated dimensions
 # nrep: 10,000 iterations
 
+# runtime: ~30 mins on laptop
+
 set.seed(123)
 spe <- spatialCluster(
   spe, 
-  q = 6, 
+  q = 4, 
   use.dimred = "HARM", 
   d = 15, 
   platform = "Visium", 
