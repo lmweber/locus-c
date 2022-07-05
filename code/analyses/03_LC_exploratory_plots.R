@@ -73,7 +73,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "counts") + 
+                       name = "counts", breaks = range(df$TH)) + 
   scale_y_reverse() + 
   ggtitle("TH expression") + 
   theme_bw() + 
@@ -95,7 +95,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "counts") + 
+                       name = "counts", breaks = range(df$SLC6A2)) + 
   scale_y_reverse() + 
   ggtitle("SLC6A2 expression") + 
   theme_bw() + 
@@ -117,7 +117,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "counts") + 
+                       name = "counts", breaks = range(df$TPH2)) + 
   scale_y_reverse() + 
   ggtitle("TPH2 expression") + 
   theme_bw() + 
@@ -139,7 +139,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "counts") + 
+                       name = "counts", breaks = range(df$SLC6A4)) + 
   scale_y_reverse() + 
   ggtitle("SLC6A4 expression") + 
   theme_bw() + 
@@ -161,7 +161,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "counts") + 
+                       name = "counts", breaks = range(df$MOBP)) + 
   scale_y_reverse() + 
   ggtitle("MOBP expression") + 
   theme_bw() + 
@@ -183,7 +183,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = "counts") + 
+                       name = "counts", breaks = range(df$MBP)) + 
   scale_y_reverse() + 
   ggtitle("MBP expression") + 
   theme_bw() + 
