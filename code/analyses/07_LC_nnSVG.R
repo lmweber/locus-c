@@ -13,6 +13,8 @@
 
 library(SpatialExperiment)
 library(here)
+library(scater)
+library(scran)
 library(nnSVG)
 library(dplyr)
 library(tidyr)
@@ -63,6 +65,9 @@ for (s in seq_along(sample_ids)) {
   
   # run nnSVG filtering for mitochondrial gene and low-expressed genes
   spe_sub <- filter_genes(spe_sub)
+  
+  # re-calculate logcounts after filtering
+  spe_sub <- logNormCounts(spe_sub)
   
   # run nnSVG
   set.seed(123)
