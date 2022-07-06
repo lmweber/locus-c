@@ -22,7 +22,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07_nnSVG")
+dir_plots <- here("plots", "08_nnSVG")
 
 
 # ---------
