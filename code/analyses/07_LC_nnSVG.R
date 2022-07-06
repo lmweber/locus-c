@@ -47,20 +47,34 @@ sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
 
+# sample-part IDs for parts that contain LC annotated regions
+sample_part_ids <- c(
+  "Br6522_LC_1_round1_single", 
+  "Br6522_LC_2_round1_single", 
+  "Br8153_LC_round2_left", "Br8153_LC_round2_right", 
+  "Br2701_LC_round2_bottom", "Br2701_LC_round2_top", 
+  "Br6522_LC_round3_left", "Br6522_LC_round3_right", 
+  "Br8079_LC_round3_left", "Br8079_LC_round3_right", 
+  "Br2701_LC_round3_left", "Br2701_LC_round3_right", 
+  "Br8153_LC_round3_left"
+)
+sample_part_ids
+
+
 # ---------
 # run nnSVG
 # ---------
 
-# run nnSVG once per sample within LC annotated regions
+# run nnSVG once per sample-part within LC annotated regions
 # and store lists of top SVGs
 
-res_list <- as.list(rep(NA, length(sample_ids)))
-names(res_list) <- sample_ids
+res_list <- as.list(rep(NA, length(sample_part_ids)))
+names(res_list) <- sample_part_ids
 
-for (s in seq_along(sample_ids)) {
+for (s in seq_along(sample_part_ids)) {
   
-  # select sample and LC annotated region
-  ix <- colData(spe)$sample_id == sample_ids[s] & colData(spe)$annot_region
+  # select sample-part and LC annotated region
+  ix <- colData(spe)$sample_part_id == sample_part_ids[s] & colData(spe)$annot_region
   spe_sub <- spe[, ix]
   
   # run nnSVG filtering for mitochondrial gene and low-expressed genes
@@ -86,22 +100,22 @@ for (s in seq_along(sample_ids)) {
 # combine results
 # ---------------
 
-# sum gene ranks across samples to generate overall ranking
+# sum gene ranks across sample-parts to generate overall ranking
 
-# match results from each sample and store in correct rows
-res_ranks <- matrix(NA, nrow = nrow(spe), ncol = length(sample_ids))
+# match results from each sample-part and store in correct rows
+res_ranks <- matrix(NA, nrow = nrow(spe), ncol = length(sample_part_ids))
 rownames(res_ranks) <- rownames(spe)
-colnames(res_ranks) <- sample_ids
+colnames(res_ranks) <- sample_part_ids
 
-for (s in seq_along(sample_ids)) {
-  stopifnot(colnames(res_ranks)[s] == sample_ids[s])
+for (s in seq_along(sample_part_ids)) {
+  stopifnot(colnames(res_ranks)[s] == sample_part_ids[s])
   stopifnot(colnames(res_ranks)[s] == names(res_list)[s])
   
   rownames_s <- rownames(res_list[[s]])
   res_ranks[rownames_s, s] <- res_list[[s]][, "rank"]
 }
 
-# keep only genes that were not filtered out in all samples
+# keep only genes that were not filtered out in all sample-parts
 res_ranks <- na.omit(res_ranks)
 
 # calculate average ranks
