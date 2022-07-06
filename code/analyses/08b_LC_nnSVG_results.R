@@ -30,10 +30,24 @@ dir_outputs <- here("outputs", "08_nnSVG")
 
 # load results from previous script
 
-fn_out <- here("outputs", "LC_nnSVG_results.rsd")
+fn_out <- here(dir_outputs, "LC_nnSVG_results.rds")
 res_list <- readRDS(fn_out)
 
 names(res_list)
+
+
+# sample-part IDs for parts that contain LC annotated regions
+sample_part_ids <- c(
+  "Br6522_LC_1_round1_single", 
+  "Br6522_LC_2_round1_single", 
+  "Br8153_LC_round2_left", "Br8153_LC_round2_right", 
+  "Br2701_LC_round2_bottom", "Br2701_LC_round2_top", 
+  "Br6522_LC_round3_left", "Br6522_LC_round3_right", 
+  "Br8079_LC_round3_left", "Br8079_LC_round3_right", 
+  "Br2701_LC_round3_left", "Br2701_LC_round3_right", 
+  "Br8153_LC_round3_left"
+)
+sample_part_ids
 
 
 # ---------------
@@ -44,11 +58,6 @@ names(res_list)
 
 # number of genes that passed filtering for each sample-part
 sapply(res_list, nrow)
-
-# note: exclude Br2701_LC_round2_top since too few genes passed filtering for this sample-part
-ix_exc <- which(names(res_list) == "Br2701_LC_round2_top")
-res_list <- res_list[-ix_exc]
-sample_part_ids <- sample_part_ids[-ix_exc]
 
 
 # match results from each sample-part and store in correct rows
@@ -79,6 +88,8 @@ df_summary <- data.frame(
   avg_rank = unname(avg_ranks), 
   row.names = names(avg_ranks)
 )
+
+head(df_summary, 20)
 
 
 # -------------
