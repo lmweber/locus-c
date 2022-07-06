@@ -3,7 +3,7 @@
 # Lukas Weber, Jun 2022
 ########################################
 
-# qrsh -pe local 6 -l mem_free=10G,h_vmem=12G,h_fsize=200G
+# qrsh -pe local 10 -l mem_free=6G,h_vmem=7G,h_fsize=200G
 # module load conda_R/devel
 # Rscript filename.R
 
@@ -89,7 +89,7 @@ for (s in seq_along(sample_part_ids)) {
   
   # run nnSVG
   set.seed(123)
-  spe_sub <- nnSVG(spe_sub, n_threads = 6)
+  spe_sub <- nnSVG(spe_sub, n_threads = 10)
   
   # store results
   res_list[[s]] <- rowData(spe_sub)
