@@ -24,6 +24,9 @@ library(ggplot2)
 # directory to save plots
 dir_plots <- here("plots", "08_nnSVG")
 
+# directory to save outputs
+dir_outputs <- here("outputs", "08_nnSVG")
+
 
 # ---------
 # load data
@@ -96,37 +99,12 @@ for (s in seq_along(sample_part_ids)) {
 }
 
 
-# ---------------
-# combine results
-# ---------------
+# ------------
+# save results
+# ------------
 
-# sum gene ranks across sample-parts to generate overall ranking
-
-# match results from each sample-part and store in correct rows
-res_ranks <- matrix(NA, nrow = nrow(spe), ncol = length(sample_part_ids))
-rownames(res_ranks) <- rownames(spe)
-colnames(res_ranks) <- sample_part_ids
-
-for (s in seq_along(sample_part_ids)) {
-  stopifnot(colnames(res_ranks)[s] == sample_part_ids[s])
-  stopifnot(colnames(res_ranks)[s] == names(res_list)[s])
-  
-  rownames_s <- rownames(res_list[[s]])
-  res_ranks[rownames_s, s] <- res_list[[s]][, "rank"]
-}
-
-# keep only genes that were not filtered out in all sample-parts
-res_ranks <- na.omit(res_ranks)
-
-# calculate average ranks
-avg_ranks <- sort(rowMeans(res_ranks))
-
-# summary table
-df_summary <- data.frame(
-  gene_id = names(avg_ranks), 
-  gene_name = rowData(spe)[names(avg_ranks), "gene_name"], 
-  gene_type = rowData(spe)[names(avg_ranks), "gene_type"], 
-  avg_rank = unname(avg_ranks), 
-  row.names = names(avg_ranks)
-)
+# save nnSVG results
+fn_out <- file.path(dir_outputs, "LC_nnSVG_results")
+saveRDS(res_list, paste0(fn_out, ".rds"))
+save(res_list, file = paste0(fn_out, ".RData"))
 
