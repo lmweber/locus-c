@@ -64,7 +64,11 @@ for (s in seq_along(sample_ids)) {
   spe_sub <- spe[, ix]
   
   # run nnSVG filtering for mitochondrial gene and low-expressed genes
-  spe_sub <- filter_genes(spe_sub)
+  spe_sub <- filter_genes(
+    spe_sub, 
+    filter_genes_ncounts = 2, 
+    filter_genes_pcspots = 1
+  )
   
   # re-calculate logcounts after filtering
   spe_sub <- logNormCounts(spe_sub)
@@ -83,4 +87,32 @@ for (s in seq_along(sample_ids)) {
 # ---------------
 
 # sum gene ranks across samples to generate overall ranking
+
+# match results from each sample and store in correct rows
+res_ranks <- matrix(NA, nrow = nrow(spe), ncol = length(sample_ids))
+rownames(res_ranks) <- rownames(spe)
+colnames(res_ranks) <- sample_ids
+
+for (s in seq_along(sample_ids)) {
+  stopifnot(colnames(res_ranks)[s] == sample_ids[s])
+  stopifnot(colnames(res_ranks)[s] == names(res_list)[s])
+  
+  rownames_s <- rownames(res_list[[s]])
+  res_ranks[rownames_s, s] <- res_list[[s]][, "rank"]
+}
+
+# keep only genes that were not filtered out in all samples
+res_ranks <- na.omit(res_ranks)
+
+# calculate average ranks
+avg_ranks <- sort(rowMeans(res_ranks))
+
+# summary table
+df_summary <- data.frame(
+  gene_id = names(avg_ranks), 
+  gene_name = rowData(spe)[names(avg_ranks), "gene_name"], 
+  gene_type = rowData(spe)[names(avg_ranks), "gene_type"], 
+  avg_rank = unname(avg_ranks), 
+  row.names = names(avg_ranks)
+)
 
