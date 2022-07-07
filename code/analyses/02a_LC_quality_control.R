@@ -140,12 +140,15 @@ df_qc <- df_qc %>%
 
 pal <- unname(palette.colors(10, "Tableau 10"))
 
+set.seed(123)
 ggplot(as.data.frame(df_qc), 
        aes(x = metric, y = median)) + 
   facet_wrap(~ metric, scales = "free") + 
   geom_boxplot(aes(group = metric), outlier.shape = NA, width = 0.5) + 
-  geom_jitter(aes(color = sample_id), width = 0.2, size = 2) + 
+  geom_jitter(aes(color = sample_id, shape = sample_id), 
+              width = 0.2, size = 2, stroke = 1) + 
   scale_color_manual(values = pal, name = "sample ID") + 
+  scale_shape_manual(values = 1:12, name = "sample ID") + 
   ggtitle("QC metrics by sample") + 
   theme_bw() + 
   theme(axis.title.x = element_blank())
