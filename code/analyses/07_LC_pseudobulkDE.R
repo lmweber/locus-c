@@ -265,37 +265,37 @@ ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
-# ----------------------------------------------------
-# volcano plot: more stringent significance thresholds
-# ----------------------------------------------------
+# -------------------------------------------------------
+# volcano plot: highly associated significance thresholds
+# -------------------------------------------------------
 
 # summarize results with volcano plot
 
-# more stringent significance thresholds
+# highly associated significance thresholds
 
 # identify significant genes (low FDR and high logFC)
 thresh_fdr <- 1e-3
 thresh_logfc <- log2(3)
-stringent <- (fdrs < thresh_fdr) & (abs(logfc) > thresh_logfc)
+highlyassoc <- (fdrs < thresh_fdr) & (abs(logfc) > thresh_logfc)
 
 # number of significant genes
-table(stringent)
+table(highlyassoc)
 
 
 df <- data.frame(
   gene = names(fdrs), 
   FDR = fdrs, 
   logFC = logfc, 
-  stringent = stringent
+  highlyassoc = highlyassoc
 )
 
 pal <- c("black", "red")
 
 
 # volcano plot without labels
-ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent)) + 
+ggplot(df, aes(x = logFC, y = -log10(FDR), color = highlyassoc)) + 
   geom_point(size = 0.1) + 
-  geom_point(data = df[df$stringent, ], size = 0.5) + 
+  geom_point(data = df[df$highlyassoc, ], size = 0.5) + 
   scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = -log10(1e-3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(3), lty = "dashed", color = "royalblue") + 
@@ -305,17 +305,17 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_stringent_volcano")
+fn <- file.path(dir_plots, "pseudobulkDE_highlyAssociated_volcano")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
 # volcano plot with labels
 set.seed(123)
-ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent, label = gene)) + 
+ggplot(df, aes(x = logFC, y = -log10(FDR), color = highlyassoc, label = gene)) + 
   geom_point(size = 0.1) + 
-  geom_point(data = df[df$stringent, ], size = 0.5) + 
-  geom_text_repel(data = df[df$stringent, ], 
+  geom_point(data = df[df$highlyassoc, ], size = 0.5) + 
+  geom_text_repel(data = df[df$highlyassoc, ], 
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
                   max.overlaps = 20) + 
@@ -328,7 +328,7 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent, label = gene)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_stringent_volcanoWithLabels")
+fn <- file.path(dir_plots, "pseudobulkDE_highlyAssociated_volcanoWithLabels")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -357,9 +357,9 @@ hmat <- cbind(
 
 
 # select top genes
-# ordered by FDR within set of significant genes (stringent set)
-stopifnot(length(fdrs) == length(stringent))
-top <- sort(fdrs[stringent])
+# ordered by FDR within set of significant genes (highly associated set)
+stopifnot(length(fdrs) == length(highlyassoc))
+top <- sort(fdrs[highlyassoc])
 top_names <- names(top)
 
 # order matrix rows
@@ -473,22 +473,22 @@ df_all <- data.frame(
   pval = p_vals, 
   FDR = fdrs, 
   significant = sig, 
-  stringent = stringent
+  highly_associated = highlyassoc
 )
 
-# subset significant and stringent genes
-df_sig <- df_all[df_all$significant, ]
-df_stringent <- df_all[df_all$stringent, ]
+# subset significant and highly associated genes
+df_sig <- df_all[df_all$highly_associated, ]
+df_highlyassoc <- df_all[df_all$highly_associated, ]
 
 dim(df_all)
 dim(df_sig)
-dim(df_stringent)
+dim(df_highlyassoc)
 
 
 # order in most user-friendly way for each set (by gene IDs or FDRs)
 df_all <- df_all[order(df_all$gene_id), ]
 df_sig <- df_sig[order(df_sig$FDR), ]
-df_stringent <- df_stringent[order(df_stringent$FDR), ]
+df_highlyassoc <- df_highlyassoc[order(df_highlyassoc$FDR), ]
 
 
 # save .csv files
@@ -498,6 +498,6 @@ write.csv(df_all, file = fn_all, row.names = FALSE)
 fn_sig <- file.path(dir_outputs, "LC_pseudobulkDE_sigGenes.csv")
 write.csv(df_sig, file = fn_sig, row.names = FALSE)
 
-fn_stringent <- file.path(dir_outputs, "LC_pseudobulkDE_stringentGenes.csv")
-write.csv(df_stringent, file = fn_stringent, row.names = FALSE)
+fn_highlyassoc <- file.path(dir_outputs, "LC_pseudobulkDE_highlyAssociatedGenes.csv")
+write.csv(df_highlyassoc, file = fn_highlyassoc, row.names = FALSE)
 
