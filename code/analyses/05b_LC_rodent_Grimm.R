@@ -121,7 +121,7 @@ for (s in seq_along(sample_ids)) {
 # calculate enrichment of marker genes
 # ------------------------------------
 
-# enrichment defined in terms of mean logcounts per spot in LC vs. WM regions
+# enrichment defined in terms of mean logcounts per spot in LC vs. non-LC regions
 
 # LC region annotations
 table(colData(spe)$annot_region)
@@ -131,7 +131,7 @@ enrichment <- matrix(NA, nrow = length(sample_ids), ncol = length(human_genes))
 rownames(enrichment) <- sample_ids
 colnames(enrichment) <- human_genes
 
-enrichment_LC <- enrichment_WM <- enrichment
+enrichment_LC <- enrichment_non <- enrichment
 
 
 # select annotated LC regions
@@ -148,17 +148,17 @@ for (i in seq_along(sample_ids)) {
   }
 }
 
-# select annotated WM regions
-spe_WM <- spe[, !colData(spe)$annot_region]
-dim(spe_WM)
+# select annotated non-LC regions
+spe_non <- spe[, !colData(spe)$annot_region]
+dim(spe_non)
 
 for (i in seq_along(sample_ids)) {
   for (j in seq_along(human_genes)) {
     # calculate mean logcounts for gene j, sample i
-    mean_ij <- mean(logcounts(spe_WM)[rowData(spe_WM)$gene_name == human_genes[j], 
-                                      colData(spe_WM)$sample_id == sample_ids[i]])
+    mean_ij <- mean(logcounts(spe_non)[rowData(spe_non)$gene_name == human_genes[j], 
+                                       colData(spe_non)$sample_id == sample_ids[i]])
     # store in matrix (transposed)
-    enrichment_WM[i, j] <- mean_ij
+    enrichment_non[i, j] <- mean_ij
   }
 }
 
@@ -171,15 +171,15 @@ df_enrichment_LC <- as.data.frame(enrichment_LC)
 df_enrichment_LC$region <- "LC"
 df_enrichment_LC$sample <- rownames(df_enrichment_LC)
 
-df_enrichment_WM <- as.data.frame(enrichment_WM)
-df_enrichment_WM$region <- "WM"
-df_enrichment_WM$sample <- rownames(df_enrichment_WM)
+df_enrichment_non <- as.data.frame(enrichment_non)
+df_enrichment_non$region <- "non"
+df_enrichment_non$sample <- rownames(df_enrichment_non)
 
 
 df_enrichment_LC <- pivot_longer(df_enrichment_LC, cols = -c(region, sample), 
                                  names_to = "gene", values_to = "mean")
-df_enrichment_WM <- pivot_longer(df_enrichment_WM, cols = -c(region, sample), 
-                                 names_to = "gene", values_to = "mean")
+df_enrichment_non <- pivot_longer(df_enrichment_non, cols = -c(region, sample), 
+                                  names_to = "gene", values_to = "mean")
 
 
 # order genes
@@ -190,10 +190,10 @@ length(genes_ordered) == length(human_genes)
 
 
 df <- 
-  full_join(df_enrichment_LC, df_enrichment_WM) %>% 
+  full_join(df_enrichment_LC, df_enrichment_non) %>% 
   mutate(regions = factor(region, 
-                          levels = c("LC", "WM"), 
-                          labels = c("LC regions", "WM regions"))) %>% 
+                          levels = c("LC", "non"), 
+                          labels = c("LC regions", "non-LC regions"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids)) %>% 
   na.omit() %>% 
   mutate(gene = factor(gene, levels = genes_ordered)) %>% 
@@ -221,8 +221,8 @@ ggplot(df, aes(x = gene, y = mean, color = regions, fill = regions)) +
                                    face = "italic", hjust = 1))
 
 fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_horizontal")
-ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 6.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 6.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 
 
 # plot enrichment: vertical format
@@ -240,6 +240,6 @@ ggplot(df_rev, aes(x = mean, y = gene, color = regions, fill = regions)) +
         axis.title.y = element_blank())
 
 fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_vertical")
-ggsave(paste0(fn, ".pdf"), width = 4.5, height = 5.75)
-ggsave(paste0(fn, ".png"), width = 4.5, height = 5.75)
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 5.75)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 5.75)
 

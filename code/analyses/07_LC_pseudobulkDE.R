@@ -61,12 +61,12 @@ sample_ids
 # pseudobulk spots
 # ----------------
 
-# pseudobulk spots within manually annotated LC regions and WM regions by sample
+# pseudobulk spots within manually annotated LC regions and non-LC regions by sample
 
 table(colData(spe)$sample_id, colData(spe)$annot_region)
 
 annot_region_fctr <- factor(as.numeric(colData(spe)$annot_region), 
-                            labels = c("WM", "LC"))
+                            labels = c("non", "LC"))
 table(annot_region_fctr)
 
 ids <- DataFrame(
@@ -126,7 +126,7 @@ dim(spe_pseudo)
 # pseudobulked DE testing
 # -----------------------
 
-# define model: LC vs. WM regions with blocks by sample
+# define model: LC vs. non-LC regions with blocks by sample
 model_formula <- ~annot_region_pseudo
 model_matrix <- model.matrix(model_formula, data = colData(spe_pseudo))
 
@@ -201,12 +201,13 @@ ggplot(df, aes_string(x = "pxl_col_in_fullres", y = "pxl_row_in_fullres",
   facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
   geom_point(size = 0.1) + 
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
-                       name = paste0(most_sig, " counts")) + 
+                       name = "counts", breaks = range(df$most_sig)) + 
   scale_y_reverse() + 
-  ggtitle(most_sig) + 
+  ggtitle(paste0(most_sig, " expression")) + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
@@ -254,7 +255,7 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = sig)) +
   geom_hline(yintercept = -log10(0.05), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(2), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = log2(2), lty = "dashed", color = "royalblue") + 
-  ggtitle("LC vs. WM regions") + 
+  ggtitle("LC vs. non-LC regions") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
@@ -299,7 +300,7 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent)) +
   geom_hline(yintercept = -log10(1e-3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = log2(3), lty = "dashed", color = "royalblue") + 
-  ggtitle("LC vs. WM regions") + 
+  ggtitle("LC vs. non-LC regions") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
@@ -322,7 +323,7 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = stringent, label = gene)) +
   geom_hline(yintercept = -log10(1e-3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = log2(3), lty = "dashed", color = "royalblue") + 
-  ggtitle("LC vs. WM regions") + 
+  ggtitle("LC vs. non-LC regions") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
@@ -341,17 +342,17 @@ stopifnot(all(rownames(mat) == rowData(spe_pseudo)$gene_id))
 rownames(mat) <- rowData(spe_pseudo)$gene_name
 
 
-# calculate mean logcounts across samples in LC and WM regions
+# calculate mean logcounts across samples in LC and non-LC regions
 # where mean is calculated as unweighted mean across samples
 mat_LC <- mat[, 9:16]
-mat_WM <- mat[, 1:8]
+mat_non <- mat[, 1:8]
 
 mean_LC <- rowMeans(mat_LC)
-mean_WM <- rowMeans(mat_WM)
+mean_non <- rowMeans(mat_non)
 
 hmat <- cbind(
   LC = mean_LC, 
-  WM = mean_WM
+  `non-LC` = mean_non
 )
 
 
@@ -383,11 +384,11 @@ hm
 # save heatmap (horizontal format)
 fn <- file.path(dir_plots, "pseudobulkDE_heatmap_horizontal")
 
-pdf(paste0(fn, ".pdf"), width = 6.5, height = 3.25)
+pdf(paste0(fn, ".pdf"), width = 6.75, height = 3.25)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 6.5 * 200, height = 3.25 * 200, res = 200)
+png(paste0(fn, ".png"), width = 6.75 * 200, height = 3.25 * 200, res = 200)
 hm
 dev.off()
 
@@ -398,7 +399,7 @@ hm <- Heatmap(
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
-  column_title = "LC vs. WM regions", 
+  column_title = "LC vs. non-LC regions", 
   column_title_gp = gpar(fontface = "bold"), 
   name = "mean\nlogcounts"
 )
@@ -423,9 +424,9 @@ dev.off()
 
 df <- data.frame(
   gene = names(fdrs), 
-  mean_WM = mean_WM, 
   mean_LC = mean_LC, 
-  mean = (mean_WM + mean_LC) / 2, 
+  mean_non = mean_non, 
+  mean = (mean_LC + mean_non) / 2, 
   logFC = logfc, 
   FDR = fdrs, 
   sig = sig
@@ -440,9 +441,9 @@ ggplot(df, aes(x = mean, y = logFC, color = sig, label = gene)) +
   scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = log2(2), lty = "dashed", color = "royalblue") + 
   geom_hline(yintercept = -log2(2), lty = "dashed", color = "royalblue") + 
-  labs(x = "mean logcounts (pseudobulked LC and WM)", 
+  labs(x = "mean logcounts (pseudobulked LC and non-LC)", 
        y = "log fold change") + 
-  ggtitle("Pseudobulked DE tests: LC vs. WM") + 
+  ggtitle("Pseudobulked DE tests: LC vs. non-LC") + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank())
 
@@ -466,9 +467,8 @@ df_all <- data.frame(
   type = rowData(spe_pseudo)$type, 
   gene_version = rowData(spe_pseudo)$gene_version, 
   gene_type = rowData(spe_pseudo)$gene_type, 
-  mean_logcounts_WM = mean_WM, 
   mean_logcounts_LC = mean_LC, 
-  mean_logcounts_LCWM = (mean_WM + mean_LC) / 2, 
+  mean_logcounts_nonLC = mean_non, 
   logFC = logfc, 
   pval = p_vals, 
   FDR = fdrs, 

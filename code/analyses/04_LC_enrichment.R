@@ -41,7 +41,7 @@ sample_ids <- levels(colData(spe)$sample_id)
 # calculate enrichment of marker genes
 # ------------------------------------
 
-# enrichment defined in terms of mean logcounts per spot in LC vs. WM regions
+# enrichment defined in terms of mean logcounts per spot in LC vs. non-LC regions
 
 # select marker genes of interest
 # for NE neurons and 5-HT neurons
@@ -55,7 +55,7 @@ enrichment <- matrix(NA, nrow = length(sample_ids), ncol = length(marker_genes))
 rownames(enrichment) <- sample_ids
 colnames(enrichment) <- marker_genes
 
-enrichment_LC <- enrichment_WM <- enrichment
+enrichment_LC <- enrichment_non <- enrichment
 
 
 # select annotated LC regions
@@ -72,17 +72,17 @@ for (i in seq_along(sample_ids)) {
   }
 }
 
-# select annotated WM regions
-spe_WM <- spe[, !colData(spe)$annot_region]
-dim(spe_WM)
+# select annotated non-LC regions
+spe_non <- spe[, !colData(spe)$annot_region]
+dim(spe_non)
 
 for (i in seq_along(sample_ids)) {
   for (j in seq_along(marker_genes)) {
     # calculate mean logcounts for gene j, sample i
-    mean_ij <- mean(logcounts(spe_WM)[rowData(spe_WM)$gene_name == marker_genes[j], 
-                                      colData(spe_WM)$sample_id == sample_ids[i]])
+    mean_ij <- mean(logcounts(spe_non)[rowData(spe_non)$gene_name == marker_genes[j], 
+                                       colData(spe_non)$sample_id == sample_ids[i]])
     # store in matrix (transposed)
-    enrichment_WM[i, j] <- mean_ij
+    enrichment_non[i, j] <- mean_ij
   }
 }
 
@@ -95,22 +95,22 @@ df_enrichment_LC <- as.data.frame(enrichment_LC)
 df_enrichment_LC$region <- "LC"
 df_enrichment_LC$sample <- rownames(df_enrichment_LC)
 
-df_enrichment_WM <- as.data.frame(enrichment_WM)
-df_enrichment_WM$region <- "WM"
-df_enrichment_WM$sample <- rownames(df_enrichment_WM)
+df_enrichment_non <- as.data.frame(enrichment_non)
+df_enrichment_non$region <- "non"
+df_enrichment_non$sample <- rownames(df_enrichment_non)
 
 
 df_enrichment_LC <- pivot_longer(df_enrichment_LC, cols = -c(region, sample), 
                                  names_to = "gene", values_to = "mean")
-df_enrichment_WM <- pivot_longer(df_enrichment_WM, cols = -c(region, sample), 
-                                 names_to = "gene", values_to = "mean")
+df_enrichment_non <- pivot_longer(df_enrichment_non, cols = -c(region, sample), 
+                                  names_to = "gene", values_to = "mean")
 
 
 df <- 
-  full_join(df_enrichment_LC, df_enrichment_WM) %>% 
+  full_join(df_enrichment_LC, df_enrichment_non) %>% 
   mutate(regions = factor(region, 
-                          levels = c("LC", "WM"), 
-                          labels = c("LC regions", "WM regions"))) %>% 
+                          levels = c("LC", "non"), 
+                          labels = c("LC regions", "non-LC regions"))) %>% 
   mutate(sample_id = factor(sample, levels = sample_ids))
 
 
@@ -146,8 +146,8 @@ ggplot(df_NE) +
         axis.text.x = element_text(face = "italic"))
 
 fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers")
-ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
-ggsave(paste0(fn, ".png"), width = 4, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.25, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 
 
 # plot marker genes for 5-HT neurons
@@ -166,8 +166,8 @@ ggplot(df_5HT) +
         axis.text.x = element_text(face = "italic"))
 
 fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers")
-ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
-ggsave(paste0(fn, ".png"), width = 4, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.25, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 
 
 # ----------------
@@ -194,8 +194,8 @@ ggplot(df_NE_sub) +
         axis.text.x = element_text(face = "italic"))
 
 fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_excBr5459")
-ggsave(paste0(fn, ".pdf"), width = 4, height = 4)
-ggsave(paste0(fn, ".png"), width = 4, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.25, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 
 
 # plot with shapes for sample IDs

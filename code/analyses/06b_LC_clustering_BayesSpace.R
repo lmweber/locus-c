@@ -96,7 +96,7 @@ ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 # --------------
 
 # spatially-aware clustering using BayesSpace
-# aiming to identify LC vs. WM regions in an unsupervised manner
+# aiming to identify LC vs. non-LC regions in an unsupervised manner
 
 
 # run once on all batch-corrected samples combined

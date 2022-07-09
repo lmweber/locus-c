@@ -77,7 +77,7 @@ table(colSums(counts(spe)) == 0, useNA = "always")
 # calculate spot-level QC metrics
 # -------------------------------
 
-# combined object containing both LC and WM regions
+# combined object containing both LC and non-LC regions
 
 # identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
@@ -90,7 +90,7 @@ spe <- addPerCellQCMetrics(spe, subsets = list(mito = is_mito))
 head(colData(spe), 2)
 
 
-# note wide range of values due to combined LC and WM regions
+# note wide range of values due to combined LC and non-LC regions
 summary(colData(spe)$sum)
 summary(colData(spe)$detected)
 summary(colData(spe)$subsets_mito_percent)
