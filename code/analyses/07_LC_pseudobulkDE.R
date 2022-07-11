@@ -400,7 +400,7 @@ hm <- Heatmap(
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   column_title = "LC vs. non-LC regions", 
-  column_title_gp = gpar(fontface = "bold"), 
+  column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "mean\nlogcounts"
 )
 
