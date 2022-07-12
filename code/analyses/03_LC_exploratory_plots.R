@@ -48,6 +48,7 @@ ix_TH <- which(rowData(spe)$gene_name == "TH")
 ix_SLC6A2 <- which(rowData(spe)$gene_name == "SLC6A2")
 ix_TPH2 <- which(rowData(spe)$gene_name == "TPH2")
 ix_SLC6A4 <- which(rowData(spe)$gene_name == "SLC6A4")
+ix_SLC5A7 <- which(rowData(spe)$gene_name == "SLC5A7")
 ix_MOBP <- which(rowData(spe)$gene_name == "MOBP")
 ix_MBP <- which(rowData(spe)$gene_name == "MBP")
 
@@ -58,6 +59,7 @@ df <- as.data.frame(cbind(
   SLC6A2 = counts(spe)[ix_SLC6A2, ], 
   TPH2 = counts(spe)[ix_TPH2, ], 
   SLC6A4 = counts(spe)[ix_SLC6A4, ], 
+  SLC5A7 = counts(spe)[ix_SLC5A7, ], 
   MOBP = counts(spe)[ix_MOBP, ], 
   MBP = counts(spe)[ix_MBP, ]
 ))
@@ -151,6 +153,28 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "counts_SLC6A4")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot SLC5A7 expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = SLC5A7)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts", breaks = range(df$SLC5A7)) + 
+  scale_y_reverse() + 
+  ggtitle("SLC5A7 expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_SLC5A7")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
 ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
@@ -298,6 +322,31 @@ for (s in seq_along(sample_ids)) {
           axis.ticks = element_blank())
   
   fn <- file.path(dir_plots, "SLC6A4", paste0("counts_SLC6A4_", sample_ids[s]))
+  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
+  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
+}
+
+
+# plot SLC5A7 expression
+for (s in seq_along(sample_ids)) {
+  df_sub <- df[df$sample_id == sample_ids[s], ]
+  
+  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+                     color = SLC5A7)) + 
+    geom_point(size = 0.3) + 
+    scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                         name = "counts", breaks = range(df_sub$SLC5A7)) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    ggtitle("SLC5A7") + 
+    theme_bw() + 
+    theme(plot.title = element_text(face = "bold.italic"), 
+          panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  fn <- file.path(dir_plots, "SLC5A7", paste0("counts_SLC5A7_", sample_ids[s]))
   ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
   ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
 }
