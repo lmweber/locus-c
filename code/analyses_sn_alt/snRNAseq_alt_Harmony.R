@@ -211,8 +211,8 @@ reducedDimNames(sce.lc)
 # note: for more resolution, can increase centers and/or use lower k during graph construction
 
 set.seed(123)
-colLabels(sce.lc) <- clusterRows(reducedDim(sce.lc, "HARM"),
-                                 TwoStepParam(KmeansParam(centers = 1000), NNGraphParam(k = 5)))
+colLabels(sce.lc) <- clusterRows(reducedDim(sce.lc, "PCA"),
+                                 TwoStepParam(KmeansParam(centers = 1000), NNGraphParam(k = 4)))
 
 table(colLabels(sce.lc))
 
