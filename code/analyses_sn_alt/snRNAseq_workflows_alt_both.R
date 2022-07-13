@@ -1,7 +1,7 @@
-#####################################################################
-# LC snRNA-seq analysis alternative workflow: unsupervised clustering
+##################################################################################################
+# LC snRNA-seq analysis alternative workflows: unsupervised clustering and supervised thresholding
 # Lukas Weber, July 2022
-#####################################################################
+##################################################################################################
 
 # run in interactive session on JHPCE
 
@@ -18,6 +18,7 @@ library(DropletUtils)
 library(scater)
 library(scran)
 library(bluster)
+library(ggplot2)
 
 
 dir_plots <- here("plots", "snRNAseq_alt")
@@ -223,6 +224,7 @@ table(colLabels(sce), colData(sce)$Sample)
 ix <- c(
   TH = which(rowData(sce)$gene_name == "TH"), 
   SLC6A2 = which(rowData(sce)$gene_name == "SLC6A2"), 
+  DBH = which(rowData(sce)$gene_name == "DBH"), 
   TPH2 = which(rowData(sce)$gene_name == "TPH2"), 
   SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
   SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")
@@ -238,19 +240,50 @@ res_mat <- do.call("rbind", res_list)
 rownames(res_mat) <- seq_len(n_clus)
 colnames(res_mat) <- names(ix)
 
+res_mat
 
-# --------------------------
-# summarize and plot results
-# --------------------------
+
+# -----------------------
+# Supervised thresholding
+# -----------------------
+
+# identify NE neurons based on nonzero expression of TH, SLC6A2, DBH
+
+ix_TH <- which(rowData(sce)$gene_name == "TH")
+ix_SLC6A2 <- which(rowData(sce)$gene_name == "SLC6A2")
+ix_DBH <- which(rowData(sce)$gene_name == "DBH")
+
+# number of nuclei with positive expression of 1 of or all 3 of TH, SLC6A2, DBH
+rbind(
+  THpos = table(counts(sce)[ix_TH, ] > 0), 
+  SLC6A2pos = table(counts(sce)[ix_SLC6A2, ] > 0), 
+  DBHpos = table(counts(sce)[ix_DBH, ] > 0), 
+  all3pos = table(counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0)
+)
+
+# identify NE neurons
+ix_NEneurons <- counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0
+
+stopifnot(length(ix_NEneurons) == ncol(sce))
+
+colData(sce)$supervisedNE <- as.factor(as.numeric(ix_NEneurons))
+
+head(colData(sce), 2)
+
+
+# -----------------
+# summarize results
+# -----------------
 
 # number of nuclei per cluster and sample
+
+# unsupervised clustering
 table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
 # clusters identified based on marker genes above
 # cluster 21: NE neurons
 # cluster 7: 5-HT neurons
-
 
 sum(colLabels(sce) == 21)
 sum(colLabels(sce) == 7)
@@ -260,45 +293,113 @@ rbind(
   `5HT` = table(colLabels(sce) == 7, colData(sce)$Sample)[2, ]
 )
 
+# supervised thresholding
+table(colData(sce)$supervisedNE)
+table(colData(sce)$supervisedNE, colData(sce)$Sample)[2, ]
+
 
 # for plotting
 sce_plot <- sce
 rownames(sce_plot) <- rowData(sce_plot)$gene_name
 
-sce_NE <- sce_plot[, colLabels(sce_plot) == 21]
-sce_5HT <- sce_plot[, colLabels(sce_plot) == 7]
+# unsupervised clustering
+sce_clusNE <- sce_plot[, colLabels(sce_plot) == 21]
+sce_clus5HT <- sce_plot[, colLabels(sce_plot) == 7]
+
+# supervised thresholding
+sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE == 1]
+
 
 genes_NE <- c("TH", "SLC6A2")
 genes_5HT <- c("TPH2", "SLC6A4")
 
 
+# -------------------------------
+# plot expression of marker genes
+# -------------------------------
+
+# unsupervised clustering
+
 # plot expression of NE neuron marker genes
 p <- gridExtra::grid.arrange(
-  plotExpression(sce_NE, genes_NE, colour_by = "sum") + ggtitle("NE neuron cluster"), 
-  plotExpression(sce_NE, genes_NE, colour_by = "detected") + ggtitle("NE neuron cluster"), 
-  plotExpression(sce_NE, genes_NE, colour_by = "subsets_Mito_percent") + ggtitle("NE neuron cluster"), 
+  plotExpression(sce_clusNE, genes_NE, colour_by = "sum") + ggtitle("NE neuron cluster"), 
+  plotExpression(sce_clusNE, genes_NE, colour_by = "detected") + ggtitle("NE neuron cluster"), 
+  plotExpression(sce_clusNE, genes_NE, colour_by = "subsets_Mito_percent") + ggtitle("NE neuron cluster"), 
   ncol = 3
 )
-
 p
-
-fn <- file.path(dir_plots, "clusterNEneurons_metrics")
+fn <- file.path(dir_plots, "clusteringNEneurons_expression")
 ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 4)
 ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
 
 
-# plot expression of 5-H% neuron marker genes
+# plot expression of 5-HT neuron marker genes
 p <- gridExtra::grid.arrange(
-  plotExpression(sce_5HT, genes_5HT, colour_by = "sum") + ggtitle("5-HT neuron cluster"), 
-  plotExpression(sce_5HT, genes_5HT, colour_by = "detected") + ggtitle("5-HT neuron cluster"), 
-  plotExpression(sce_5HT, genes_5HT, colour_by = "subsets_Mito_percent") + ggtitle("5-HT neuron cluster"), 
+  plotExpression(sce_clus5HT, genes_5HT, colour_by = "sum") + ggtitle("5-HT neuron cluster"), 
+  plotExpression(sce_clus5HT, genes_5HT, colour_by = "detected") + ggtitle("5-HT neuron cluster"), 
+  plotExpression(sce_clus5HT, genes_5HT, colour_by = "subsets_Mito_percent") + ggtitle("5-HT neuron cluster"), 
   ncol = 3
 )
-
 p
-
-fn <- file.path(dir_plots, "cluster5HTneurons_metrics")
+fn <- file.path(dir_plots, "clustering5HTneurons_expression")
 ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 4)
 ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
 
+
+# supervised thresholding
+
+# plot expression of NE neuron marker genes
+p <- gridExtra::grid.arrange(
+  plotExpression(sce_supNE, genes_NE, colour_by = "sum") + ggtitle("NE neurons (supervised)"), 
+  plotExpression(sce_supNE, genes_NE, colour_by = "detected") + ggtitle("NE neurons (supervised)"), 
+  plotExpression(sce_supNE, genes_NE, colour_by = "subsets_Mito_percent") + ggtitle("NE neurons (supervised)"), 
+  ncol = 3
+)
+p
+fn <- file.path(dir_plots, "supervisedNEneurons_expression")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 4)
+ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
+
+
+# -------------------------
+# plot UMAP representations
+# -------------------------
+
+# identify populations of interest
+colData(sce)$unsupervisedNE <- colLabels(sce) == 21
+colData(sce)$unsupervised5HT <- colLabels(sce) == 7
+
+
+# unsupervised clustering
+
+# NE neurons
+plotReducedDim(sce, dimred = "UMAP", colour_by = "unsupervisedNE") + 
+  scale_color_manual(values = c("navy", "red"), name = "NE neurons") + 
+  ggtitle("Unsupervised clustering")
+
+fn <- file.path(dir_plots, "clusteringNEneurons_UMAP")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
+
+
+# 5-HT neurons
+plotReducedDim(sce, dimred = "UMAP", colour_by = "unsupervised5HT") + 
+  scale_color_manual(values = c("navy", "red"), name = "5-HT neurons") + 
+  ggtitle("Unsupervised clustering")
+
+fn <- file.path(dir_plots, "clustering5HTneurons_UMAP")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
+
+
+# supervised thresholding
+
+# NE neurons
+plotReducedDim(sce, dimred = "UMAP", colour_by = "supervisedNE") + 
+  scale_color_manual(values = c("navy", "red"), name = "NE neurons") + 
+  ggtitle("Supervised thresholding")
+
+fn <- file.path(dir_plots, "supervisedNEneurons_UMAP")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
