@@ -328,7 +328,7 @@ table(colData(sce)$supervisedNE, colData(sce)$Sample)[2, ]
 
 # comparison between unsupervised clustering and supervised thresholding
 table(
-  unsupervised = colLabels(sce) == 21, 
+  unsupervised = colLabels(sce) == clus_NE, 
   supervised = colData(sce)$supervisedNE == 1
 )
 
@@ -338,14 +338,14 @@ sce_plot <- sce
 rownames(sce_plot) <- rowData(sce_plot)$gene_name
 
 # unsupervised clustering
-sce_clusNE <- sce_plot[, colLabels(sce_plot) == 21]
-sce_clus5HT <- sce_plot[, colLabels(sce_plot) == 7]
+sce_clusNE <- sce_plot[, colLabels(sce_plot) == clus_NE]
+sce_clus5HT <- sce_plot[, colLabels(sce_plot) == clus_5HT]
 
 # supervised thresholding
 sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE == 1]
 
 
-genes_NE <- c("TH", "SLC6A2")
+genes_NE <- c("TH", "SLC6A2", "DBH")
 genes_5HT <- c("TPH2", "SLC6A4")
 
 
@@ -401,8 +401,8 @@ ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
 # -------------------------
 
 # identify populations of interest
-colData(sce)$unsupervisedNE <- colLabels(sce) == 21
-colData(sce)$unsupervised5HT <- colLabels(sce) == 7
+colData(sce)$unsupervisedNE <- colLabels(sce) == clus_NE
+colData(sce)$unsupervised5HT <- colLabels(sce) == clus_5HT
 
 
 # unsupervised clustering
