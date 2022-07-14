@@ -19,6 +19,7 @@ library(scater)
 library(scran)
 library(bluster)
 library(ggplot2)
+library(ggVennDiagram)
 
 
 dir_plots <- here("plots", "snRNAseq_alt")
@@ -262,13 +263,13 @@ res_mat
 # Supervised thresholding
 # -----------------------
 
-# identify NE neurons based on nonzero expression of TH, SLC6A2, DBH
+# identify NE neuron nuclei based on positive expression of TH, SLC6A2, DBH
 
 ix_TH <- which(rowData(sce)$gene_name == "TH")
 ix_SLC6A2 <- which(rowData(sce)$gene_name == "SLC6A2")
 ix_DBH <- which(rowData(sce)$gene_name == "DBH")
 
-# number of nuclei with positive expression of 1 of or all 3 of TH, SLC6A2, DBH
+# number of nuclei
 rbind(
   THpos = table(counts(sce)[ix_TH, ] > 0), 
   SLC6A2pos = table(counts(sce)[ix_SLC6A2, ] > 0), 
@@ -276,24 +277,25 @@ rbind(
   all3pos = table(counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0)
 )
 
-# identify NE neurons: intersection set
-ix_NEneurons <- counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0
-table(ix_NEneurons)
+# identify nuclei
+colData(sce)$posTH <- counts(sce)[ix_TH, ] > 0
+colData(sce)$posSLC6A2 <- counts(sce)[ix_SLC6A2, ] > 0
+colData(sce)$posDBH <- counts(sce)[ix_DBH, ] > 0
 
-# identify NE neurons: union set
-ix_union <- counts(sce)[ix_TH, ] > 0 | counts(sce)[ix_SLC6A2, ] > 0 | counts(sce)[ix_DBH, ] > 0
-table(ix_union)
-
-
-stopifnot(length(ix_NEneurons) == ncol(sce))
-
-colData(sce)$supervisedNE <- as.factor(as.numeric(ix_NEneurons))
-
-head(colData(sce), 2)
+# intersection set
+colData(sce)$supervisedNE = colData(sce)$posTH & colData(sce)$posSLC6A2 & colData(sce)$posDBH
+table(colData(sce)$supervisedNE)
+# union set
+colData(sce)$supervisedNEunion = colData(sce)$posTH | colData(sce)$posSLC6A2 | colData(sce)$posDBH
+table(colData(sce)$supervisedNEunion)
 
 
 # check expression of key markers
-res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNE == 1])
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNE])
+names(res) <- names(ix)
+res
+
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunion])
 names(res) <- names(ix)
 res
 
@@ -331,7 +333,7 @@ table(colData(sce)$supervisedNE, colData(sce)$Sample)[2, ]
 # comparison between unsupervised clustering and supervised thresholding
 table(
   unsupervised = colLabels(sce) == clus_NE, 
-  supervised = colData(sce)$supervisedNE == 1
+  supervised = colData(sce)$supervisedNE
 )
 
 
@@ -340,7 +342,7 @@ table(
 # unsupervised
 summary(colData(sce)$subsets_Mito_percent[colLabels(sce) == clus_NE])
 # supervised
-summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE == 1])
+summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE])
 
 
 # for plotting
@@ -353,11 +355,55 @@ sce_clusNE <- sce_plot[, colLabels(sce_plot) == clus_NE]
 sce_clus5HT <- sce_plot[, colLabels(sce_plot) == clus_5HT]
 
 # supervised
-sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE == 1]
+sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE]
 
 
 genes_NE <- c("TH", "SLC6A2", "DBH")
 genes_5HT <- c("TPH2", "SLC6A4")
+
+
+# --------------------------------
+# Venn diagrams comparing overlaps
+# --------------------------------
+
+colData(sce)$Key <- paste(colData(sce)$Sample, colData(sce)$Barcode, sep = "_")
+
+
+# NE neurons: unsupervised clustering vs. supervised thresholding
+
+x <- list(
+  `clustering NE` = colData(sce)$Key[colData(sce)$unsupervisedNE], 
+  `supervised NE` = colData(sce)$Key[colData(sce)$supervisedNE]
+)
+
+ggVennDiagram(x) + 
+  scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
+  scale_color_manual(values = c("black", "black")) + 
+  theme_void() + 
+  theme(plot.background = element_rect(fill = "white", color = "white"))
+
+fn <- file.path(dir_plots, "overlap_NEneurons_clusteringVsSupervised")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 3.5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 3.5)
+
+
+# NE neurons: supervised thresholding on each of TH, SLC6A2, DBH
+
+x <- list(
+  `TH+` = colData(sce)$Key[colData(sce)$posTH], 
+  `SLC6A2+` = colData(sce)$Key[colData(sce)$posSLC6A2], 
+  `DBH+` = colData(sce)$Key[colData(sce)$posDBH]
+)
+
+ggVennDiagram(x) + 
+  scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
+  scale_color_manual(values = c("black", "black", "black")) + 
+  theme_void() + 
+  theme(plot.background = element_rect(fill = "white", color = "white"))
+
+fn <- file.path(dir_plots, "overlap_NEneurons_byMarker")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
 
 # -------------------------------
