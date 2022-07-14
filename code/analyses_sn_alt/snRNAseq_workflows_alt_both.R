@@ -182,14 +182,13 @@ summary(sizeFactors(sce))
 # Feature selection
 # -----------------
 
-# filter mitochondrial genes (for dimensionality reduction and clustering)
+# identify mitochondrial genes
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(sce)$gene_name)
 table(is_mito)
 rowData(sce)$gene_name[is_mito]
-sce <- sce[!is_mito, ]
 
 # fit mean-variance relationship
-dec <- modelGeneVar(sce)
+dec <- modelGeneVar(sce, subset.row = !is_mito)
 # select top HVGs
 top_hvgs <- getTopHVGs(dec, prop = 0.1)
 
