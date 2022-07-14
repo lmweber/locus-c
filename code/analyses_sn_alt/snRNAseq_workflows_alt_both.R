@@ -182,10 +182,11 @@ summary(sizeFactors(sce))
 # Feature selection
 # -----------------
 
-# note: keep mitochondrial genes, since these are biologically meaningful in this dataset
+# filter mitochondrial genes (for dimensionality reduction and clustering)
 is_mito <- grepl("(^MT-)|(^mt-)", rowData(sce)$gene_name)
 table(is_mito)
 rowData(sce)$gene_name[is_mito]
+sce <- sce[!is_mito, ]
 
 # fit mean-variance relationship
 dec <- modelGeneVar(sce)
@@ -224,7 +225,7 @@ clus <- clusterCells(
   use.dimred = "PCA", 
   BLUSPARAM = TwoStepParam(
     first = KmeansParam(centers = 2000), 
-    second = NNGraphParam(k = 5)
+    second = NNGraphParam(k = 10)
   )
 )
 colLabels(sce) <- clus
@@ -309,16 +310,18 @@ table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
 # NE neuron cluster and 5-HT neuron cluster identified from marker genes above
-clus_NE <- 11
-clus_5HT <- 41
+clus_NE <- 20
+clus_5HT <- 22
 
 sum(colLabels(sce) == clus_NE)
 sum(colLabels(sce) == clus_5HT)
 
-rbind(
+tbl <- rbind(
   NE = table(colLabels(sce) == clus_NE, colData(sce)$Sample)[2, ], 
   `5HT` = table(colLabels(sce) == clus_5HT, colData(sce)$Sample)[2, ]
 )
+tbl
+rowSums(tbl)
 
 
 # supervised thresholding
