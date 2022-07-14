@@ -178,17 +178,32 @@ sce <- logNormCounts(sce)
 summary(sizeFactors(sce))
 
 
+# -----------------
+# Feature selection
+# -----------------
+
+# note: keep mitochondrial genes, since these are biologically meaningful in this dataset
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(sce)$gene_name)
+table(is_mito)
+rowData(sce)$gene_name[is_mito]
+
+# fit mean-variance relationship
+dec <- modelGeneVar(sce)
+# select top HVGs
+top_hvgs <- getTopHVGs(dec, prop = 0.1)
+
+
 # ------------------------
 # Dimensionality reduction
 # ------------------------
 
 # note: not applying any batch integration due to our interest in rare populations
 
-# PCA
+# calculate PCA (on top HVGs)
 set.seed(123)
-sce <- runPCA(sce)
+sce <- runPCA(sce, subset_row = top_hvgs)
 
-# UMAP
+# calculate UMAP (on top PCs)
 set.seed(123)
 sce <- runUMAP(sce, dimred = "PCA")
 colnames(reducedDim(sce, "UMAP")) <- paste0("UMAP", seq_len(ncol(reducedDim(sce, "UMAP"))))
@@ -203,7 +218,7 @@ reducedDimNames(sce)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering using high-resolution k-means and graph-based clustering
 
-set.seed(100)
+set.seed(123)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
@@ -261,14 +276,26 @@ rbind(
   all3pos = table(counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0)
 )
 
-# identify NE neurons
+# identify NE neurons: intersection set
 ix_NEneurons <- counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0
+table(ix_NEneurons)
+
+# identify NE neurons: union set
+ix_union <- counts(sce)[ix_TH, ] > 0 | counts(sce)[ix_SLC6A2, ] > 0 | counts(sce)[ix_DBH, ] > 0
+table(ix_union)
+
 
 stopifnot(length(ix_NEneurons) == ncol(sce))
 
 colData(sce)$supervisedNE <- as.factor(as.numeric(ix_NEneurons))
 
 head(colData(sce), 2)
+
+
+# check expression of key markers
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNE == 1])
+names(res) <- names(ix)
+res
 
 
 # -----------------
@@ -281,21 +308,29 @@ head(colData(sce), 2)
 table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
-# clusters identified based on marker genes above
-# cluster 21: NE neurons
-# cluster 7: 5-HT neurons
+# NE neuron cluster and 5-HT neuron cluster identified from marker genes above
+clus_NE <- 11
+clus_5HT <- 41
 
-sum(colLabels(sce) == 21)
-sum(colLabels(sce) == 7)
+sum(colLabels(sce) == clus_NE)
+sum(colLabels(sce) == clus_5HT)
 
 rbind(
-  NE = table(colLabels(sce) == 21, colData(sce)$Sample)[2, ], 
-  `5HT` = table(colLabels(sce) == 7, colData(sce)$Sample)[2, ]
+  NE = table(colLabels(sce) == clus_NE, colData(sce)$Sample)[2, ], 
+  `5HT` = table(colLabels(sce) == clus_5HT, colData(sce)$Sample)[2, ]
 )
+
 
 # supervised thresholding
 table(colData(sce)$supervisedNE)
 table(colData(sce)$supervisedNE, colData(sce)$Sample)[2, ]
+
+
+# comparison between unsupervised clustering and supervised thresholding
+table(
+  unsupervised = colLabels(sce) == 21, 
+  supervised = colData(sce)$supervisedNE == 1
+)
 
 
 # for plotting
