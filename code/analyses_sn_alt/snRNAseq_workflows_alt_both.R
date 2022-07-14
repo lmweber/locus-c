@@ -282,12 +282,21 @@ colData(sce)$posTH <- counts(sce)[ix_TH, ] > 0
 colData(sce)$posSLC6A2 <- counts(sce)[ix_SLC6A2, ] > 0
 colData(sce)$posDBH <- counts(sce)[ix_DBH, ] > 0
 
+# identify nuclei: more strict thresholds
+colData(sce)$posStrictTH <- counts(sce)[ix_TH, ] > 1
+colData(sce)$posStrictSLC6A2 <- counts(sce)[ix_SLC6A2, ] > 1
+colData(sce)$posStrictDBH <- counts(sce)[ix_DBH, ] > 1
+
+
 # intersection set
 colData(sce)$supervisedNE = colData(sce)$posTH & colData(sce)$posSLC6A2 & colData(sce)$posDBH
 table(colData(sce)$supervisedNE)
-# union set
+# union set (> 0)
 colData(sce)$supervisedNEunion = colData(sce)$posTH | colData(sce)$posSLC6A2 | colData(sce)$posDBH
 table(colData(sce)$supervisedNEunion)
+# union set (> 1)
+colData(sce)$supervisedNEunionStrict = colData(sce)$posStrictTH | colData(sce)$posStrictSLC6A2 | colData(sce)$posStrictDBH
+table(colData(sce)$supervisedNEunionStrict)
 
 
 # check expression of key markers
@@ -296,6 +305,10 @@ names(res) <- names(ix)
 res
 
 res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunion])
+names(res) <- names(ix)
+res
+
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunionStrict])
 names(res) <- names(ix)
 res
 
@@ -402,6 +415,25 @@ ggVennDiagram(x) +
   theme(plot.background = element_rect(fill = "white", color = "white"))
 
 fn <- file.path(dir_plots, "overlap_NEneurons_byMarker")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
+
+
+# NE neurons: supervised thresholding on each of TH, SLC6A2, DBH: more strict thresholds
+
+x <- list(
+  `TH++` = colData(sce)$Key[colData(sce)$posStrictTH], 
+  `SLC6A2++` = colData(sce)$Key[colData(sce)$posStrictSLC6A2], 
+  `DBH++` = colData(sce)$Key[colData(sce)$posStrictDBH]
+)
+
+ggVennDiagram(x) + 
+  scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
+  scale_color_manual(values = c("black", "black", "black")) + 
+  theme_void() + 
+  theme(plot.background = element_rect(fill = "white", color = "white"))
+
+fn <- file.path(dir_plots, "overlap_NEneurons_byMarker_strict")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
