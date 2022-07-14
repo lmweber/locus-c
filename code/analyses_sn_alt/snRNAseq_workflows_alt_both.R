@@ -333,15 +333,24 @@ table(
 )
 
 
+# mitochondrial percentages in NE neuron clusters
+
+# unsupervised
+summary(colData(sce)$subsets_Mito_percent[colLabels(sce) == clus_NE])
+# supervised
+summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE == 1])
+
+
 # for plotting
+
 sce_plot <- sce
 rownames(sce_plot) <- rowData(sce_plot)$gene_name
 
-# unsupervised clustering
+# unsupervised
 sce_clusNE <- sce_plot[, colLabels(sce_plot) == clus_NE]
 sce_clus5HT <- sce_plot[, colLabels(sce_plot) == clus_5HT]
 
-# supervised thresholding
+# supervised
 sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE == 1]
 
 
