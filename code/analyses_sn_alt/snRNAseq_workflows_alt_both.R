@@ -258,6 +258,8 @@ colnames(res_mat) <- names(ix)
 
 res_mat
 
+# View(res_mat)
+
 
 # -----------------------
 # Supervised thresholding
@@ -311,6 +313,31 @@ res
 res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunionStrict])
 names(res) <- names(ix)
 res
+
+
+# identify cholinergic interneurons based on positive expression of marker genes
+
+ix_SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")
+ix_CHAT = which(rowData(sce)$gene_name == "CHAT")
+ix_ACHE = which(rowData(sce)$gene_name == "ACHE")
+ix_BCHE = which(rowData(sce)$gene_name == "BCHE")
+ix_SLC18A3 = which(rowData(sce)$gene_name == "SLC18A3")
+ix_PRIMA1 = which(rowData(sce)$gene_name == "PRIMA1")
+
+table(
+  counts(sce)[ix_SLC5A7, ] > 0 & 
+  counts(sce)[ix_CHAT, ] > 0 & 
+  counts(sce)[ix_ACHE, ] > 0
+)
+
+table(
+  counts(sce)[ix_SLC5A7, ] > 0 & 
+  counts(sce)[ix_CHAT, ] > 0 & 
+  counts(sce)[ix_ACHE, ] > 0 & 
+  counts(sce)[ix_BCHE, ] > 0 & 
+  counts(sce)[ix_SLC18A3, ] > 0 & 
+  counts(sce)[ix_PRIMA1, ] > 0
+)
 
 
 # -----------------
