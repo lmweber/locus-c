@@ -89,6 +89,9 @@ table(sce$Sample)
 # fn <- here("processed_data", "SCE_alt", "sce_raw")
 # sce <- readRDS(paste0(fn, ".rds"))
 
+# fn <- here("processed_data", "SCE_alt", "sce_emptydrops")
+# sce_emptydrops <- readRDS(paste0(fn, ".rds"))
+
 
 # --------------------
 # Quality control (QC)
@@ -400,6 +403,25 @@ sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE]
 
 genes_NE <- c("TH", "SLC6A2", "DBH")
 genes_5HT <- c("TPH2", "SLC6A4")
+
+
+# ----------
+# EmptyDrops
+# ----------
+
+# compare EmptyDrops nuclei
+is_emptydrop <- rownames(colData(sce)) %in% rownames(colData(sce_emptydrops))
+table(is_emptydrop)
+stopifnot(length(is_emptydrop) == ncol(sce))
+
+colData(sce)$is_emptydrop <- is_emptydrop
+
+table(colLabels(sce), colData(sce)$is_emptydrop)
+
+colSums(table(colLabels(sce), colData(sce)$is_emptydrop))
+
+# NE neurons and 5-HT neurons
+table(colLabels(sce), colData(sce)$is_emptydrop)[c(clus_NE, clus_5HT), ]
 
 
 # --------------------------------
