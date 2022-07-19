@@ -1,5 +1,5 @@
 ########################################
-# LC snRNA-seq analyses: filter doublets
+# LC snRNA-seq analyses: remove doublets
 # Lukas Weber, July 2022
 ########################################
 
@@ -30,7 +30,7 @@ table(colData(sce)$Sample)
 
 
 # ---------------
-# Filter doublets
+# Remove doublets
 # ---------------
 
 # identify and remove doublets using scDblFinder
@@ -59,6 +59,6 @@ dim(sce)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_doubletFiltered")
+fn_out <- here("processed_data", "SCE_alt", "sce_doubletsRemoved")
 saveRDS(sce, paste0(fn_out, ".rds"))
 

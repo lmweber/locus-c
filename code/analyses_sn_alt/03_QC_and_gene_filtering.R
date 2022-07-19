@@ -27,7 +27,7 @@ dir_plots <- here("plots", "snRNAseq_alt")
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE_alt", "sce_doubletFiltered")
+fn <- here("processed_data", "SCE_alt", "sce_doubletsRemoved")
 sce <- readRDS(paste0(fn, ".rds"))
 
 table(colData(sce)$Sample)
