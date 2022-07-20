@@ -238,8 +238,8 @@ table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
 # NE neuron cluster and 5-HT neuron cluster identified from marker genes above
-clus_NE <- 27
-clus_5HT <- 26
+clus_NE <- 16
+clus_5HT <- 14
 
 sum(colLabels(sce) == clus_NE)
 sum(colLabels(sce) == clus_5HT)
