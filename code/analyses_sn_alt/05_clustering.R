@@ -111,12 +111,20 @@ colData(sce)$posStrictDBH <- counts(sce)[ix_DBH, ] > 1
 # intersection set
 colData(sce)$supervisedNE = colData(sce)$posTH & colData(sce)$posSLC6A2 & colData(sce)$posDBH
 table(colData(sce)$supervisedNE)
+table(colData(sce)$Sample, colData(sce)$supervisedNE)
 # union set (> 0)
 colData(sce)$supervisedNEunion = colData(sce)$posTH | colData(sce)$posSLC6A2 | colData(sce)$posDBH
 table(colData(sce)$supervisedNEunion)
+table(colData(sce)$Sample, colData(sce)$supervisedNEunion)
 # union set (> 1)
 colData(sce)$supervisedNEunionStrict = colData(sce)$posStrictTH | colData(sce)$posStrictSLC6A2 | colData(sce)$posStrictDBH
 table(colData(sce)$supervisedNEunionStrict)
+table(colData(sce)$Sample, colData(sce)$supervisedNEunionStrict)
+
+# "2 out of 3" set
+colData(sce)$supervisedNE2of3 = colData(sce)$posTH & colData(sce)$posDBH
+table(colData(sce)$supervisedNE2of3)
+table(colData(sce)$Sample, colData(sce)$supervisedNE2of3)
 
 
 # check expression of key markers
