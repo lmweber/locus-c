@@ -453,3 +453,11 @@ fn <- file.path(dir_plots, "UMAP_sampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
+
+# -----------
+# Save object
+# -----------
+
+fn_out <- here("processed_data", "SCE_alt", "sce_clustering")
+saveRDS(sce, paste0(fn_out, ".rds"))
+
