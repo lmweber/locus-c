@@ -3,14 +3,6 @@
 # Lukas Weber, July 2022
 ###########################################################
 
-# run in interactive session on JHPCE
-
-# screen -S LC
-# qrsh -l mem_free=20G,h_vmem=22G,h_fsize=200G -now n
-# cd /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn_alt
-# module load conda_R/devel
-# R
-
 
 library(here)
 library(SingleCellExperiment)
@@ -18,7 +10,8 @@ library(scater)
 library(scran)
 library(ggplot2)
 
-dir_plots <- here("plots", "snRNAseq_alt")
+
+dir_plots <- here("plots", "snRNAseq_alt", "03_quality_control")
 
 
 # ---------------
@@ -80,12 +73,18 @@ p <- gridExtra::grid.arrange(
 p
 
 fn <- file.path(dir_plots, "QC_metrics")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 3)
-ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 3)
+ggsave(paste0(fn, ".pdf"), plot = p, width = 12, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
 
 
-# investigate high-mitochondrial nuclei
+# -------------------------
+# High-mitochondrial nuclei
+# -------------------------
+
+# investigate nuclei with high mitochondrial proportion of reads
+
 nonzero_TH <- counts(sce)[which(rowData(sce)$gene_name == "TH"), ] > 0
+
 summary(colData(sce)$subsets_Mito_percent[nonzero_TH])
 
 
@@ -110,6 +109,6 @@ dim(sce)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_QCandGeneFiltered")
+fn_out <- here("processed_data", "SCE_alt", "sce_QCandFiltered")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
