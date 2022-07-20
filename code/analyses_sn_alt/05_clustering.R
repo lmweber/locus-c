@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering using high-resolution k-means and graph-based clustering
 
-set.seed(123)
+set.seed(1)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
@@ -61,7 +61,12 @@ ix <- c(
   DBH = which(rowData(sce)$gene_name == "DBH"), 
   TPH2 = which(rowData(sce)$gene_name == "TPH2"), 
   SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
-  SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")
+  SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7"), 
+  CHAT = which(rowData(sce)$gene_name == "CHAT"), 
+  ACHE = which(rowData(sce)$gene_name == "ACHE"), 
+  BCHE = which(rowData(sce)$gene_name == "BCHE"), 
+  SLC18A3 = which(rowData(sce)$gene_name == "SLC18A3"), 
+  PRIMA1 = which(rowData(sce)$gene_name == "PRIMA1")
 )
 
 n_clus <- length(table(colLabels(sce)))
@@ -74,7 +79,11 @@ res_mat <- do.call("rbind", res_list)
 rownames(res_mat) <- seq_len(n_clus)
 colnames(res_mat) <- names(ix)
 
-res_mat
+cbind(
+  n = table(colLabels(sce)), 
+  table(colLabels(sce), colData(sce)$Sample), 
+  res_mat
+)
 
 # View(res_mat)
 
