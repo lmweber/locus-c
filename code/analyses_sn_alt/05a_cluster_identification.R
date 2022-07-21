@@ -9,7 +9,10 @@ library(here)
 library(SingleCellExperiment)
 library(scater)
 library(scran)
+library(jaffelab)
 library(ggplot2)
+library(RColorBrewer)
+library(pheatmap)
 
 
 dir_plots <- here("plots", "snRNAseq_alt", "05a_cluster_identification")
@@ -63,6 +66,7 @@ plotExpressionCustom <- function(sce, features, features_name, anno_name = "cell
     ggtitle(label = paste0(features_name, " markers"))
 }
 
+
 # marker gene list from Matthew N Tran
 markers.mathys.tran = list(
   'neuron' = c('SYT1', 'SNAP25', 'GRIN1'), 
@@ -90,6 +94,7 @@ markers.mathys.tran = list(
   'Macro' = c('CD163', 'SIGLEC1', 'F13A1')
 )
 
+
 # palettes from scater
 tableau20 = c("#1F77B4", "#AEC7E8", "#FF7F0E", "#FFBB78", "#2CA02C", 
               "#98DF8A", "#D62728", "#FF9896", "#9467BD", "#C5B0D5", 
@@ -100,8 +105,9 @@ tableau10medium = c("#729ECE", "#FF9E4A", "#67BF5C", "#ED665D",
                     "#CDCC5D", "#6DCCDA")
 colors <- unique(c(tableau20, tableau10medium))
 
+
 # plotting code from Matthew N Tran
-fn <- here(dir_plots, paste0("LC_expression_violin_markers_clusters.pdf"))
+fn <- here(dir_plots, paste0("clustersMarkersExpression_byPopulation_violins.pdf"))
 pdf(fn, height = 6, width = 12)
 for(i in 1:length(markers.mathys.tran)) {
   print(
@@ -145,4 +151,42 @@ markers_broad <- c(
   # OPC
   'PDGFRA','VCAN'
 )
+
+
+# plotting code from Matthew N Tran
+
+cell.idx <- splitit(sce$label)
+dat <- as.matrix(assay(sce, "logcounts"))
+rownames(dat) <- rowData(sce)$gene_name
+
+## Medians version
+current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[markers_broad, ii])))
+# For some reason rownames aren't kept
+rownames(current_dat) <- markers_broad
+# # Set neuronal pops first
+# neuronPosition <- c(grep("Excit", colnames(current_dat)), 
+#                     grep("Inhib", colnames(current_dat)), 
+#                     grep("Neuron", colnames(current_dat)))
+# reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
+# current_dat <- current_dat[ ,reorderedCols]
+# # Put NE neurons before the 5-HT ones
+# current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+
+italicnames <- lapply(
+  rownames(current_dat), 
+  function(x) bquote(italic(.(x))))
+
+# Print
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
+pdf(fn, height = 7, width = 7.5)
+par(mar = c(5,8,4,2))
+pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE, 
+         breaks = seq(0.02, 4, length.out = 101), 
+         color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
+         main = "\t\t\t\tLC cluster broad marker expression profiles (medians)", 
+         labels_col = as.expression(italicnames), 
+         angle_col = 90, 
+         fontsize = 12, fontsize_row = 15, fontsize_col = 14)
+grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
+dev.off()
 
