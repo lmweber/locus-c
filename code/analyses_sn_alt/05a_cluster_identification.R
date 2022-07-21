@@ -126,3 +126,23 @@ dev.off()
 # Marker expression heatmap
 # -------------------------
 
+# marker gene list from Matthew N Tran
+markers_broad <- c(
+  'SNAP25','SLC17A7','SLC17A6','GAD1','GAD2', 
+  # NE neuron markers
+  "TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC", 
+  # serotonergic markers (includes DDC but repetitive)
+  "SLC6A4", "TPH2",  # (TPH1 not expressed by these clusters)
+  ## Non-neuronal:
+  # Astro
+  'AQP4','GFAP', 
+  # Endo, Mural (RBPMS)
+  'CLDN5','FLT1','RBPMS', 
+  # Macrophage, Microglia
+  'CD163','C3', 
+  # Oligo
+  'MBP', 
+  # OPC
+  'PDGFRA','VCAN'
+)
+
