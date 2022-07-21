@@ -86,60 +86,6 @@ cbind(
 )
 
 
-# expression of key markers for major cell populations
-# from marker gene lists from Matthew N Tran
-ix_markers <- c(
-  # neuron
-  SYT1 = which(rowData(sce)$gene_name == "SYT1"), 
-  # excit_neuron
-  CAMK2A = which(rowData(sce)$gene_name == "CAMK2A"), 
-  # inhib_neuron
-  GAD1 = which(rowData(sce)$gene_name == "GAD1"), 
-  # NE neuron
-  TH = which(rowData(sce)$gene_name == "TH"), 
-  # 5-HT neuron
-  SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
-  # SERT, serotonin T (aka 5-HTT)
-  COMT = which(rowData(sce)$gene_name == "COMT"), 
-  # MSNs.pan
-  PPP1R1B = which(rowData(sce)$gene_name == "PPP1R1B"), 
-  # oligodendrocyte
-  MBP = which(rowData(sce)$gene_name == "MBP"), 
-  # oligo_precursor
-  PDGFRA = which(rowData(sce)$gene_name == "PDGFRA"), 
-  # microglia
-  CD74 = which(rowData(sce)$gene_name == "CD74"), 
-  # astrocyte
-  GFAP = which(rowData(sce)$gene_name == "GFAP"), 
-  # endothelial
-  CLDN5 = which(rowData(sce)$gene_name == "CLDN5"), 
-  # differn_committed_OPC
-  SOX4 = which(rowData(sce)$gene_name == "SOX4"), 
-  # Tcell
-  SKAP1 = which(rowData(sce)$gene_name == "SKAP1"), 
-  # Mural
-  COL1A2 = which(rowData(sce)$gene_name == "COL1A2"), 
-  # Macro
-  CD163 = which(rowData(sce)$gene_name == "CD163")
-)
-
-n_clus <- length(table(colLabels(sce)))
-
-res_list <- list()
-for (k in seq_len(n_clus)) {
-  res_list[[k]] <- rowMeans(logcounts(sce)[ix_markers, colLabels(sce) == k])
-}
-res_mat <- do.call("rbind", res_list)
-rownames(res_mat) <- seq_len(n_clus)
-colnames(res_mat) <- names(ix_markers)
-
-cbind(
-  n = table(colLabels(sce)), 
-  table(colLabels(sce), colData(sce)$Sample), 
-  res_mat
-)
-
-
 # -----------------------
 # Supervised thresholding
 # -----------------------
