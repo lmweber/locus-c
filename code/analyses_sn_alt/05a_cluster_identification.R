@@ -10,6 +10,8 @@ library(SingleCellExperiment)
 library(scater)
 library(scran)
 library(jaffelab)
+library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(RColorBrewer)
 library(pheatmap)
@@ -224,18 +226,71 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # create heatmap
-fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
-pdf(fn, height = 7, width = 11)
-par(mar = c(5,8,4,2))
-pheatmap(t(current_dat), 
-         annotation = annotation, 
-         cluster_rows = FALSE, cluster_cols = FALSE, 
-         breaks = seq(0.02, 4, length.out = 101), 
-         color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
-         main = "LC clusters marker expression (medians)", 
-         labels_col = as.expression(italicnames), 
-         angle_col = 90, 
-         fontsize = 12, fontsize_row = 15, fontsize_col = 14)
+p <- pheatmap(t(current_dat), 
+              annotation = annotation, 
+              cluster_rows = FALSE, cluster_cols = FALSE, 
+              breaks = seq(0.02, 4, length.out = 101), 
+              color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
+              main = "LC clusters marker expression (medians)", 
+              labels_col = as.expression(italicnames), 
+              angle_col = 90, 
+              fontsize = 12, fontsize_row = 15, fontsize_col = 14)
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
+pdf(fn, width = 11, height = 7)
+#par(mar = c(5,8,4,2))
+p
 dev.off()
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.png"))
+png(fn, width = 11 * 200, height = 7 * 200, res = 200)
+p
+dev.off()
+
+
+# ----------------
+# number of nuclei
+# ----------------
+
+# plot number of nuclei per cluster: all samples
+
+df <- data.frame(
+  cluster = names(table(colLabels(sce))), 
+  n_nuclei = as.numeric(table(colLabels(sce))))
+df$cluster <- factor(df$cluster, levels = df$cluster)
+
+ggplot(df, aes(x = cluster, y = n_nuclei)) + 
+  geom_bar(stat = "identity", fill = "navy") + 
+  ylab("number of nuclei") + 
+  ggtitle("Number of nuclei per cluster: all samples") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("numberNuclei_allSamples"))
+ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5, height = 4)
+
+
+# plot number of nuclei per cluster: per sample
+
+tbl <- table(colLabels(sce), colData(sce)$Sample)
+df <- as.data.frame(cbind(
+  cluster = as.numeric(rownames(tbl)), 
+  as.matrix(tbl)
+))
+df <- df %>% 
+  pivot_longer(cols = -cluster, names_to = "sample", values_to = "n_nuclei") %>% 
+  mutate(cluster = factor(cluster, levels = unique(cluster))) %>% 
+  mutate(sample = factor(sample, levels = c("Br6522_LC", "Br2701_LC", "Br8079_LC")))
+
+ggplot(df, aes(x = cluster, y = n_nuclei)) + 
+  facet_wrap(~sample) + 
+  geom_bar(stat = "identity", fill = "navy") + 
+  ylab("number of nuclei") + 
+  ggtitle("Number of nuclei per cluster: per sample") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("numberNuclei_perSample"))
+ggsave(paste0(fn, ".pdf"), width = 12, height = 3.5)
+ggsave(paste0(fn, ".png"), width = 12, height = 3.5)
 
