@@ -178,6 +178,27 @@ markers_broad <- c(
   "PDGFRA", "VCAN"
 )
 
+# annotation data frame for heatmap
+types = c("neuron", "excitatory", "inhibitory", "NE", "5HT", "cholinergic", 
+          "astrocytes", "endothelial_mural", "macrophages_microglia", 
+          "oligodendrocytes", "OPCs")
+annotation <- data.frame(
+  type = factor(c(
+    rep(types[[1]], 2), 
+    rep(types[[2]], 2), 
+    rep(types[[3]], 2), 
+    rep(types[[4]], 4), 
+    rep(types[[5]], 2), 
+    rep(types[[6]], 6), 
+    rep(types[[7]], 2), 
+    rep(types[[8]], 3), 
+    rep(types[[9]], 2), 
+    rep(types[[10]], 1), 
+    rep(types[[11]], 2)), 
+    levels = types, 
+    labels = types))
+rownames(annotation) <- markers_broad
+
 
 # plotting code from Matthew N Tran
 
@@ -202,17 +223,19 @@ italicnames <- lapply(
   rownames(current_dat), 
   function(x) bquote(italic(.(x))))
 
-# Print
+# create heatmap
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
-pdf(fn, height = 7, width = 8.5)
+pdf(fn, height = 7, width = 11)
 par(mar = c(5,8,4,2))
-pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE, 
+pheatmap(t(current_dat), 
+         annotation = annotation, 
+         cluster_rows = FALSE, cluster_cols = FALSE, 
          breaks = seq(0.02, 4, length.out = 101), 
          color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
-         main = "\t\t\t\tLC cluster broad marker expression profiles (medians)", 
+         main = "LC clusters marker expression (medians)", 
          labels_col = as.expression(italicnames), 
          angle_col = 90, 
          fontsize = 12, fontsize_row = 15, fontsize_col = 14)
-grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
+#grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 dev.off()
 
