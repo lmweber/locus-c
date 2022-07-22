@@ -1,8 +1,8 @@
-##################################################################
-# LC snRNA-seq analyses: cluster identification using marker genes
+########################################################################
+# LC snRNA-seq analyses: cluster identification using known marker genes
 # Lukas Weber, July 2022
 # using code by Matthew N Tran
-##################################################################
+########################################################################
 
 
 library(here)
@@ -17,7 +17,7 @@ library(RColorBrewer)
 library(pheatmap)
 
 
-dir_plots <- here("plots", "snRNAseq_alt", "05a_cluster_identification")
+dir_plots <- here("plots", "snRNAseq_alt", "06_cluster_identification", "known_markers")
 
 
 # ---------------
