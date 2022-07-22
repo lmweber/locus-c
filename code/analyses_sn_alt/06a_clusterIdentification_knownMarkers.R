@@ -159,7 +159,7 @@ markers_broad <- c(
   # neuron markers
   "SNAP25", "SYT1", 
   # excitatory (glutamatergic) neuron markers
-  "SLC17A7", "SLC17A6", ## alternative names: VGLUT1=SLC17A7, VGLUT2=SLC17A6
+  "SLC17A7", "SLC17A6", "SLC17A8", ## alternative names: VGLUT1, VGLUT2, VGLUT3
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
   # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
@@ -190,7 +190,7 @@ types = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes",
 annotation <- data.frame(
   type = factor(c(
     rep(types[[1]], 2), 
-    rep(types[[2]], 2), 
+    rep(types[[2]], 3), 
     rep(types[[3]], 2), 
     rep(types[[4]], 12), 
     rep(types[[5]], 4), 
@@ -234,7 +234,6 @@ p <- pheatmap(t(current_dat), annotation = annotation,
               cluster_rows = FALSE, cluster_cols = FALSE, 
               #breaks = seq(0.02, 4, length.out = 101), 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
-              #color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
               main = "LC clusters marker expression (medians)", 
               labels_col = as.expression(italicnames), 
               angle_col = 90, 
