@@ -238,13 +238,13 @@ p <- pheatmap(t(current_dat),
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
-pdf(fn, width = 11, height = 7)
+pdf(fn, width = 11, height = 9)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.png"))
-png(fn, width = 11 * 200, height = 7 * 200, res = 200)
+png(fn, width = 11 * 200, height = 9 * 200, res = 200)
 p
 dev.off()
 
@@ -267,8 +267,8 @@ ggplot(df, aes(x = cluster, y = n_nuclei)) +
   theme_bw()
 
 fn <- here(dir_plots, paste0("numberNuclei_allSamples"))
-ggsave(paste0(fn, ".pdf"), width = 5, height = 4)
-ggsave(paste0(fn, ".png"), width = 5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
+ggsave(paste0(fn, ".png"), width = 7, height = 4)
 
 
 # plot number of nuclei per cluster: per sample
@@ -291,6 +291,6 @@ ggplot(df, aes(x = cluster, y = n_nuclei)) +
   theme_bw()
 
 fn <- here(dir_plots, paste0("numberNuclei_perSample"))
-ggsave(paste0(fn, ".pdf"), width = 12, height = 3.5)
-ggsave(paste0(fn, ".png"), width = 12, height = 3.5)
+ggsave(paste0(fn, ".pdf"), width = 16, height = 3.5)
+ggsave(paste0(fn, ".png"), width = 16, height = 3.5)
 
