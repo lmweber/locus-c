@@ -162,6 +162,8 @@ markers_broad <- c(
   "SLC17A7", "SLC17A6", ## alternative names: VGLUT1=SLC17A7, VGLUT2=SLC17A6
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
+  # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
+  "PVALB", "SST", "CORT", "KIT", "VIP", "NPY", "CRHBP", "CALB1", "TAC1", "CCK", "CNR1", "CALB2", ## "HTR3A" (not present in our data)
   # NE neuron markers
   "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
   # 5-HT (serotonin) markers
@@ -181,7 +183,8 @@ markers_broad <- c(
 )
 
 # annotation data frame for heatmap
-types = c("neuron", "excitatory", "inhibitory", "NE", "5HT", "cholinergic", 
+types = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes", 
+          "NE", "5HT", "cholinergic", 
           "astrocytes", "endothelial_mural", "macrophages_microglia", 
           "oligodendrocytes", "OPCs")
 annotation <- data.frame(
@@ -189,14 +192,15 @@ annotation <- data.frame(
     rep(types[[1]], 2), 
     rep(types[[2]], 2), 
     rep(types[[3]], 2), 
-    rep(types[[4]], 4), 
-    rep(types[[5]], 2), 
-    rep(types[[6]], 6), 
-    rep(types[[7]], 2), 
-    rep(types[[8]], 3), 
-    rep(types[[9]], 2), 
-    rep(types[[10]], 1), 
-    rep(types[[11]], 2)), 
+    rep(types[[4]], 12), 
+    rep(types[[5]], 4), 
+    rep(types[[6]], 2), 
+    rep(types[[7]], 6), 
+    rep(types[[8]], 2), 
+    rep(types[[9]], 3), 
+    rep(types[[10]], 2), 
+    rep(types[[11]], 1), 
+    rep(types[[12]], 2)), 
     levels = types, 
     labels = types))
 rownames(annotation) <- markers_broad
@@ -238,13 +242,13 @@ p <- pheatmap(t(current_dat),
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
-pdf(fn, width = 11, height = 9)
+pdf(fn, width = 11, height = 8)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.png"))
-png(fn, width = 11 * 200, height = 9 * 200, res = 200)
+png(fn, width = 11 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
@@ -267,8 +271,8 @@ ggplot(df, aes(x = cluster, y = n_nuclei)) +
   theme_bw()
 
 fn <- here(dir_plots, paste0("numberNuclei_allSamples"))
-ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
-ggsave(paste0(fn, ".png"), width = 7, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
+ggsave(paste0(fn, ".png"), width = 6, height = 4)
 
 
 # plot number of nuclei per cluster: per sample
