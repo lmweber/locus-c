@@ -212,6 +212,7 @@ cell.idx <- splitit(sce$label)
 dat <- as.matrix(assay(sce, "logcounts"))
 rownames(dat) <- rowData(sce)$gene_name
 
+
 ## Medians version
 current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[markers_broad, ii])))
 # For some reason rownames aren't kept
@@ -240,13 +241,41 @@ p <- pheatmap(t(current_dat), annotation = annotation,
               fontsize = 12, fontsize_row = 15, fontsize_col = 14)
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
-fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.pdf"))
 pdf(fn, width = 12, height = 8)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
-fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.png"))
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.png"))
+png(fn, width = 12 * 200, height = 8 * 200, res = 200)
+p
+dev.off()
+
+
+## Means version
+current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[markers_broad, ii])))
+rownames(current_dat) <- markers_broad
+
+italicnames <- lapply(
+  rownames(current_dat), 
+  function(x) bquote(italic(.(x))))
+
+# create heatmap
+p <- pheatmap(t(current_dat), annotation = annotation, 
+              cluster_rows = FALSE, cluster_cols = FALSE, 
+              color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
+              main = "LC clusters marker expression (means)", 
+              labels_col = as.expression(italicnames), 
+              angle_col = 90, 
+              fontsize = 12, fontsize_row = 15, fontsize_col = 14)
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.pdf"))
+pdf(fn, width = 12, height = 8)
+p
+dev.off()
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.png"))
 png(fn, width = 12 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
