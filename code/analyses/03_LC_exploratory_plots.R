@@ -49,6 +49,9 @@ ix_SLC6A2 <- which(rowData(spe)$gene_name == "SLC6A2")
 ix_TPH2 <- which(rowData(spe)$gene_name == "TPH2")
 ix_SLC6A4 <- which(rowData(spe)$gene_name == "SLC6A4")
 ix_SLC5A7 <- which(rowData(spe)$gene_name == "SLC5A7")
+ix_SST <- which(rowData(spe)$gene_name == "SST")
+ix_VIP <- which(rowData(spe)$gene_name == "VIP")
+ix_PVALB <- which(rowData(spe)$gene_name == "PVALB")
 ix_MOBP <- which(rowData(spe)$gene_name == "MOBP")
 ix_MBP <- which(rowData(spe)$gene_name == "MBP")
 
@@ -60,6 +63,9 @@ df <- as.data.frame(cbind(
   TPH2 = counts(spe)[ix_TPH2, ], 
   SLC6A4 = counts(spe)[ix_SLC6A4, ], 
   SLC5A7 = counts(spe)[ix_SLC5A7, ], 
+  SST = counts(spe)[ix_SST, ], 
+  VIP = counts(spe)[ix_VIP, ], 
+  PVALB = counts(spe)[ix_PVALB, ], 
   MOBP = counts(spe)[ix_MOBP, ], 
   MBP = counts(spe)[ix_MBP, ]
 ))
@@ -175,6 +181,72 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "counts_SLC5A7")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot SST expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = SST)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts", breaks = range(df$SST)) + 
+  scale_y_reverse() + 
+  ggtitle("SST expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_SST")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot VIP expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = VIP)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts", breaks = range(df$VIP)) + 
+  scale_y_reverse() + 
+  ggtitle("VIP expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_VIP")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot PVALB expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = PVALB)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts", breaks = range(df$PVALB)) + 
+  scale_y_reverse() + 
+  ggtitle("PVALB expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_PVALB")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
 ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
