@@ -132,24 +132,50 @@ dev.off()
 # Marker expression heatmap
 # -------------------------
 
-# marker gene list from Matthew N Tran
+# # marker gene list from Matthew N Tran
+# markers_broad <- c(
+#   'SNAP25','SLC17A7','SLC17A6','GAD1','GAD2', 
+#   # NE neuron markers
+#   "TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC", 
+#   # serotonergic markers (includes DDC but repetitive)
+#   "SLC6A4", "TPH2",  # (TPH1 not expressed by these clusters)
+#   ## Non-neuronal:
+#   # Astro
+#   'AQP4','GFAP', 
+#   # Endo, Mural (RBPMS)
+#   'CLDN5','FLT1','RBPMS', 
+#   # Macrophage, Microglia
+#   'CD163','C3', 
+#   # Oligo
+#   'MBP', 
+#   # OPC
+#   'PDGFRA','VCAN'
+# )
+
+# marker gene list from Matthew N Tran - updated LW
 markers_broad <- c(
-  'SNAP25','SLC17A7','SLC17A6','GAD1','GAD2', 
+  # neuron markers
+  "SNAP25", "SYT1", 
+  # excitatory (glutamatergic) neuron markers
+  "SLC17A7", "SLC17A6", ## alternative names: VGLUT1=SLC17A7, VGLUT2=SLC17A6
+  # inhibitory (GABAergic) neuron markers
+  "GAD1", "GAD2", 
   # NE neuron markers
-  "TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC", 
-  # serotonergic markers (includes DDC but repetitive)
-  "SLC6A4", "TPH2",  # (TPH1 not expressed by these clusters)
-  ## Non-neuronal:
-  # Astro
-  'AQP4','GFAP', 
-  # Endo, Mural (RBPMS)
-  'CLDN5','FLT1','RBPMS', 
-  # Macrophage, Microglia
-  'CD163','C3', 
-  # Oligo
-  'MBP', 
-  # OPC
-  'PDGFRA','VCAN'
+  "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
+  # 5-HT (serotonin) markers
+  "TPH2", "SLC6A4", ## "TPH1", 
+  # cholinergic neurons
+  "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
+  # astrocytes
+  "GFAP", "AQP4", 
+  # endothelial / mural (RBPMS)
+  "CLDN5", "FLT1", "RBPMS", 
+  # macrophages / microglia
+  "CD163", "C3", 
+  # oligodendrocytes
+  "MBP", 
+  # OPCs
+  "PDGFRA", "VCAN"
 )
 
 
@@ -178,7 +204,7 @@ italicnames <- lapply(
 
 # Print
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
-pdf(fn, height = 7, width = 7.5)
+pdf(fn, height = 7, width = 8.5)
 par(mar = c(5,8,4,2))
 pheatmap(t(current_dat), cluster_rows = FALSE, cluster_cols = FALSE, 
          breaks = seq(0.02, 4, length.out = 101), 
