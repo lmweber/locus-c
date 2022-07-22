@@ -230,11 +230,11 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # create heatmap
-p <- pheatmap(t(current_dat), 
-              annotation = annotation, 
+p <- pheatmap(t(current_dat), annotation = annotation, 
               cluster_rows = FALSE, cluster_cols = FALSE, 
-              breaks = seq(0.02, 4, length.out = 101), 
+              #breaks = seq(0.02, 4, length.out = 101), 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
+              #color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
               main = "LC clusters marker expression (medians)", 
               labels_col = as.expression(italicnames), 
               angle_col = 90, 
@@ -242,13 +242,13 @@ p <- pheatmap(t(current_dat),
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.pdf"))
-pdf(fn, width = 11, height = 8)
+pdf(fn, width = 12, height = 8)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap.png"))
-png(fn, width = 11 * 200, height = 8 * 200, res = 200)
+png(fn, width = 12 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
@@ -288,13 +288,13 @@ df <- df %>%
   mutate(sample = factor(sample, levels = c("Br6522_LC", "Br2701_LC", "Br8079_LC")))
 
 ggplot(df, aes(x = cluster, y = n_nuclei)) + 
-  facet_wrap(~sample) + 
+  facet_wrap(~sample, nrow = 3, scales = "free_x") + 
   geom_bar(stat = "identity", fill = "navy") + 
   ylab("number of nuclei") + 
   ggtitle("Number of nuclei per cluster: per sample") + 
   theme_bw()
 
 fn <- here(dir_plots, paste0("numberNuclei_perSample"))
-ggsave(paste0(fn, ".pdf"), width = 16, height = 3.5)
-ggsave(paste0(fn, ".png"), width = 16, height = 3.5)
+ggsave(paste0(fn, ".pdf"), width = 6, height = 9)
+ggsave(paste0(fn, ".png"), width = 6, height = 9)
 
