@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering using high-resolution k-means and graph-based clustering
 
-set.seed(10)
+set.seed(1234)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
