@@ -32,7 +32,7 @@ iSEE(sce.lc,
                 n = length(unique(sce.lc$donor))
             )
          cols <- as.vector(cols)
-         names(cols) <- levels(sce.lcl$donor)
+         names(cols) <- levels(sce.lc$donor)
          return(cols)
        },
        cellType.merged = function(n) {
