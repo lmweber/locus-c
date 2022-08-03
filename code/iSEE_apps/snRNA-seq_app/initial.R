@@ -35,26 +35,25 @@ initial[["ReducedDimensionPlot1"]] <- new("ReducedDimensionPlot", Type = "UMAP",
 initial[["ComplexHeatmapPlot1"]] <- new("ComplexHeatmapPlot", Assay = "logcounts", CustomRows = TRUE, 
     CustomRowsText = "TH\nSLC6A2\nDBH\nSLC5A7\nSLC5A4\nSLC18A2\nSNAP25\nVAT1\nGPX3\nMAOA\nCYB561", 
     ClusterRows = FALSE, ClusterRowsDistance = "spearman", ClusterRowsMethod = "ward.D2", 
-    DataBoxOpen = FALSE, VisualChoices = "Annotations", ColumnData = c("donor", 
-    "cellType.merged"), RowData = character(0), CustomBounds = FALSE, 
-    LowerBound = 0L, UpperBound = 0L, AssayCenterRows = FALSE, 
-    AssayScaleRows = FALSE, DivergentColormap = "purple < black < yellow", 
-    ShowDimNames = "Rows", LegendPosition = "Right", LegendDirection = "Vertical", 
-    VisualBoxOpen = FALSE, NamesRowFontSize = 10, NamesColumnFontSize = 10, 
-    ShowColumnSelection = TRUE, OrderColumnSelection = TRUE, 
-    VersionInfo = list(iSEE = structure(list(c(2L, 6L, 0L)), class = c("package_version", 
-    "numeric_version"))), PanelId = c(ComplexHeatmapPlot = 1L), 
-    PanelHeight = 600L, PanelWidth = 8L, SelectionBoxOpen = FALSE, 
-    RowSelectionSource = "---", ColumnSelectionSource = "---", 
-    RowSelectionDynamicSource = FALSE, ColumnSelectionDynamicSource = FALSE, 
-    RowSelectionRestrict = FALSE, ColumnSelectionRestrict = FALSE, 
-    SelectionHistory = list())
+    DataBoxOpen = FALSE, VisualChoices = "Annotations", ColumnData = c("cellType.merged", 
+    "donor"), RowData = character(0), CustomBounds = FALSE, LowerBound = 0L, 
+    UpperBound = 0L, AssayCenterRows = FALSE, AssayScaleRows = FALSE, 
+    DivergentColormap = "purple < black < yellow", ShowDimNames = "Rows", 
+    LegendPosition = "Right", LegendDirection = "Vertical", VisualBoxOpen = FALSE, 
+    NamesRowFontSize = 10, NamesColumnFontSize = 10, ShowColumnSelection = TRUE, 
+    OrderColumnSelection = TRUE, VersionInfo = list(iSEE = structure(list(
+        c(2L, 6L, 0L)), class = c("package_version", "numeric_version"
+    ))), PanelId = c(ComplexHeatmapPlot = 1L), PanelHeight = 600L, 
+    PanelWidth = 8L, SelectionBoxOpen = FALSE, RowSelectionSource = "---", 
+    ColumnSelectionSource = "---", RowSelectionDynamicSource = FALSE, 
+    ColumnSelectionDynamicSource = FALSE, RowSelectionRestrict = FALSE, 
+    ColumnSelectionRestrict = FALSE, SelectionHistory = list())
 
 ################################################################################
 # Settings for Row data table 1
 ################################################################################
 
-initial[["RowDataTable1"]] <- new("RowDataTable", Selected = "MIR1302-2HG", Search = "", SearchColumns = c("", 
+initial[["RowDataTable1"]] <- new("RowDataTable", Selected = "SNAP25", Search = "", SearchColumns = c("", 
 "", "", "", "", "", ""), HiddenColumns = character(0), VersionInfo = list(
     iSEE = structure(list(c(2L, 6L, 0L)), class = c("package_version", 
     "numeric_version"))), PanelId = c(RowDataTable = 1L), PanelHeight = 600L, 
