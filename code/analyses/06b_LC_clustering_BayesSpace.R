@@ -1,10 +1,9 @@
-#############################################################
-# LC project
-# Script for downstream analyses: clustering using BayesSpace
-# Lukas Weber, May 2022
-#############################################################
+##########################################################
+# LC analyses: spatially aware clustering using BayesSpace
+# Lukas Weber, Jun 2022
+##########################################################
 
-# module load conda_R/4.1.x
+# module load conda_R/devel
 # Rscript filename.R
 
 # file location:
@@ -18,7 +17,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_downstream", "BayesSpace")
+dir_plots <- here("plots", "06b_clustering_BayesSpace")
 
 
 # ---------
@@ -27,34 +26,24 @@ dir_plots <- here("plots", "06_downstream", "BayesSpace")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_batchCorrected.rds")
+fn_spe <- here("processed_data", "SPE", "LC_batchCorrectedHarmony.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
 
 table(colData(spe)$sample_id)
 
-
-# remove samples where NE neurons were not captured (see TH enrichment plots)
-samples_remove <- "Br5459_LC_round2"
-spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
-
-colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
-
-table(colData(spe)$sample_id)
-
-
 sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
 
-# --------------------------------------------
-# BayesSpace: add offsets for multiple samples
-# --------------------------------------------
+# -----------------------------------------------------------
+# BayesSpace: offset spatial coordinates for multiple samples
+# -----------------------------------------------------------
 
 # modify spatial coordinates by adding offsets to row and column indices per 
-# sample to cluster multiple samples
-# see: https://edward130603.github.io/BayesSpace/articles/joint_clustering.html
+# sample for clustering across multiple samples
+# https://edward130603.github.io/BayesSpace/articles/joint_clustering.html
 
 row <- colData(spe)$array_row
 col <- colData(spe)$array_col
@@ -107,7 +96,7 @@ ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 # --------------
 
 # spatially-aware clustering using BayesSpace
-# aiming to identify LC vs. WM regions in an unsupervised manner
+# aiming to identify LC vs. non-LC regions in an unsupervised manner
 
 
 # run once on all batch-corrected samples combined
@@ -118,10 +107,12 @@ ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 # use.dimred: using Harmony batch integrated dimensions
 # nrep: 10,000 iterations
 
+# runtime: ~30 mins on laptop
+
 set.seed(123)
 spe <- spatialCluster(
   spe, 
-  q = 6, 
+  q = 4, 
   use.dimred = "HARM", 
   d = 15, 
   platform = "Visium", 

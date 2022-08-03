@@ -27,7 +27,7 @@ load("LC_Shiny.RData", verbose = TRUE)
 docs_path <- "www"
 
 
-## Deploy the website
+## Deploy the app
 spatialLIBD::run_app(
   spe = spe, 
   sce_layer = NULL, 
@@ -44,22 +44,10 @@ spatialLIBD::run_app(
     "sum_gene", 
     "expr_chrM", 
     "expr_chrM_ratio", 
-    "TH", 
-    "DBH", 
-    "SLC6A2", 
-    "SLC6A4", 
-    "SLC18A2", 
-    "DDC", 
-    "GCH1", 
-    "MAOA", 
-    "TH_logcounts", 
-    "DBH_logcounts", 
-    "SLC6A2_logcounts", 
-    "SLC6A4_logcounts", 
-    "SLC18A2_logcounts", 
-    "DDC_logcounts", 
-    "GCH1_logcounts", 
-    "MAOA_logcounts"
+    "counts_TH", 
+    "counts_SLC6A2", 
+    "logcounts_TH", 
+    "logcounts_SLC6A2"
   ), 
   default_cluster = "all"
 )

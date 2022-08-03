@@ -8,21 +8,21 @@ library(rsconnect)
 library(here)
 
 
-## Or you can go to your shinyapps.io account and copy this
+## Or go to your shinyapps.io account and copy this
 ## Here we do this to keep our information hidden
-load(here("code", "analyses", "05_shiny_app", "deploy_info.RData"), verbose = TRUE)
+load(here("code", "analyses", "99_shiny_app", "deploy_info.RData"), verbose = TRUE)
 rsconnect::setAccountInfo(
   name = deploy_info$name, 
   token = deploy_info$token, 
   secret = deploy_info$secret
 )
 
-## You need this to enable shinyapps to install Bioconductor packages
+## Required to enable shinyapps to install Bioconductor packages
 options(repos = BiocManager::repositories())
 
-## Deploy the app, that is, upload it to shinyapps.io
+## Deploy the app by uploading to shinyapps.io
 rsconnect::deployApp(
-  appDir = here("code", "analyses", "05_shiny_app"), 
+  appDir = here("code", "analyses", "99_shiny_app"), 
   appFiles = c(
     "app.R", 
     "LC_Shiny.RData", 

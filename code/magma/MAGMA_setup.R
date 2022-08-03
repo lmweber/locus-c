@@ -6,6 +6,7 @@ library(GenomicRanges)
 #BiocManager::install("liftOver")
 library(liftOver)
 library(jaffelab)
+library(sessioninfo)
 library(here)
 
 here()
@@ -17,7 +18,7 @@ here()
 
 ## get GTF
 gtf = import("/dcs04/lieber/lcolladotor/annotationFiles_LIBD001/10x/refdata-gex-GRCh38-2020-A/genes/genes.gtf")
-## of length 2565061
+    ## of length 2765969
 gtf = gtf[gtf$type == "gene"]
 length(gtf)
     ## == nrow(sce.lc)
@@ -68,8 +69,6 @@ gene_df = read.delim(here("code","magma","annotation",
                      header=FALSE)
 colnames(gene_df)= c("GeneID", "Chr", "Start", "End", "Strand", "Symbol")
 
-# add 'chr' prefix
-gene_df$Chr = paste0("chr", gene_df$Chr)
 gr = makeGRangesFromDataFrame(gene_df, keep=TRUE)
 names(gr) = gr$GeneID
 
@@ -139,69 +138,342 @@ write.table(lifted_df, file=here("code","magma","annotation",
 
 ### GWAS SNP location files ====================================================
   # ** As per manual, the column order should be: SNP ID, chromosome, bp position
-# TODO
+
+## GWAS for AD (PGC-ALZ, IGAP, ADSP, UKB meta-meta-analysis: Jansen, et al.2019) ===
+sumStats.AD <- read.table(here("code","magma","GWAS_Results","AD_sumstats_Jansenetal_2019sept.txt"), header=T)
+class(sumStats.AD)
+dim(sumStats.AD)
+    #[1] 13367299       14
+head(sumStats.AD)
+unique(sumStats.AD$CHR)  # 1:22 (no MT genes)
+snploc.AD <- sumStats.AD[ ,c("SNP", "CHR", "BP")]
+write.table(snploc.AD, file=here("code","magma","GWAS_Results","Alzheimers_PGC-IGAP-ADSP-UKB_2019.snploc"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+rm(list=ls(pattern=".AD"))
 
 
+
+## GWAS for ADHD (PGC x iPSYCH ===
+sumStats.ADHD <- read.table(here("code","magma","GWAS_Results",
+                                 "daner_adhd_meta_filtered_NA_iPSYCH23_PGC11_sigPCs_woSEX_2ell6sd_EUR_Neff_70.meta"),
+                            header=T)
+class(sumStats.ADHD)
+dim(sumStats.ADHD)
+    #[1] 8094094      19
+head(sumStats.ADHD)
+unique(sumStats.ADHD$CHR)  # 1:22 as well
+
+table(sumStats.ADHD$P < 5e-8) # Reported 304 variants (12 loci) surpassing this threshold
+    #   FALSE    TRUE 
+    # 8093777     317   - this is pretty good; unfortunately the PD GWAS/supplement doesn't report
+    #                     the number of total SNPs reaching genome-wide signif; just 90 [index] SNPs
+
+snploc.ADHD <- sumStats.ADHD[ ,c("SNP", "CHR", "BP")]
+write.table(snploc.ADHD, file=here("code","magma","GWAS_Results","ADHD_PGC_2019.snploc"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+rm(list=ls(pattern=".ADHD"))
 
 
 
 ## GWAS for Parkinson's ===
-# TODO
+sumStats.PD <- read.table(here("code","magma","GWAS_Results",
+                                 "nallsEtAl2019_excluding23andMe_allVariants.tab"),
+                            header=T)
+class(sumStats.PD)
+dim(sumStats.PD)
+    #[1] 17510617        9
+head(sumStats.PD)
+    #             SNP A1 A2   freq       b     se      p N_cases N_controls
+    # 1 chr11:88249377  T  C 0.9931  0.1575 0.1783 0.3771    7161       5356
+    # 2  chr1:60320992  A  G 0.9336  0.0605 0.0456 0.1846   26421     442271
+    # 3  chr2:18069070  T  C 0.9988 -0.6774 1.3519 0.6163     582        905
+
+    # *** strangely, no rsIDs are provided - instead, the chr:bp position...
+    #     MAGMA requires these three columns in the SNP location file, so will need
+    #     reach out to the authors if this can be provided
+
+# --> Let's go ahead and try using the provided SNP ID, but will have to create
+#     the CHR & SNP positions - just call it 'test_[...].snploc'
+
+
+sumStats.PD$CHR <- ss(sumStats.PD$SNP,":",1)
+sumStats.PD$CHR <- ss(sumStats.PD$CHR, "chr", 2)
+
+sumStats.PD$BP <- ss(sumStats.PD$SNP,":",2)
+
+unique(sumStats.PD$CHR)  # 1:22 as well
+
+## **The provided SNP IDs DO have to be compatible with those in the 1000 genomes**
+
+### With SNPlocs package ===
+  #   See (https://support.bioconductor.org/p/133105/) for the similar query
+#BiocManager::install("SNPlocs.Hsapiens.dbSNP144.GRCh37")
+library(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+
+# Following the manual:
+snps <- SNPlocs.Hsapiens.dbSNP144.GRCh37
+snpcount(snps)
+    #       1        2        3        4        5        6        7        8 
+    #10608552 11307550  9317862  8934852  8345195  7741566  7523385  7269554 
+    #       9       10       11       12       13       14       15       16 
+    # 5789347  6326781  6574397  6228871  4446965  4252324  3925441  4468782 
+    #      17       18       19       20       21       22        X        Y 
+    # 3923227  3540821  3159370  2990255  1771468  1838410  4797151   192840 
+    #      MT 
+    #    1760
+
+# Try it with the smallest autosome:
+chr22_snps <- snpsBySeqname(snps, "22")
+class(chr22_snps)
+head(chr22_snps)
+    #UnstitchedGPos object with 6 positions and 2 metadata columns:
+    #     seqnames       pos strand |   RefSNP_id alleles_as_ambig
+    #        <Rle> <integer>  <Rle> | <character>      <character>
+    # [1]       22  16050036      * | rs374742143                M
+    # [2]       22  16050075      * | rs587697622                R
+    # [3]       22  16050115      * | rs587755077                R
+    # [4]       22  16050159      * | rs375383604                Y
+    # [5]       22  16050213      * | rs587654921                Y
+    # [6]       22  16050252      * | rs199856444                W
+
+chr22_snps <- as.data.frame(chr22_snps)
+chr22_snps$chr.bp <- paste0("chr",chr22_snps$seqnames,":",chr22_snps$pos)
+
+# Inspect with chr22 SNPs in summary stats
+table(sumStats.PD$CHR == "22")  # 233335
+sumStats.PD.chr22 <- sumStats.PD[sumStats.PD$CHR=="22", ]
+
+table(sumStats.PD.chr22$SNP %in% chr22_snps$chr.bp)
+    #FALSE   TRUE 
+    # 6710 226625   - 97.12%   - this is probably ok
+    #               - generally 70-75% SNPs map to one gene in MAGMA step 1 in any case
+
+sumStats.PD.keep <- data.frame()
+
+## What about across all snps?
+rownames(sumStats.PD) <- sumStats.PD$SNP
+
+for(i in seqnames(snps)){
+  cat("Querying chr: ",i,"...\n")
+  temp.snps <- as.data.frame(snpsBySeqname(snps, i))
+  temp.snps$chr.bp <- paste0("chr",temp.snps$seqnames,":",temp.snps$pos)
+  
+  # Subset sumStats to quantify % intersecting per chromosome
+  sumStats.temp <- sumStats.PD[sumStats.PD$CHR==i, ]
+  
+  cat(paste0("\tPercent of summary statistics SNPs in chr:",i," with rsIDs:\n"))
+  print(table(sumStats.temp$SNP %in% temp.snps$chr.bp)["TRUE"] / nrow(sumStats.temp) * 100)
+  cat("\n")
+  
+  temp.df <- sumStats.temp[intersect(sumStats.temp$SNP, temp.snps$chr.bp), ]
+  temp.df$rsID <- temp.snps$RefSNP_id[match(temp.df$SNP, temp.snps$chr.bp)]
+  
+  # Rbind
+  sumStats.PD.keep <- rbind(sumStats.PD.keep, temp.df)
+}
+    ## output (for reference) =====
+    # Querying chr:  1 ...
+    # Percent of summary statistics SNPs in chr:1 with rsIDs:
+    #   TRUE 
+    # 96.97527 
+    # 
+    # Querying chr:  2 ...
+    # Percent of summary statistics SNPs in chr:2 with rsIDs:
+    #   TRUE 
+    # 96.90126 
+    # 
+    # Querying chr:  3 ...
+    # Percent of summary statistics SNPs in chr:3 with rsIDs:
+    #   TRUE 
+    # 97.02049 
+    # 
+    # Querying chr:  4 ...
+    # Percent of summary statistics SNPs in chr:4 with rsIDs:
+    #   TRUE 
+    # 97.12509 
+    # 
+    # Querying chr:  5 ...
+    # Percent of summary statistics SNPs in chr:5 with rsIDs:
+    #   TRUE 
+    # 96.92542 
+    # 
+    # Querying chr:  6 ...
+    # Percent of summary statistics SNPs in chr:6 with rsIDs:
+    #   TRUE 
+    # 93.05022 
+    # 
+    # Querying chr:  7 ...
+    # Percent of summary statistics SNPs in chr:7 with rsIDs:
+    #   TRUE 
+    # 96.96064 
+    # 
+    # Querying chr:  8 ...
+    # Percent of summary statistics SNPs in chr:8 with rsIDs:
+    #   TRUE 
+    # 97.02902 
+    # 
+    # Querying chr:  9 ...
+    # Percent of summary statistics SNPs in chr:9 with rsIDs:
+    #   TRUE 
+    # 97.10707 
+    # 
+    # Querying chr:  10 ...
+    # Percent of summary statistics SNPs in chr:10 with rsIDs:
+    #   TRUE 
+    # 97.19488 
+    # 
+    # Querying chr:  11 ...
+    # Percent of summary statistics SNPs in chr:11 with rsIDs:
+    #   TRUE 
+    # 97.0591 
+    # 
+    # Querying chr:  12 ...
+    # Percent of summary statistics SNPs in chr:12 with rsIDs:
+    #   TRUE 
+    # 96.69084 
+    # 
+    # Querying chr:  13 ...
+    # Percent of summary statistics SNPs in chr:13 with rsIDs:
+    #   TRUE 
+    # 97.2008 
+    # 
+    # Querying chr:  14 ...
+    # Percent of summary statistics SNPs in chr:14 with rsIDs:
+    #   TRUE 
+    # 97.08841 
+    # 
+    # Querying chr:  15 ...
+    # Percent of summary statistics SNPs in chr:15 with rsIDs:
+    #   TRUE 
+    # 97.14355 
+    # 
+    # Querying chr:  16 ...
+    # Percent of summary statistics SNPs in chr:16 with rsIDs:
+    #   TRUE 
+    # 96.991 
+    # 
+    # Querying chr:  17 ...
+    # Percent of summary statistics SNPs in chr:17 with rsIDs:
+    #   TRUE 
+    # 96.45481 
+    # 
+    # Querying chr:  18 ...
+    # Percent of summary statistics SNPs in chr:18 with rsIDs:
+    #   TRUE 
+    # 97.13909 
+    # 
+    # Querying chr:  19 ...
+    # Percent of summary statistics SNPs in chr:19 with rsIDs:
+    #   TRUE 
+    # 95.20838 
+    # 
+    # Querying chr:  20 ...
+    # Percent of summary statistics SNPs in chr:20 with rsIDs:
+    #   TRUE 
+    # 96.97235 
+    # 
+    # Querying chr:  21 ...
+    # Percent of summary statistics SNPs in chr:21 with rsIDs:
+    #   TRUE 
+    # 97.30634 
+    # 
+    # Querying chr:  22 ...
+    # Percent of summary statistics SNPs in chr:22 with rsIDs:
+    #   TRUE 
+    # 97.12431 
+    # 
+    # Querying chr:  X ...
+    # Percent of summary statistics SNPs in chr:X with rsIDs:
+    #   [1] NA
+    # 
+    # Querying chr:  Y ...
+    # Percent of summary statistics SNPs in chr:Y with rsIDs:
+    #   [1] NA
+    # 
+    # Querying chr:  MT ...
+    # Percent of summary statistics SNPs in chr:MT with rsIDs:
+    #   [1] NA
+    ## end output =====
+
+# Total SNPs in summary stats with rsIDs:
+dim(sumStats.PD.keep)
+    #[1] 16934405       12
+# Overall % SNPs keeping
+(nrow(sumStats.PD.keep) / nrow(sumStats.PD)) * 100
+    #[1] 96.70936
+
+
+snploc.PD <- sumStats.PD.keep[ ,c("rsID", "CHR", "BP")]
+write.table(snploc.PD, file=here("code","magma","GWAS_Results","Parkinsons_NallsEtAl_Lancet2019.snploc"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+
+## Create an 'Neff' using METAL's recommended computation for meta-GWAS (https://doi.org/10.1093/bioinformatics/btq340)
+ #      instead of sum(N_cases, N_controls)
+sumStats.PD.keep$N_effective <- 4/(1/sumStats.PD.keep$N_cases + 1/sumStats.PD.keep$N_controls)
+
+# Save
+write.table(sumStats.PD.keep, file=here("code","magma","GWAS_Results",
+                                   "nallsEtAl2019_excluding23andMe_allVariants_Neff-and-rsID-ADDED-MNT.tab"),
+            sep="\t", col.names=T, row.names=F, quote=F)
+
+
+rm(list=ls(pattern=".PD"))
 
 
 
 
 
 ### Gene marker sets (analagous to layer marker setup) ==============
-  # TODO (pasted from former work)
-  # We'll just use the 'enriched' stats--i.e. '1vAll'
-  # Update May 2021: Apply a filter for markers that median expression in respective subcluster != 0
-  #                  (already computed and added to a different .rda file)
-  # UPDATE FOR REVISION: the 'log.FDR' are on the natural log scale, NOT BASE 10
-  #                      -> Will switch to log.FDR <= log(1e-6), since this is ~= log10(1e-12)
-  #                         (log(1e-12) == -27.63, way too strict)
+  # We'll use the 'enriched' stats--i.e. '1vAll' with the medianNon0
+  # Remember from `scran::findMarkers()`:
+  #           - the 'log.FDR' are on the natural log scale, NOT BASE 10
   
 library(SingleCellExperiment)
 
-## DLPFC ===
-load("rdas/revision/markers-stats_DLPFC-n3_findMarkers-SN-LEVEL_MNT_v2_2021.rda", verbose=T)
-    # markers.dlpfc.t.1vAll, medianNon0.dlpfc
+## Load marker stats
+load(here("processed_data","SCE",
+          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
+    # markers.lc.t.1vAll, medianNon0.lc
 
-# For EnsemblIDs
-load("rdas/revision/regionSpecific_DLPFC-n3_cleaned-combined_SCE_MNT2021.rda", verbose=T)
-    
+# Already in Ensembl IDs?
+head(rownames(markers.lc.t.1vAll[["Astro"]][["Astro_enriched"]]))
+
 ## These stats now have both an '_enriched' & '_depleted' result - take the '_enriched'
-names(markers.dlpfc.t.1vAll[[1]])
-markers.dlpfc.enriched <- lapply(markers.dlpfc.t.1vAll, function(x){x[[2]]})
+sapply(markers.lc.t.1vAll, names)
+markers.lc.enriched <- lapply(markers.lc.t.1vAll, function(x){x[[2]]})
     
-sapply(markers.dlpfc.enriched, function(x){table(x$log.FDR < log(1e-6) & x$non0median==TRUE)})
-    #       Astro Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A Inhib_B
-    # FALSE 28620   26037   26423   25833   27548   26947   26999   27592   27788
-    # TRUE    690    3273    2887    3477    1762    2363    2311    1718    1522
-    
-    #      Inhib_C Inhib_D Inhib_E Inhib_F Macrophage Micro Mural Oligo   OPC Tcell
-    # FALSE   27371   26679   29211   29236      29110 28734 29148 28444 28393 29194
-    # TRUE     1939    2631      99      74        200   576   162   866   917   116
+sapply(markers.lc.enriched, function(x){table(x$log.FDR < log(1e-6) & x$non0median==TRUE)})
+    #       Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
+    # FALSE 32016      31388   29649   29578   31468   30078   31652   31974   31952
+    # TRUE    207        835    2574    2645     755    2145     571     249     271
+
+    #       Inhib_B Inhib_C Inhib_D Inhib_E Inhib_F Micro Neuron.5HT Neuron.NE Oligo
+    # FALSE   28191   31347   31202   31528   31772 32085      31706     31861 31085
+    # TRUE     4032     876    1021     695     451   138        517       362  1138
+
+    #         OPC
+    # FALSE 31906
+    # TRUE    317
 
 
-dlpfc.markerSet <- data.frame()
-for(i in names(markers.dlpfc.enriched)){
-  dlpfc.i <- data.frame(Set=rep(i, sum(markers.dlpfc.enriched[[i]]$log.FDR < log(1e-6) &
-                                         markers.dlpfc.enriched[[i]]$non0median==TRUE)),
-             Gene=rownames(markers.dlpfc.enriched[[i]])[markers.dlpfc.enriched[[i]]$log.FDR < log(1e-6) &
-                                                          markers.dlpfc.enriched[[i]]$non0median==TRUE])
-  dlpfc.markerSet <- rbind(dlpfc.markerSet, dlpfc.i)
+lc.markerSet <- data.frame()
+for(i in names(markers.lc.enriched)){
+  lc.i <- data.frame(Set=rep(i, sum(markers.lc.enriched[[i]]$log.FDR < log(1e-6) &
+                                         markers.lc.enriched[[i]]$non0median==TRUE)),
+             Gene=rownames(markers.lc.enriched[[i]])[markers.lc.enriched[[i]]$log.FDR < log(1e-6) &
+                                                          markers.lc.enriched[[i]]$non0median==TRUE])
+  lc.markerSet <- rbind(lc.markerSet, lc.i)
 }
 
-head(dlpfc.markerSet)
-table(dlpfc.markerSet$Set)  # looks good
+head(lc.markerSet)
+table(lc.markerSet$Set)  # looks good
 
-dlpfc.markerSet$Gene <- rowData(sce.dlpfc)$gene_id[match(dlpfc.markerSet$Gene, rownames(sce.dlpfc))]
-    # (btw:)
-    length(unique(dlpfc.markerSet$Gene)) #[1] 6925
+nrow(lc.markerSet)  # [1] 19799
+    # and btw:
+    length(unique(lc.markerSet$Gene)) #[1] 7919
 
 # Write out
-write.table(dlpfc.markerSet, file="./MAGMA/dlpfcMarkerSets_fdr1e-6.txt", sep="\t",
+write.table(lc.markerSet, file=here("code","magma","/lcMarkerSets_fdr1e-6.txt"), sep="\t",
             row.names=F, col.names=T, quote=F)
 
 
@@ -211,10 +483,132 @@ write.table(dlpfc.markerSet, file="./MAGMA/dlpfcMarkerSets_fdr1e-6.txt", sep="\t
 ## Reproducibility information ====
 print('Reproducibility information:')
 Sys.time()
-    #
+    # [1] "2022-05-29 16:56:28 EDT"
 proc.time()
-    #
+    #    user   system  elapsed 
+    #  46.493    1.946 1202.705 
 options(width = 120)
 session_info()
-
+    #─ Session info ─────────────────────────────────────────────────────────────────────────────
+    # setting  value
+    # version  R version 4.1.2 Patched (2021-11-04 r81138)
+    # os       CentOS Linux 7 (Core)
+    # system   x86_64, linux-gnu
+    # ui       X11
+    # language (EN)
+    # collate  en_US.UTF-8
+    # ctype    en_US.UTF-8
+    # tz       US/Eastern
+    # date     2022-05-29
+    # pandoc   2.13 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/bin/pandoc
+    # 
+    # ─ Packages ─────────────────────────────────────────────────────────────────────────────────
+    # package                           * version  date (UTC) lib source
+    # AnnotationDbi                     * 1.56.2   2021-11-09 [2] Bioconductor
+    # assertthat                          0.2.1    2019-03-21 [2] CRAN (R 4.1.0)
+    # Biobase                           * 2.54.0   2021-10-26 [2] Bioconductor
+    # BiocFileCache                       2.2.1    2022-01-23 [2] Bioconductor
+    # BiocGenerics                      * 0.40.0   2021-10-26 [2] Bioconductor
+    # BiocIO                              1.4.0    2021-10-26 [2] Bioconductor
+    # BiocManager                         1.30.18  2022-05-18 [2] CRAN (R 4.1.2)
+    # BiocParallel                        1.28.3   2021-12-09 [2] Bioconductor
+    # biomaRt                             2.50.3   2022-02-03 [2] Bioconductor
+    # Biostrings                          2.62.0   2021-10-26 [2] Bioconductor
+    # bit                                 4.0.4    2020-08-04 [2] CRAN (R 4.1.0)
+    # bit64                               4.0.5    2020-08-30 [2] CRAN (R 4.1.0)
+    # bitops                              1.0-7    2021-04-24 [2] CRAN (R 4.1.0)
+    # blob                                1.2.3    2022-04-10 [2] CRAN (R 4.1.2)
+    # BSgenome                            1.62.0   2021-10-26 [2] Bioconductor
+    # cachem                              1.0.6    2021-08-19 [2] CRAN (R 4.1.2)
+    # cli                                 3.3.0    2022-04-25 [2] CRAN (R 4.1.2)
+    # crayon                              1.5.1    2022-03-26 [2] CRAN (R 4.1.2)
+    # curl                                4.3.2    2021-06-23 [2] CRAN (R 4.1.0)
+    # DBI                                 1.1.2    2021-12-20 [2] CRAN (R 4.1.2)
+    # dbplyr                              2.1.1    2021-04-06 [2] CRAN (R 4.1.0)
+    # DelayedArray                        0.20.0   2021-10-26 [2] Bioconductor
+    # digest                              0.6.29   2021-12-01 [2] CRAN (R 4.1.2)
+    # dplyr                               1.0.9    2022-04-28 [2] CRAN (R 4.1.2)
+    # ellipsis                            0.3.2    2021-04-29 [2] CRAN (R 4.1.0)
+    # fansi                               1.0.3    2022-03-24 [2] CRAN (R 4.1.2)
+    # fastmap                             1.1.0    2021-01-25 [2] CRAN (R 4.1.0)
+    # filelock                            1.0.2    2018-10-05 [2] CRAN (R 4.1.0)
+    # fs                                  1.5.2    2021-12-08 [2] CRAN (R 4.1.2)
+    # gargle                              1.2.0    2021-07-02 [2] CRAN (R 4.1.0)
+    # generics                            0.1.2    2022-01-31 [2] CRAN (R 4.1.2)
+    # GenomeInfoDb                      * 1.30.1   2022-01-30 [2] Bioconductor
+    # GenomeInfoDbData                    1.2.7    2021-11-01 [2] Bioconductor
+    # GenomicAlignments                   1.30.0   2021-10-26 [2] Bioconductor
+    # GenomicFeatures                   * 1.46.5   2022-02-27 [2] Bioconductor
+    # GenomicRanges                     * 1.46.1   2021-11-18 [2] Bioconductor
+    # glue                                1.6.2    2022-02-24 [2] CRAN (R 4.1.2)
+    # GO.db                             * 3.14.0   2021-11-01 [2] Bioconductor
+    # googledrive                         2.0.0    2021-07-08 [2] CRAN (R 4.1.0)
+    # graph                               1.72.0   2021-10-26 [2] Bioconductor
+    # gwascat                           * 2.26.0   2021-10-26 [1] Bioconductor
+    # here                              * 1.0.1    2020-12-13 [2] CRAN (R 4.1.2)
+    # hms                                 1.1.1    2021-09-26 [2] CRAN (R 4.1.2)
+    # Homo.sapiens                      * 1.3.1    2021-11-04 [2] Bioconductor
+    # httr                                1.4.3    2022-05-04 [2] CRAN (R 4.1.2)
+    # IRanges                           * 2.28.0   2021-10-26 [2] Bioconductor
+    # jaffelab                          * 0.99.31  2021-12-13 [1] Github (LieberInstitute/jaffelab@2cbd55a)
+    # KEGGREST                            1.34.0   2021-10-26 [2] Bioconductor
+    # lattice                             0.20-45  2021-09-22 [3] CRAN (R 4.1.2)
+    # lifecycle                           1.0.1    2021-09-24 [2] CRAN (R 4.1.2)
+    # liftOver                          * 1.18.0   2021-10-29 [1] Bioconductor
+    # limma                               3.50.3   2022-04-07 [2] Bioconductor
+    # magrittr                            2.0.3    2022-03-30 [2] CRAN (R 4.1.2)
+    # MASS                                7.3-56   2022-03-23 [3] CRAN (R 4.1.2)
+    # Matrix                              1.4-1    2022-03-23 [3] CRAN (R 4.1.2)
+    # MatrixGenerics                      1.6.0    2021-10-26 [2] Bioconductor
+    # matrixStats                         0.62.0   2022-04-19 [2] CRAN (R 4.1.2)
+    # memoise                             2.0.1    2021-11-26 [2] CRAN (R 4.1.2)
+    # org.Hs.eg.db                      * 3.14.0   2021-11-01 [2] Bioconductor
+    # OrganismDbi                       * 1.36.0   2021-10-26 [2] Bioconductor
+    # pillar                              1.7.0    2022-02-01 [2] CRAN (R 4.1.2)
+    # pkgconfig                           2.0.3    2019-09-22 [2] CRAN (R 4.1.0)
+    # png                                 0.1-7    2013-12-03 [2] CRAN (R 4.1.0)
+    # prettyunits                         1.1.1    2020-01-24 [2] CRAN (R 4.1.0)
+    # progress                            1.2.2    2019-05-16 [2] CRAN (R 4.1.0)
+    # purrr                               0.3.4    2020-04-17 [2] CRAN (R 4.1.0)
+    # R6                                  2.5.1    2021-08-19 [2] CRAN (R 4.1.2)
+    # rafalib                           * 1.0.0    2015-08-09 [1] CRAN (R 4.1.2)
+    # rappdirs                            0.3.3    2021-01-31 [2] CRAN (R 4.1.0)
+    # RBGL                                1.70.0   2021-10-26 [2] Bioconductor
+    # RColorBrewer                        1.1-3    2022-04-03 [2] CRAN (R 4.1.2)
+    # Rcpp                                1.0.8.3  2022-03-17 [2] CRAN (R 4.1.2)
+    # RCurl                               1.98-1.6 2022-02-08 [2] CRAN (R 4.1.2)
+    # readr                               2.1.2    2022-01-30 [2] CRAN (R 4.1.2)
+    # restfulr                            0.0.13   2017-08-06 [2] CRAN (R 4.1.0)
+    # rjson                               0.2.21   2022-01-09 [2] CRAN (R 4.1.2)
+    # rlang                               1.0.2    2022-03-04 [2] CRAN (R 4.1.2)
+    # rprojroot                           2.0.3    2022-04-02 [2] CRAN (R 4.1.2)
+    # Rsamtools                           2.10.0   2021-10-26 [2] Bioconductor
+    # RSQLite                             2.2.14   2022-05-07 [2] CRAN (R 4.1.2)
+    # rtracklayer                       * 1.54.0   2021-10-26 [2] Bioconductor
+    # S4Vectors                         * 0.32.4   2022-03-24 [2] Bioconductor
+    # segmented                           1.5-0    2022-04-11 [1] CRAN (R 4.1.2)
+    # sessioninfo                       * 1.2.2    2021-12-06 [2] CRAN (R 4.1.2)
+    # snpStats                            1.44.0   2021-10-26 [2] Bioconductor
+    # stringi                             1.7.6    2021-11-29 [2] CRAN (R 4.1.2)
+    # stringr                             1.4.0    2019-02-10 [2] CRAN (R 4.1.0)
+    # SummarizedExperiment                1.24.0   2021-10-26 [2] Bioconductor
+    # survival                            3.3-0    2022-03-01 [3] CRAN (R 4.1.2)
+    # tibble                              3.1.7    2022-05-03 [2] CRAN (R 4.1.2)
+    # tidyselect                          1.1.2    2022-02-21 [2] CRAN (R 4.1.2)
+    # TxDb.Hsapiens.UCSC.hg19.knownGene * 3.2.2    2021-05-21 [2] Bioconductor
+    # tzdb                                0.3.0    2022-03-28 [2] CRAN (R 4.1.2)
+    # utf8                                1.2.2    2021-07-24 [2] CRAN (R 4.1.0)
+    # VariantAnnotation                   1.40.0   2021-10-26 [2] Bioconductor
+    # vctrs                               0.4.1    2022-04-13 [2] CRAN (R 4.1.2)
+    # XML                                 3.99-0.9 2022-02-24 [2] CRAN (R 4.1.2)
+    # xml2                                1.3.3    2021-11-30 [2] CRAN (R 4.1.2)
+    # XVector                             0.34.0   2021-10-26 [2] Bioconductor
+    # yaml                                2.3.5    2022-02-21 [2] CRAN (R 4.1.2)
+    # zlibbioc                            1.40.0   2021-10-26 [2] Bioconductor
+    # 
+    # [1] /users/ntranngu/R/4.1.x
+    # [2] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/site-library
+    # [3] /jhpce/shared/jhpce/core/conda/miniconda3-4.6.14/envs/svnR-4.1.x/R/4.1.x/lib64/R/library
+    # 
+    # ────────────────────────────────────────────────────────────────────────────────────────────
 

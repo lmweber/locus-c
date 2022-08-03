@@ -1,6 +1,7 @@
 ###########################################################
 # LC analyses: spot-level deconvolution using cell2location
-# Lukas Weber, Apr 2022
+# using merged reference clusters
+# Lukas Weber, Jun 2022
 ###########################################################
 
 # references:
@@ -12,7 +13,7 @@
 # https://github.com/BayraktarLab/cell2location
 
 
-# The following code is intended to be pasted interactively into a Python REPL 
+# The following code is intended to be run interactively in a Python REPL 
 # session running within an R session (see links above). This allows us to 
 # access previously saved R objects and convert these to Python AnnData objects.
 
@@ -37,6 +38,14 @@ fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
 spe <- readRDS(fn_spe)
 dim(spe)
 
+
+# remove samples from donors that were not included in matched snRNA-seq data 
+# (Br8153, Br5459) and/or NE neurons were not captured in Visium data (Br5459_LC_round2)
+samples_remove <- c("Br8153_LC_round2", "Br5459_LC_round2", "Br8153_LC_round3")
+spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
+colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
+dim(spe)
+
 # check sample IDs
 table(colData(spe)$sample_id)
 table(colData(spe)$sample_part_id)
@@ -55,22 +64,17 @@ dim(sce.lc)
 
 # check sample IDs
 table(colData(sce.lc)$Sample)
-# check annotated cell types / clusters
-table(colData(sce.lc)$cellType.collapsed)
 
-# merge 5-HT clusters ("Neuron.5HT", "Neuron.5HT_noDDC") into a single cluster
-ix_5HT_all <- colData(sce.lc)$cellType.collapsed %in% c("Neuron.5HT", "Neuron.5HT_noDDC")
-table(ix_5HT_all)
-colData(sce.lc)$cellType.collapsed[ix_5HT_all] <- "Neuron.5HT"
-colData(sce.lc)$cellType.collapsed <- droplevels(colData(sce.lc)$cellType.collapsed)
-table(colData(sce.lc)$cellType.collapsed)
+# check annotated clusters
+table(colData(sce.lc)$cellType.merged)
 
-# remove ambiguous cell types / clusters ("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed")
-ix_remove <- colData(sce.lc)$cellType.collapsed %in% c("ambig.lowNTx", "Neuron.ambig", "Neuron.mixed")
+# remove ambiguous clusters ("ambig.lowNTx_A" to "ambig.lowNTx_F")
+ambig_names <- paste0("ambig.lowNTx_", LETTERS)
+ix_remove <- colData(sce.lc)$cellType.merged %in% ambig_names
 table(ix_remove)
 sce.lc <- sce.lc[, !ix_remove]
-colData(sce.lc)$cellType.collapsed <- droplevels(colData(sce.lc)$cellType.collapsed)
-table(colData(sce.lc)$cellType.collapsed)
+colData(sce.lc)$cellType.merged <- droplevels(colData(sce.lc)$cellType.merged)
+table(colData(sce.lc)$cellType.merged)
 
 dim(sce.lc)
 
@@ -79,7 +83,7 @@ dim(sce.lc)
 # extract components from R objects
 # ---------------------------------
 
-# extract components from SPE/SCE objects to create new AnnData objects later
+# extract components from SPE/SCE objects to create new AnnData objects
 # see https://theislab.github.io/scanpy-in-R/, section 4.4.1: "Creating AnnData from SingleCellExperiment"
 # note: use standard data.frames instead of DataFrames so reticulate can access them
 
@@ -107,7 +111,8 @@ sce_TSNE <- reducedDim(sce.lc, "TSNE")
 # start Python session
 # --------------------
 
-# start interactive Python session using reticulate with correct Python installation
+# start interactive Python session with reticulate
+# using local installation of Python
 
 library(reticulate)
 use_python("/users/lweber/miniconda3/bin/python", required = TRUE)
@@ -118,8 +123,8 @@ reticulate::repl_python()
 # start cell2location workflow
 # ----------------------------
 
-# using Python code from cell2location tutorial
-# note requires GPU for reasonable runtime
+# using Python code adapted from cell2location tutorial
+# note requires GPU for faster runtime
 
 import sys
 import scanpy as sc
@@ -139,7 +144,7 @@ import seaborn as sns
 
 # define results folders
 
-results_folder = '/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/processed_data/deconvolution/'
+results_folder = '/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/processed_data/deconvolution/merged/'
 # create paths and names to results folders for reference regression and cell2location models
 ref_run_name = f'{results_folder}/reference_signatures'
 run_name = f'{results_folder}/cell2location_map'
@@ -149,7 +154,7 @@ run_name = f'{results_folder}/cell2location_map'
 # create AnnData objects
 # ----------------------
 
-# create AnnData objects from previously loaded R objects using reticulate
+# create AnnData objects from R objects with reticulate
 # see https://theislab.github.io/scanpy-in-R/, section 4.4.1: "Creating AnnData from SingleCellExperiment"
 
 # note: using raw counts for cell2location
@@ -158,14 +163,16 @@ run_name = f'{results_folder}/cell2location_map'
 adata_spe = sc.AnnData(
     X = r.spe_counts.T, 
     obs = r.spe_coldata_combined, 
-    var = r.spe_rowdata
+    var = r.spe_rowdata, 
+    dtype = r.spe_counts.dtype
 )
 
 # SCE object
 adata_sce = sc.AnnData(
     X = r.sce_counts.T, 
     obs = r.sce_coldata, 
-    var = r.sce_rowdata
+    var = r.sce_rowdata, 
+    dtype = r.sce_counts.dtype
 )
 adata_sce.obsm['GLMPCA_approx'] = r.sce_GLMPCA_approx
 adata_sce.obsm['GLMPCA_MNN'] = r.sce_GLMPCA_MNN
@@ -178,14 +185,14 @@ adata_sce.obsm['TSNE'] = r.sce_TSNE
 # continue cell2location workflow
 # -------------------------------
 
-# continue cell2location workflow with code adapted for objects above
+# continue cell2location workflow using objects above
 
 
 # -------------
 # preprocessing
 # -------------
 
-# update AnnData Visium object to match structure in cell2location workflow
+# update Visium AnnData object to match structure in cell2location tutorial
 
 # rename object
 adata_vis = adata_spe
@@ -197,24 +204,24 @@ adata_vis.var['SYMBOL'] = adata_vis.var['gene_id']
 adata_vis.var_names = adata_vis.var['gene_id']
 adata_vis.var_names.name = None
 
-# note: mitochondrial genes have already been filtered out
-# (otherwise see cell2location tutorial code for how to filter them out here)
+# note: mitochondrial genes have already been filtered out; otherwise see 
+# cell2location tutorial for how to filter them out
 
 
-# update AnnData snRNA-seq object to match structure in cell2location workflow
+# update snRNA-seq AnnData object to match structure in cell2location tutorial
 
 # rename object
 adata_ref = adata_sce
-# use ENSEMBL gene IDs
+# rename 'gene_id' column
 adata_ref.var['SYMBOL'] = adata_ref.var['gene_id']
 
 
-# recommended gene filtering from cell2location workflow
+# recommended gene filtering from cell2location tutorial
 
 from cell2location.utils.filtering import filter_genes
 selected = filter_genes(adata_ref, cell_count_cutoff=5, cell_percentage_cutoff2=0.03, nonz_mean_cutoff=1.12)
 
-# filter the object
+# filter object
 adata_ref = adata_ref[:, selected].copy()
 adata_ref
 
@@ -223,12 +230,12 @@ adata_ref
 # estimation of reference cell type signatures
 # --------------------------------------------
 
-# prepare AnnData for the regression model
+# prepare AnnData object for the regression model
 scvi.data.setup_anndata(adata=adata_ref,
-                        # 10X reaction / sample / batch
+                        # 10x reaction / sample / batch
                         batch_key='Sample',
                         # cell type, covariate used for constructing signatures
-                        labels_key='cellType.collapsed'
+                        labels_key='cellType.merged'
                        )
 scvi.data.view_anndata_setup(adata_ref)
 
@@ -240,7 +247,7 @@ mod = RegressionModel(adata_ref)
 mod.train(max_epochs=250, batch_size=2500, train_size=1, lr=0.002, use_gpu=True)
 
 # plot ELBO loss history during training, removing first 20 epochs from the plot
-mod.plot_history(20)
+# mod.plot_history(20)
 
 
 # in this section, we export the estimated cell abundance (summary of the posterior distribution)
@@ -251,6 +258,7 @@ adata_ref = mod.export_posterior(
 # save model
 mod.save(f"{ref_run_name}", overwrite=True)
 
+
 # save anndata object with results
 adata_file = f"{ref_run_name}/sc.h5ad"
 adata_ref.write(adata_file)
@@ -258,13 +266,13 @@ adata_file
 
 
 # examine QC plots
-mod.plot_QC()
+# mod.plot_QC()
 
 
 # the model and output h5ad can be loaded later like this:
-#mod = cell2location.models.RegressionModel.load(f"{ref_run_name}", adata_ref)
-#adata_file = f"{ref_run_name}/sc.h5ad"
-#adata_ref = sc.read_h5ad(adata_file)
+# mod = cell2location.models.RegressionModel.load(f"{ref_run_name}", adata_ref)
+# adata_file = f"{ref_run_name}/sc.h5ad"
+# adata_ref = sc.read_h5ad(adata_file)
 
 
 # export estimated expression in each cluster
@@ -282,10 +290,6 @@ inf_aver.iloc[0:5, 0:5]
 # Cell2location: spatial mapping
 # ------------------------------
 
-# note from tutorial documentation: user needs to choose a value for 'N_cells_per_location'
-# based on prior knowledge of tissue cell density in this dataset
-
-
 # find shared genes and subset both AnnData and reference signatures
 intersect = np.intersect1d(adata_vis.var_names, inf_aver.index)
 adata_vis = adata_vis[:, intersect].copy()
@@ -296,17 +300,24 @@ scvi.data.setup_anndata(adata=adata_vis, batch_key="sample")
 scvi.data.view_anndata_setup(adata_vis)
 
 
-# note: change N_cells_per_location=30 depending on tissue cell density
+# parameter values:
+# N_cells_per_location = 3 for human brain data, instead of default = 30 (tissue cell density)
+# detection_alpha = 20 for human brain data
+
+# for more details see tutorial docs:
+# https://cell2location.readthedocs.io/en/latest/notebooks/cell2location_tutorial.html
+
 
 # create and train the model
+
 mod = cell2location.models.Cell2location(
     adata_vis, cell_state_df=inf_aver,
     # the expected average cell abundance: tissue-dependent
-    # hyper-prior which can be estimated from paired histology:
+    # hyper-prior which can be estimated from paired histology
     N_cells_per_location=3,
     # hyperparameter controlling normalisation of
-    # within-experiment variation in RNA detection (using default here):
-    detection_alpha=200
+    # within-experiment variation in RNA detection
+    detection_alpha=20
 )
 
 mod.train(max_epochs=30000,
@@ -318,8 +329,8 @@ mod.train(max_epochs=30000,
           use_gpu=True)
 
 # plot ELBO loss history during training, removing first 100 epochs from the plot
-mod.plot_history(1000)
-plt.legend(labels=['full data training']);
+# mod.plot_history(1000)
+# plt.legend(labels=['full data training'])
 
 
 # in this section, we export the estimated cell abundance (summary of the posterior distribution)
@@ -330,7 +341,9 @@ adata_vis = mod.export_posterior(
 # save model
 mod.save(f"{run_name}", overwrite=True)
 
+
 # mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
+
 
 # save anndata object with results
 adata_file = f"{run_name}/sp.h5ad"
@@ -339,25 +352,23 @@ adata_file
 
 
 # the model and output h5ad can be loaded later like this:
-#mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
-#adata_file = f"{run_name}/sp.h5ad"
-#adata_vis = sc.read_h5ad(adata_file)
+# mod = cell2location.models.Cell2location.load(f"{run_name}", adata_vis)
+# adata_file = f"{run_name}/sp.h5ad"
+# adata_vis = sc.read_h5ad(adata_file)
 
 
 # examine reconstruction accuracy to assess if there are any issues with mapping
 # the plot should be roughly diagonal, strong deviations will signal problems
-mod.plot_QC()
-
-mod.plot_spatial_QC_across_batches()
-
-plt.savefig('plot1.png')
+# mod.plot_QC()
+# mod.plot_spatial_QC_across_batches()
+# plt.savefig('plot1.png')
 
 
 # --------------------------
 # export AnnData object to R
 # --------------------------
 
-# export components of AnnData object back to R to add to SpatialExperiment object
+# export components of AnnData object back to R to add to SPE object
 
 obs = adata_vis.obs
 var = adata_vis.var
@@ -367,39 +378,43 @@ obsm = adata_vis.obsm
 # close Python REPL session and go back to R session
 exit
 
-# now can access objects using reticulate 'py$' syntax
+# now can access Python objects using reticulate 'py$' syntax
 str(py$obs)
 str(py$var)
 names(py$uns)
 str(py$obsm)
+
 # main results are stored in 'py$obsm' as follows
 str(py$obsm['means_cell_abundance_w_sf'])
 str(py$obsm['stds_cell_abundance_w_sf'])
 str(py$obsm['q05_cell_abundance_w_sf'])
 str(py$obsm['q95_cell_abundance_w_sf'])
 
-# using 'q05_cell_abundance_w_sf' following cell2location tutorial
+
+# using posterior means
+# note: cell2location tutorial uses 5% quantile ('q05') of posterior distribution
+
 
 # check results
-head(py$obsm['q05_cell_abundance_w_sf'])
-dim(py$obsm['q05_cell_abundance_w_sf'])
-colnames(py$obsm['q05_cell_abundance_w_sf'])
+head(py$obsm['means_cell_abundance_w_sf'])
+dim(py$obsm['means_cell_abundance_w_sf'])
+colnames(py$obsm['means_cell_abundance_w_sf'])
 dim(spe)
-all(rownames(py$obsm['q05_cell_abundance_w_sf']) == colnames(spe))
-length(rownames(py$obsm['q05_cell_abundance_w_sf']) == colnames(spe))
+all(rownames(py$obsm['means_cell_abundance_w_sf']) == colnames(spe))
+length(rownames(py$obsm['means_cell_abundance_w_sf']) == colnames(spe))
 
 # cell type abundances (number of cells per spot)
-summary(py$obsm['q05_cell_abundance_w_sf'])
+summary(py$obsm['means_cell_abundance_w_sf'])
 # deciles
-sapply(py$obsm['q05_cell_abundance_w_sf'], quantile, seq(0, 1, by = 0.1))
+sapply(py$obsm['means_cell_abundance_w_sf'], quantile, seq(0, 1, by = 0.1))
 
 
-# add cell2location results to SpatialExperiment object
-colData(spe) <- cbind(colData(spe), py$obsm['q05_cell_abundance_w_sf'])
+# add cell2location results to SPE object
+colData(spe) <- cbind(colData(spe), py$obsm['means_cell_abundance_w_sf'])
 
 
 # save SPE object for further plotting
-fn <- here("processed_data", "SPE", "LC_cell2location.rds")
+fn <- here("processed_data", "SPE", "LC_cell2location_merged.rds")
 saveRDS(spe, file = fn)
 
 
@@ -407,10 +422,12 @@ saveRDS(spe, file = fn)
 # alternatively: plotting in Python using cell2location functions
 # ---------------------------------------------------------------
 
-# alternatively: modify cell2location plotting code in next section to create plots in Python
+# alternatively: modify following code from cell2location tutorial to create 
+# plots directly in Python using cell2location plotting functions
 
-# note: Python code in next section does not work, since 'adata_vis' object does not 
-# contain image data in 'spatial' slot
+# note: this requires 'adata_vis' object to contain image data in 'spatial' slot
+
+# note: using 5% quantile ('q05') of posterior distribution
 
 
 # -------------------------------------------------
@@ -419,51 +436,49 @@ saveRDS(spe, file = fn)
 
 # add 5% quantile, representing confident cell abundance, 'at least this amount is present',
 # to adata.obs with nice names for plotting
-adata_vis.obs[adata_vis.uns['mod']['factor_names']] = adata_vis.obsm['q05_cell_abundance_w_sf']
+# adata_vis.obs[adata_vis.uns['mod']['factor_names']] = adata_vis.obsm['q05_cell_abundance_w_sf']
 
 # select one slide
-from cell2location.utils import select_slide
-slide = select_slide(adata_vis, 'Br6522_LC_1_round1')  ## to do: update tutorial code here
+# from cell2location.utils import select_slide
+# slide = select_slide(adata_vis, 'Br8079_LC_round3')
 
 # plot in spatial coordinates
-with mpl.rc_context({'axes.facecolor':  'black',
-                     'figure.figsize': [4.5, 5]}):
-    sc.pl.spatial(slide, cmap='magma',
-                  # show first 8 cell types                               ## to do: update tutorial code here
-                  color=['B_Cycling', 'B_GC_LZ', 'T_CD4+_TfH_GC', 'FDC',  ## to do: update tutorial code here
-                         'B_naive', 'T_CD4+_naive', 'B_plasma', 'Endo'],  ## to do: update tutorial code here
-                  ncols=4, size=1.3,
-                  img_key='hires',
-                  # limit color scale at 99.2% quantile of cell abundance
-                  vmin=0, vmax='p99.2'
-                 )
-
-plt.savefig('plot2.png')
+# with mpl.rc_context({'axes.facecolor':  'black',
+#                      'figure.figsize': [4.5, 5]}):
+#     sc.pl.spatial(slide, cmap='magma',
+#                   # show first 8 cell types
+#                   color=['B_Cycling', 'B_GC_LZ', 'T_CD4+_TfH_GC', 'FDC',
+#                          'B_naive', 'T_CD4+_naive', 'B_plasma', 'Endo'],
+#                   ncols=4, size=1.3,
+#                   img_key='hires',
+#                   # limit color scale at 99.2% quantile of cell abundance
+#                   vmin=0, vmax='p99.2'
+#                  )
+# plt.savefig('plot2.png')
 
 
 # now we use cell2location plotter that allows showing multiple cell types in one panel
-from cell2location.plt import plot_spatial
+# from cell2location.plt import plot_spatial
 
-# select up to 6 clusters                          ## to do: update tutorial code here
-clust_labels = ['T_CD4+_naive', 'B_naive', 'FDC']  ## to do: update tutorial code here
-clust_col = ['' + str(i) for i in clust_labels] # in case column names differ from labels
+# select up to 6 clusters
+# clust_labels = ['T_CD4+_naive', 'B_naive', 'FDC']
+# clust_col = ['' + str(i) for i in clust_labels]  # in case column names differ from labels
 
-slide = select_slide(adata_vis, 'V1_Human_Lymph_Node')  ## to do: update tutorial code here
+# slide = select_slide(adata_vis, 'Br8079_LC_round3')
 
-with mpl.rc_context({'figure.figsize': (15, 15)}):
-    fig = plot_spatial(
-        adata=slide,
-        # labels to show on a plot
-        color=clust_col, labels=clust_labels,
-        show_img=True,
-        # 'fast' (white background) or 'dark_background'
-        style='fast',
-        # limit color scale at 99.2% quantile of cell abundance
-        max_color_quantile=0.992,
-        # size of locations (adjust depending on figure size)
-        circle_diameter=6,
-        colorbar_position='right'
-    )
-
-plt.savefig('plot3.png')
+# with mpl.rc_context({'figure.figsize': (15, 15)}):
+#     fig = plot_spatial(
+#         adata=slide,
+#         # labels to show on a plot
+#         color=clust_col, labels=clust_labels,
+#         show_img=True,
+#         # 'fast' (white background) or 'dark_background'
+#         style='fast',
+#         # limit color scale at 99.2% quantile of cell abundance
+#         max_color_quantile=0.992,
+#         # size of locations (adjust depending on figure size)
+#         circle_diameter=6,
+#         colorbar_position='right'
+#     )
+# plt.savefig('plot3.png')
 
