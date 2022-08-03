@@ -2,7 +2,7 @@
 library("SingleCellExperiment")
 library("iSEE")
 library("shiny")
-library("RColorBrewer")
+library("paletteer")
 
 load("sce_lc_small.Rdata", verbose = TRUE)
 
