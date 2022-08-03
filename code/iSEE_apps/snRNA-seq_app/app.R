@@ -1,13 +1,10 @@
 
-
-
 library("SingleCellExperiment")
 library("iSEE")
 library("shiny")
 library("RColorBrewer")
 
 load("sce_lc_small.Rdata", verbose = TRUE)
-
 
 source("initial.R", print.eval = TRUE)
 
@@ -21,17 +18,25 @@ colData(sce.lc) <- cbind(
   colData(sce.lc)[, c("cellType.merged", "donor")]
 )
 
+sce.lc$donor <- as.factor(sce.lc$donor)
+
+sce.lc <- registerAppOptions(sce.lc, color.maxlevels = length(cell_colors.lc))
+
 iSEE(sce.lc,
      appTitle = "snRNA-seq LC 2022",
      initial = initial,
      colormap = ExperimentColorMap(colData = list(
        donor = function(n) {
-         cols <- RColorBrewer::brewer.pal(3, "Dark2")
-         names(cols) <- unique(sce.lc$donor)
+         cols <- paletteer::paletteer_d(
+                palette = "RColorBrewer::Dark2",
+                n = length(unique(sce.lc$donor))
+            )
+         cols <- as.vector(cols)
+         names(cols) <- levels(sce.lcl$donor)
          return(cols)
        },
        cellType.merged = function(n) {
-         cell_colors.lc
+         return(cell_colors.lc)
        }
      ))
 )
