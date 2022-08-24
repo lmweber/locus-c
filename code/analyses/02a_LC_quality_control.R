@@ -1,6 +1,6 @@
 ##############################
 # LC analyses: quality control
-# Lukas Weber, Jun 2022
+# Lukas Weber, Aug 2022
 ##############################
 
 # module load conda_R/devel
@@ -165,6 +165,8 @@ ggsave(paste0(fn, ".png"), width = 7, height = 4)
 # using "3 median absolution deviations (MADs)" methodology from OSCA 
 # calculated separately for each sample
 
+# note: not filtering on mitochondrial percentage in this dataset
+
 df <- colData(spe)[, c("sample_id", "sum", "detected", "subsets_mito_sum", 
                        "subsets_mito_detected", "subsets_mito_percent", "total")]
 
@@ -187,6 +189,13 @@ df <- cbind(df, df_reasons)
 table(df$sample_id, df$low_lib_size)
 table(df$sample_id, df$low_n_features)
 table(df$sample_id, df$high_subsets_mito_percent)
+table(df$sample_id, df$discard)
+
+
+# note: not filtering on mitochondrial percentage in this dataset
+# re-calculate discarded spots without filtering on mitochondrial percentage
+df$discard <- df$low_lib_size | df$low_n_features
+table(df$discard)
 table(df$sample_id, df$discard)
 
 
