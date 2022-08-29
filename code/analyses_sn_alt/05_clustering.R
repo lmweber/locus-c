@@ -376,6 +376,17 @@ ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
 
+# all clusters
+pal <- unname(palette.colors(36, "Polychrome 36"))
+plotReducedDim(sce, dimred = "UMAP", colour_by = "label") + 
+  scale_color_manual(values = pal, name = "cluster") + 
+  ggtitle("Unsupervised clustering")
+
+fn <- file.path(dir_plots, "UMAP_clustering")
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4.75)
+ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
+
+
 # supervised thresholding
 
 # NE neurons
