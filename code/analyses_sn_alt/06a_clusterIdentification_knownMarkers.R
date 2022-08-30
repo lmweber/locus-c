@@ -187,19 +187,19 @@ types_broad = c("neuron", "excitatory", "inhibitory",
                 "oligodendrocytes", "OPCs")
 annotation_broad <- data.frame(
   type = factor(c(
-    rep(types[[1]], 2), 
-    rep(types[[2]], 3), 
-    rep(types[[3]], 2), 
-    rep(types[[5]], 4), 
-    rep(types[[6]], 2), 
-    rep(types[[7]], 6), 
-    rep(types[[8]], 2), 
-    rep(types[[9]], 3), 
-    rep(types[[10]], 2), 
-    rep(types[[11]], 1), 
-    rep(types[[12]], 2)), 
-    levels = types, 
-    labels = types))
+    rep(types_broad[[1]], 2), 
+    rep(types_broad[[2]], 3), 
+    rep(types_broad[[3]], 2), 
+    rep(types_broad[[4]], 4), 
+    rep(types_broad[[5]], 2), 
+    rep(types_broad[[6]], 6), 
+    rep(types_broad[[7]], 2), 
+    rep(types_broad[[8]], 3), 
+    rep(types_broad[[9]], 2), 
+    rep(types_broad[[10]], 1), 
+    rep(types_broad[[11]], 2)), 
+    levels = types_broad, 
+    labels = types_broad))
 rownames(annotation_broad) <- markers_broad
 
 
@@ -337,20 +337,20 @@ types_inhib = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes",
                 "oligodendrocytes", "OPCs")
 annotation_inhib <- data.frame(
   type = factor(c(
-    rep(types[[1]], 2), 
-    rep(types[[2]], 3), 
-    rep(types[[3]], 2), 
-    rep(types[[4]], 12), 
-    rep(types[[5]], 4), 
-    rep(types[[6]], 2), 
-    rep(types[[7]], 6), 
-    rep(types[[8]], 2), 
-    rep(types[[9]], 3), 
-    rep(types[[10]], 2), 
-    rep(types[[11]], 1), 
-    rep(types[[12]], 2)), 
-    levels = types, 
-    labels = types))
+    rep(types_inhib[[1]], 2), 
+    rep(types_inhib[[2]], 3), 
+    rep(types_inhib[[3]], 2), 
+    rep(types_inhib[[4]], 12), 
+    rep(types_inhib[[5]], 4), 
+    rep(types_inhib[[6]], 2), 
+    rep(types_inhib[[7]], 6), 
+    rep(types_inhib[[8]], 2), 
+    rep(types_inhib[[9]], 3), 
+    rep(types_inhib[[10]], 2), 
+    rep(types_inhib[[11]], 1), 
+    rep(types_inhib[[12]], 2)), 
+    levels = types_inhib, 
+    labels = types_inhib))
 rownames(annotation_inhib) <- markers_inhib
 
 
