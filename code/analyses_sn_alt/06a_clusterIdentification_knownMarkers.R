@@ -226,7 +226,7 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # order clusters
-order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 9, 25, 1, 24, 13, 10, 14, 20, 12, 4, 30, 6, 7, 8, 15, 18, 22, 26, 23)
+order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 4, 30, 6, 7, 8, 15, 18, 22, 26, 9, 25, 1, 24, 13, 10, 14, 20, 12, 23)
 
 set.seed(1)
 pal <- sample(tableau10medium)
@@ -289,13 +289,13 @@ dev.off()
 
 labels_merged <- fct_collapse(colData(sce)$label, 
   excitatory = c("27", "2"), 
-  inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16", "3"), 
+  inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16", "3", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
   NE = "9", 
   `5HT` = "25", 
   astrocytes = "1", 
   endothelial_mural = "24", 
   macrophages_microglia = "13", 
-  oligodendrocytes = c("10", "14", "20", "12", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
+  oligodendrocytes = c("10", "14", "20", "12"), 
   OPCs = "23")
 labels_merged <- fct_relevel(labels_merged, 
   c("excitatory", "inhibitory", "NE", "5HT", "astrocytes", "endothelial_mural", 
@@ -472,7 +472,7 @@ dev.off()
 df <- data.frame(
   cluster = names(table(colLabels(sce))), 
   n_nuclei = as.numeric(table(colLabels(sce))))
-df$cluster <- factor(df$cluster, levels = df$cluster)
+df$cluster <- factor(df$cluster, levels = order_broad)
 
 ggplot(df, aes(x = cluster, y = n_nuclei)) + 
   geom_bar(stat = "identity", fill = "navy") + 
