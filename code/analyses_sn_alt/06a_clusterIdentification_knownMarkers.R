@@ -228,8 +228,13 @@ italicnames <- lapply(
 # order clusters
 order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 9, 25, 1, 24, 13, 10, 14, 20, 12, 4, 30, 6, 7, 8, 15, 18, 22, 26, 23)
 
+set.seed(1)
+pal <- sample(tableau10medium)
+names(pal) <- types_broad
+
 # create heatmap
-p <- pheatmap(t(current_dat[, order_broad]), annotation = annotation_broad, 
+p <- pheatmap(t(current_dat[, order_broad]), 
+              annotation = annotation_broad, annotation_colors = list(cluster = pal), 
               cluster_rows = FALSE, cluster_cols = FALSE, 
               #breaks = seq(0.02, 4, length.out = 101), 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
@@ -260,7 +265,8 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # create heatmap
-p <- pheatmap(t(current_dat[, order_broad]), annotation = annotation_broad, 
+p <- pheatmap(t(current_dat[, order_broad]), 
+              annotation = annotation_broad, annotation_colors = list(cluster = pal), 
               cluster_rows = FALSE, cluster_cols = FALSE, 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
               main = "LC clusters marker expression (means)", 
@@ -297,11 +303,8 @@ labels_merged <- fct_relevel(labels_merged,
 colData(sce)$labels_merged <- labels_merged
 
 
-set.seed(1)
-pal <- sample(unname(palette.colors(36, "Polychrome 36")))
-
 plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
-  scale_color_manual(values = pal, name = "cluster") + 
+  scale_color_manual(values = unname(pal[-1]), name = "cluster") + 
   ggtitle("Unsupervised clustering")
 
 fn <- file.path(dir_plots, "UMAP_clustering_merged")
