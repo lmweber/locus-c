@@ -167,8 +167,6 @@ markers_broad <- c(
   "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
   # 5-HT (serotonin) markers
   "TPH2", "SLC6A4", ## "TPH1", 
-  # cholinergic neurons
-  "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
   # astrocytes
   "GFAP", "AQP4", 
   # endothelial / mural (RBPMS)
@@ -193,12 +191,11 @@ annotation_broad <- data.frame(
     rep(types_broad[[3]], 2), 
     rep(types_broad[[4]], 4), 
     rep(types_broad[[5]], 2), 
-    rep(types_broad[[6]], 6), 
-    rep(types_broad[[7]], 2), 
-    rep(types_broad[[8]], 3), 
-    rep(types_broad[[9]], 2), 
-    rep(types_broad[[10]], 1), 
-    rep(types_broad[[11]], 2)), 
+    rep(types_broad[[6]], 2), 
+    rep(types_broad[[7]], 3), 
+    rep(types_broad[[8]], 2), 
+    rep(types_broad[[9]], 1), 
+    rep(types_broad[[10]], 2)), 
     levels = types_broad, 
     labels = types_broad))
 rownames(annotation_broad) <- markers_broad
@@ -243,13 +240,13 @@ p <- pheatmap(t(current_dat[, order_broad]), annotation = annotation_broad,
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.pdf"))
-pdf(fn, width = 10, height = 8)
+pdf(fn, width = 8.5, height = 8)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.png"))
-png(fn, width = 10 * 200, height = 8 * 200, res = 200)
+png(fn, width = 8.5 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
@@ -272,12 +269,12 @@ p <- pheatmap(t(current_dat[, order_broad]), annotation = annotation_broad,
               fontsize = 12, fontsize_row = 15, fontsize_col = 14)
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.pdf"))
-pdf(fn, width = 10, height = 8)
+pdf(fn, width = 8.5, height = 8)
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.png"))
-png(fn, width = 10 * 200, height = 8 * 200, res = 200)
+png(fn, width = 8.5 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
