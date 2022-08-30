@@ -181,7 +181,7 @@ markers_broad <- c(
 
 # annotation data frame for heatmap
 types_broad = c("neuron", "excitatory", "inhibitory", 
-                "NE", "5HT", "cholinergic", 
+                "NE", "5HT", 
                 "astrocytes", "endothelial_mural", "macrophages_microglia", 
                 "oligodendrocytes", "OPCs")
 annotation_broad <- data.frame(
