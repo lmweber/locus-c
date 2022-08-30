@@ -186,7 +186,7 @@ types_broad = c("neuron", "excitatory", "inhibitory",
                 "astrocytes", "endothelial_mural", "macrophages_microglia", 
                 "oligodendrocytes", "OPCs")
 annotation_broad <- data.frame(
-  type = factor(c(
+  cluster = factor(c(
     rep(types_broad[[1]], 2), 
     rep(types_broad[[2]], 3), 
     rep(types_broad[[3]], 2), 
@@ -227,8 +227,11 @@ italicnames <- lapply(
   rownames(current_dat), 
   function(x) bquote(italic(.(x))))
 
+# order clusters
+order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 9, 25, 1, 24, 13, 10, 14, 20, 12, 4, 30, 6, 7, 8, 15, 18, 22, 26, 23)
+
 # create heatmap
-p <- pheatmap(t(current_dat), annotation = annotation_broad, 
+p <- pheatmap(t(current_dat[, order_broad]), annotation = annotation_broad, 
               cluster_rows = FALSE, cluster_cols = FALSE, 
               #breaks = seq(0.02, 4, length.out = 101), 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
@@ -259,7 +262,7 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # create heatmap
-p <- pheatmap(t(current_dat), annotation = annotation_broad, 
+p <- pheatmap(t(current_dat[, order_broad]), annotation = annotation_broad, 
               cluster_rows = FALSE, cluster_cols = FALSE, 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
               main = "LC clusters marker expression (means)", 
@@ -336,7 +339,7 @@ types_inhib = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes",
                 "astrocytes", "endothelial_mural", "macrophages_microglia", 
                 "oligodendrocytes", "OPCs")
 annotation_inhib <- data.frame(
-  type = factor(c(
+  cluster = factor(c(
     rep(types_inhib[[1]], 2), 
     rep(types_inhib[[2]], 3), 
     rep(types_inhib[[3]], 2), 
