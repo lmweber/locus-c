@@ -130,9 +130,9 @@ for(i in 1:length(markers.mathys.tran)) {
 dev.off()
 
 
-# -------------------------
-# Marker expression heatmap
-# -------------------------
+# --------------------------------------------
+# Marker expression heatmap: broad populations
+# --------------------------------------------
 
 # # marker gene list from Matthew N Tran
 # markers_broad <- c(
@@ -162,8 +162,6 @@ markers_broad <- c(
   "SLC17A7", "SLC17A6", "SLC17A8", ## alternative names: VGLUT1, VGLUT2, VGLUT3
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
-  # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
-  "PVALB", "SST", "CORT", "KIT", "VIP", "NPY", "CRHBP", "CALB1", "TAC1", "CCK", "CNR1", "CALB2", ## "HTR3A" (not present in our data)
   # NE neuron markers
   "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
   # 5-HT (serotonin) markers
@@ -183,16 +181,15 @@ markers_broad <- c(
 )
 
 # annotation data frame for heatmap
-types = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes", 
-          "NE", "5HT", "cholinergic", 
-          "astrocytes", "endothelial_mural", "macrophages_microglia", 
-          "oligodendrocytes", "OPCs")
-annotation <- data.frame(
+types_broad = c("neuron", "excitatory", "inhibitory", 
+                "NE", "5HT", "cholinergic", 
+                "astrocytes", "endothelial_mural", "macrophages_microglia", 
+                "oligodendrocytes", "OPCs")
+annotation_broad <- data.frame(
   type = factor(c(
     rep(types[[1]], 2), 
     rep(types[[2]], 3), 
     rep(types[[3]], 2), 
-    rep(types[[4]], 12), 
     rep(types[[5]], 4), 
     rep(types[[6]], 2), 
     rep(types[[7]], 6), 
@@ -203,7 +200,7 @@ annotation <- data.frame(
     rep(types[[12]], 2)), 
     levels = types, 
     labels = types))
-rownames(annotation) <- markers_broad
+rownames(annotation_broad) <- markers_broad
 
 
 # plotting code from Matthew N Tran
@@ -231,7 +228,7 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # create heatmap
-p <- pheatmap(t(current_dat), annotation = annotation, 
+p <- pheatmap(t(current_dat), annotation = annotation_broad, 
               cluster_rows = FALSE, cluster_cols = FALSE, 
               #breaks = seq(0.02, 4, length.out = 101), 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
@@ -242,13 +239,13 @@ p <- pheatmap(t(current_dat), annotation = annotation,
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.pdf"))
-pdf(fn, width = 12, height = 8)
+pdf(fn, width = 10, height = 8)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.png"))
-png(fn, width = 12 * 200, height = 8 * 200, res = 200)
+png(fn, width = 10 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
@@ -262,7 +259,7 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # create heatmap
-p <- pheatmap(t(current_dat), annotation = annotation, 
+p <- pheatmap(t(current_dat), annotation = annotation_broad, 
               cluster_rows = FALSE, cluster_cols = FALSE, 
               color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
               main = "LC clusters marker expression (means)", 
@@ -271,11 +268,162 @@ p <- pheatmap(t(current_dat), annotation = annotation,
               fontsize = 12, fontsize_row = 15, fontsize_col = 14)
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.pdf"))
-pdf(fn, width = 12, height = 8)
+pdf(fn, width = 10, height = 8)
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.png"))
+png(fn, width = 10 * 200, height = 8 * 200, res = 200)
+p
+dev.off()
+
+
+# ----------------------------------------------
+# Marker expression heatmap: inhibitory subtypes
+# ----------------------------------------------
+
+# # marker gene list from Matthew N Tran
+# markers_broad <- c(
+#   'SNAP25','SLC17A7','SLC17A6','GAD1','GAD2', 
+#   # NE neuron markers
+#   "TH", "DBH", "SLC6A2", "SLC18A2", "GCH1", "DDC", 
+#   # serotonergic markers (includes DDC but repetitive)
+#   "SLC6A4", "TPH2",  # (TPH1 not expressed by these clusters)
+#   ## Non-neuronal:
+#   # Astro
+#   'AQP4','GFAP', 
+#   # Endo, Mural (RBPMS)
+#   'CLDN5','FLT1','RBPMS', 
+#   # Macrophage, Microglia
+#   'CD163','C3', 
+#   # Oligo
+#   'MBP', 
+#   # OPC
+#   'PDGFRA','VCAN'
+# )
+
+# marker gene list from Matthew N Tran - updated LW
+markers_inhib <- c(
+  # neuron markers
+  "SNAP25", "SYT1", 
+  # excitatory (glutamatergic) neuron markers
+  "SLC17A7", "SLC17A6", "SLC17A8", ## alternative names: VGLUT1, VGLUT2, VGLUT3
+  # inhibitory (GABAergic) neuron markers
+  "GAD1", "GAD2", 
+  # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
+  "PVALB", "SST", "CORT", "KIT", "VIP", "NPY", "CRHBP", "CALB1", "TAC1", "CCK", "CNR1", "CALB2", ## "HTR3A" (not present in our data)
+  # NE neuron markers
+  "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
+  # 5-HT (serotonin) markers
+  "TPH2", "SLC6A4", ## "TPH1", 
+  # cholinergic neurons
+  "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
+  # astrocytes
+  "GFAP", "AQP4", 
+  # endothelial / mural (RBPMS)
+  "CLDN5", "FLT1", "RBPMS", 
+  # macrophages / microglia
+  "CD163", "C3", 
+  # oligodendrocytes
+  "MBP", 
+  # OPCs
+  "PDGFRA", "VCAN"
+)
+
+# annotation data frame for heatmap
+types_inhib = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes", 
+                "NE", "5HT", "cholinergic", 
+                "astrocytes", "endothelial_mural", "macrophages_microglia", 
+                "oligodendrocytes", "OPCs")
+annotation_inhib <- data.frame(
+  type = factor(c(
+    rep(types[[1]], 2), 
+    rep(types[[2]], 3), 
+    rep(types[[3]], 2), 
+    rep(types[[4]], 12), 
+    rep(types[[5]], 4), 
+    rep(types[[6]], 2), 
+    rep(types[[7]], 6), 
+    rep(types[[8]], 2), 
+    rep(types[[9]], 3), 
+    rep(types[[10]], 2), 
+    rep(types[[11]], 1), 
+    rep(types[[12]], 2)), 
+    levels = types, 
+    labels = types))
+rownames(annotation_inhib) <- markers_inhib
+
+
+# plotting code from Matthew N Tran
+
+cell.idx <- splitit(sce$label)
+dat <- as.matrix(assay(sce, "logcounts"))
+rownames(dat) <- rowData(sce)$gene_name
+
+
+## Medians version
+current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMedians(dat[markers_inhib, ii])))
+# For some reason rownames aren't kept
+rownames(current_dat) <- markers_inhib
+# # Set neuronal pops first
+# neuronPosition <- c(grep("Excit", colnames(current_dat)), 
+#                     grep("Inhib", colnames(current_dat)), 
+#                     grep("Neuron", colnames(current_dat)))
+# reorderedCols <- c(neuronPosition, setdiff(1:19, neuronPosition))
+# current_dat <- current_dat[ ,reorderedCols]
+# # Put NE neurons before the 5-HT ones
+# current_dat <- current_dat[ ,c(1:12, 14, 13, 15:19)]
+
+italicnames <- lapply(
+  rownames(current_dat), 
+  function(x) bquote(italic(.(x))))
+
+# create heatmap
+p <- pheatmap(t(current_dat), annotation = annotation_inhib, 
+              cluster_rows = FALSE, cluster_cols = FALSE, 
+              #breaks = seq(0.02, 4, length.out = 101), 
+              color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
+              main = "LC clusters marker expression (medians)", 
+              labels_col = as.expression(italicnames), 
+              angle_col = 90, 
+              fontsize = 12, fontsize_row = 15, fontsize_col = 14)
+#grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_inhibSubtypes_heatmap_medians.pdf"))
+pdf(fn, width = 12, height = 8)
+#par(mar = c(5,8,4,2))
+p
+dev.off()
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_inhibSubtypes_heatmap_medians.png"))
+png(fn, width = 12 * 200, height = 8 * 200, res = 200)
+p
+dev.off()
+
+
+## Means version
+current_dat <- do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[markers_inhib, ii])))
+rownames(current_dat) <- markers_inhib
+
+italicnames <- lapply(
+  rownames(current_dat), 
+  function(x) bquote(italic(.(x))))
+
+# create heatmap
+p <- pheatmap(t(current_dat), annotation = annotation_inhib, 
+              cluster_rows = FALSE, cluster_cols = FALSE, 
+              color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100), 
+              main = "LC clusters marker expression (means)", 
+              labels_col = as.expression(italicnames), 
+              angle_col = 90, 
+              fontsize = 12, fontsize_row = 15, fontsize_col = 14)
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_inhibSubtypes_heatmap_means.pdf"))
+pdf(fn, width = 12, height = 8)
+p
+dev.off()
+
+fn <- here(dir_plots, paste0("clustersMarkersExpression_inhibSubtypes_heatmap_means.png"))
 png(fn, width = 12 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
