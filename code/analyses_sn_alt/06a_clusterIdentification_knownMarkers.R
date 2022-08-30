@@ -281,8 +281,7 @@ dev.off()
 
 # UMAP with merged clusters
 
-colData(sce)$labels_merged <- fct_collapse(
-  colData(sce)$label, 
+labels_merged <- fct_collapse(colData(sce)$label, 
   excitatory = c("27", "2"), 
   inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16", "3"), 
   NE = "9", 
@@ -292,8 +291,13 @@ colData(sce)$labels_merged <- fct_collapse(
   macrophages_microglia = "13", 
   oligodendrocytes = c("10", "14", "20", "12", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
   OPCs = "23")
+labels_merged <- fct_relevel(labels_merged, 
+  c("excitatory", "inhibitory", "NE", "5HT", "astrocytes", "endothelial_mural", 
+    "macrophages_microglia", "oligodendrocytes", "OPCs"))
+colData(sce)$labels_merged <- labels_merged
 
-set.seed(3)
+
+set.seed(1)
 pal <- sample(unname(palette.colors(36, "Polychrome 36")))
 
 plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
