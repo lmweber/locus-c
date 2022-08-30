@@ -13,6 +13,7 @@ library(jaffelab)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(forcats)
 library(RColorBrewer)
 library(pheatmap)
 
@@ -279,6 +280,32 @@ fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.png"))
 png(fn, width = 10 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
+
+
+# UMAP with merged clusters
+
+colData(sce)$labels_merged <- fct_collapse(
+  colData(sce)$label, 
+  excitatory = c("27", "2"), 
+  inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16", "3"), 
+  NE = "9", 
+  `5HT` = "25", 
+  astrocytes = "1", 
+  endothelial_mural = "24", 
+  macrophages_microglia = "13", 
+  oligodendrocytes = c("10", "14", "20", "12", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
+  OPCs = "23")
+
+set.seed(3)
+pal <- sample(unname(palette.colors(36, "Polychrome 36")))
+
+plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
+  scale_color_manual(values = pal, name = "cluster") + 
+  ggtitle("Unsupervised clustering")
+
+fn <- file.path(dir_plots, "UMAP_clustering_merged")
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4.75)
+ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
 
 
 # ----------------------------------------------
