@@ -163,6 +163,8 @@ markers_broad <- c(
   "SLC17A7", "SLC17A6", "SLC17A8", ## alternative names: VGLUT1, VGLUT2, VGLUT3
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
+  # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", ## "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", "HTR3A" (not present in our data)
   # NE neuron markers
   "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
   # 5-HT (serotonin) markers
@@ -180,7 +182,7 @@ markers_broad <- c(
 )
 
 # annotation data frame for heatmap
-types_broad = c("neuron", "excitatory", "inhibitory", 
+types_broad = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes", 
                 "NE", "5HT", 
                 "astrocytes", "endothelial_mural", "macrophages_microglia", 
                 "oligodendrocytes", "OPCs")
@@ -189,13 +191,14 @@ annotation_broad <- data.frame(
     rep(types_broad[[1]], 2), 
     rep(types_broad[[2]], 3), 
     rep(types_broad[[3]], 2), 
-    rep(types_broad[[4]], 4), 
-    rep(types_broad[[5]], 2), 
+    rep(types_broad[[4]], 6), 
+    rep(types_broad[[5]], 4), 
     rep(types_broad[[6]], 2), 
-    rep(types_broad[[7]], 3), 
-    rep(types_broad[[8]], 2), 
-    rep(types_broad[[9]], 1), 
-    rep(types_broad[[10]], 2)), 
+    rep(types_broad[[7]], 2), 
+    rep(types_broad[[8]], 3), 
+    rep(types_broad[[9]], 2), 
+    rep(types_broad[[10]], 1), 
+    rep(types_broad[[11]], 2)), 
     levels = types_broad, 
     labels = types_broad))
 rownames(annotation_broad) <- markers_broad
@@ -229,7 +232,7 @@ italicnames <- lapply(
 order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 4, 30, 6, 7, 8, 15, 18, 22, 26, 9, 25, 1, 24, 13, 10, 14, 20, 12, 23)
 
 set.seed(1)
-pal <- sample(tableau10medium)
+pal <- sample(tableau20)[seq_along(types_broad)]
 names(pal) <- types_broad
 
 # create heatmap
@@ -245,13 +248,13 @@ p <- pheatmap(t(current_dat[, order_broad]),
 #grid::grid.text(label = "log2-\nExprs", x = 0.96, y = 0.63, gp = grid::gpar(fontsize = 10))
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.pdf"))
-pdf(fn, width = 8.5, height = 8)
+pdf(fn, width = 10, height = 8)
 #par(mar = c(5,8,4,2))
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_medians.png"))
-png(fn, width = 8.5 * 200, height = 8 * 200, res = 200)
+png(fn, width = 10 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
@@ -275,12 +278,12 @@ p <- pheatmap(t(current_dat[, order_broad]),
               fontsize = 12, fontsize_row = 15, fontsize_col = 14)
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.pdf"))
-pdf(fn, width = 8.5, height = 8)
+pdf(fn, width = 10, height = 8)
 p
 dev.off()
 
 fn <- here(dir_plots, paste0("clustersMarkersExpression_heatmap_means.png"))
-png(fn, width = 8.5 * 200, height = 8 * 200, res = 200)
+png(fn, width = 10 * 200, height = 8 * 200, res = 200)
 p
 dev.off()
 
@@ -289,7 +292,8 @@ dev.off()
 
 labels_merged <- fct_collapse(colData(sce)$label, 
   excitatory = c("27", "2"), 
-  inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16", "3", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
+  inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16"), 
+  neurons_ambiguous = c("3", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
   NE = "9", 
   `5HT` = "25", 
   astrocytes = "1", 
@@ -298,13 +302,14 @@ labels_merged <- fct_collapse(colData(sce)$label,
   oligodendrocytes = c("10", "14", "20", "12"), 
   OPCs = "23")
 labels_merged <- fct_relevel(labels_merged, 
-  c("excitatory", "inhibitory", "NE", "5HT", "astrocytes", "endothelial_mural", 
-    "macrophages_microglia", "oligodendrocytes", "OPCs"))
+  c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
+    "endothelial_mural", "macrophages_microglia", "oligodendrocytes", "OPCs"))
 colData(sce)$labels_merged <- labels_merged
 
 
 plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
   scale_color_manual(values = unname(pal[-1]), name = "cluster") + 
+  theme_classic() + 
   ggtitle("Unsupervised clustering")
 
 fn <- file.path(dir_plots, "UMAP_clustering_merged")
