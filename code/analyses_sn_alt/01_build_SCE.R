@@ -1,6 +1,6 @@
 ##################################################################
 # LC snRNA-seq analyses: build SCE object from Cell Ranger outputs
-# Lukas Weber, July 2022
+# Lukas Weber, Sep 2022
 # using code by Matthew N Tran and Leonardo Collado-Torres
 ##################################################################
 
@@ -8,8 +8,8 @@
 
 # screen -S LC
 # qrsh -l mem_free=20G,h_vmem=22G,h_fsize=200G -now n
-# cd /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn_alt
-# module load conda_R/devel
+# cd /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_snRNAseq
+# module load conda_R/4.2
 # R
 
 
@@ -26,6 +26,7 @@ library(here)
 
 
 # sample metadata
+# table contains the following info: 1c_m = Br6522, 2c_m = Br8079, 3c_m = Br2701
 sample_info <- read.table(here("fastq", "snRNA-seq", "sample_libs_info.tsv"))
 
 # Cell Ranger output files
@@ -78,6 +79,6 @@ table(sce$Sample)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_raw")
+fn_out <- here("processed_data", "SCE", "sce_raw")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
