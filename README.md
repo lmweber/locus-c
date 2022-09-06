@@ -1,7 +1,19 @@
-# Locus coeruleus (LC) 10x Visium project
+# Code repository for human locus coeruleus (LC) project analyses
 
-Repository for locus coeruleus (LC) project
+This repository contains code to reproduce analyses and figures in our project on characterizing the gene expression landscape of the human locus coeruleus using single-nucleus RNA-sequencing (snRNA-seq) and spatially-resolved transcriptomics (SRT).
 
+
+## Contents
+
+Code scripts are in the [code/] directory in the following subdirectories:
+
+- `spaceranger`: run Space Ranger to align sequencing reads (FASTQ files) for SRT data
+- `cellranger`: run Cell Ranger to align sequencing reads (FASTQ files) for snRNA-seq data
+- `analyses`: R scripts for analyses of SRT data
+- `analyses_sn_alt`: R scripts for analyses of snRNA-seq data
+
+
+# Internal info
 
 ## Location of files
 
