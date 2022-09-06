@@ -1,14 +1,14 @@
 ########################################
 # LC snRNA-seq analyses: remove doublets
-# Lukas Weber, July 2022
+# Lukas Weber, Sep 2022
 ########################################
 
 # run in interactive session on JHPCE
 
 # screen -S LC
 # qrsh -l mem_free=20G,h_vmem=22G,h_fsize=200G -now n
-# cd /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_sn_alt
-# module load conda_R/devel
+# cd /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/analyses_snRNAseq
+# module load conda_R/4.2
 # R
 
 
@@ -23,7 +23,7 @@ library(here)
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE_alt", "sce_raw")
+fn <- here("processed_data", "SCE", "sce_raw")
 sce <- readRDS(paste0(fn, ".rds"))
 
 table(colData(sce)$Sample)
@@ -59,6 +59,6 @@ dim(sce)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_doubletsRemoved")
+fn_out <- here("processed_data", "SCE", "sce_doubletsRemoved")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
