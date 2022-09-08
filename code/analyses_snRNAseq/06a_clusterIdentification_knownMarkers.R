@@ -15,6 +15,7 @@ library(tidyr)
 library(ggplot2)
 library(forcats)
 library(RColorBrewer)
+library(ComplexHeatmap)
 library(pheatmap)
 
 
@@ -316,6 +317,40 @@ plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") +
 fn <- file.path(dir_plots, "UMAP_clustering_merged")
 ggsave(paste0(fn, ".pdf"), width = 6, height = 4.75)
 ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
+
+
+# ----------------------------------------
+# Alternative heatmap using ComplexHeatmap
+# ----------------------------------------
+
+hm_mat <- t(do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[markers_broad, ii]))))
+
+# cluster population IDs (manually annotated)
+cluster_pops <- list(
+  excitatory = 29, 
+  inhibitory = c(26, 17, 14, 1, 8, 7, 24, 18), 
+  neurons_ambiguous = c(21, 20, 23, 19, 30, 13, 3, 5, 2), 
+  NE = 6, 
+  `5HT` = 16, 
+  astrocytes = c(22, 25), 
+  endothelial_mural = 15, 
+  macrophages_microglia = 11, 
+  oligodendrocytes = c(9, 10, 27, 4), 
+  OPCs = c(28, 12))
+# swap values and names of list
+cluster_pops_rev <- rep(names(cluster_pops), times = sapply(cluster_pops, length))
+names(cluster_pops_rev) <- unname(unlist(cluster_pops))
+cluster_pops_rev <- cluster_pops_rev[order(as.numeric(names(cluster_pops_rev)))]
+
+# row annotation
+row_ha <- rowAnnotation(population = cluster_pops_rev)
+# column annotation
+col_ha <- columnAnnotation(marker = annotation_broad$cluster)
+
+Heatmap(
+  hm_mat, name = "logcounts", 
+  right_annotation = row_ha, bottom_annotation = col_ha, 
+  cluster_rows = FALSE, cluster_columns = FALSE)
 
 
 # ----------------------------------------------
