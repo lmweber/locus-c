@@ -325,7 +325,54 @@ ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
 
 hm_mat <- t(do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[markers_broad, ii]))))
 
-# cluster population IDs (manually annotated)
+# markers to show
+markers <- c(
+  "SNAP25", "SYT1", 
+  "SLC17A7", "SLC17A6", 
+  "GAD1", "GAD2", 
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", 
+  "DBH", "TH", "SLC6A2", "DDC", 
+  "TPH2", "SLC6A4", 
+  "GFAP", "AQP4", 
+  "CLDN5", "FLT1", "RBPMS", 
+  "CD163", "C3", 
+  "MBP", 
+  "PDGFRA", "VCAN"
+)
+
+hm_mat <- hm_mat[, markers]
+
+
+# marker labels
+marker_labels <- c(
+  rep("neuron", 2), 
+  rep("excitatory", 2), 
+  rep("inhibitory", 8), 
+  rep("NE", 4), 
+  rep("5HT", 2), 
+  rep("astrocytes", 2), 
+  rep("endothelial_mural", 3), 
+  rep("macrophages_microglia", 2), 
+  rep("oligodendrocytes", 1), 
+  rep("OPCs", 2))
+
+marker_labels <- factor(marker_labels, levels = unique(marker_labels))
+
+# colors: from tableau20 and tableau10medium
+colors_markers <- list(marker = c(
+  neuron = "black", 
+  excitatory = "#1F77B4", 
+  inhibitory = "#AEC7E8", 
+  NE = "#FF7F0E", 
+  `5HT` = "#FFBB78", 
+  astrocytes = "#2CA02C", 
+  endothelial_mural = "#98DF8A", 
+  macrophages_microglia = "#D62728", 
+  oligodendrocytes = "#FF9896", 
+  OPCs = "#9467BD"))
+
+
+# cluster labels
 cluster_pops <- list(
   excitatory = 29, 
   inhibitory = c(26, 17, 14, 1, 8, 7, 24, 18), 
@@ -337,20 +384,61 @@ cluster_pops <- list(
   macrophages_microglia = 11, 
   oligodendrocytes = c(9, 10, 27, 4), 
   OPCs = c(28, 12))
+# cluster labels order
+cluster_pops_order <- unname(unlist(cluster_pops))
 # swap values and names of list
 cluster_pops_rev <- rep(names(cluster_pops), times = sapply(cluster_pops, length))
 names(cluster_pops_rev) <- unname(unlist(cluster_pops))
-cluster_pops_rev <- cluster_pops_rev[order(as.numeric(names(cluster_pops_rev)))]
+cluster_pops_rev <- cluster_pops_rev[as.character(sort(cluster_pops_order))]
+
+# # swap values and names of list
+# cluster_pops_rev <- rep(names(cluster_pops), times = sapply(cluster_pops, length))
+# #names(cluster_pops_rev) <- unname(unlist(cluster_pops))
+# #cluster_pops_rev <- cluster_pops_rev[order(as.numeric(names(cluster_pops_rev)))]
+
+cluster_pops_rev <- factor(cluster_pops_rev, levels = names(cluster_pops))
+#cluster_pops_rev <- cluster_pops_rev[cluster_pops_order]
+
+# colors: from tableau20 and tableau10medium
+colors_clusters <- list(population = c(
+  excitatory = "#1F77B4", 
+  inhibitory = "#AEC7E8", 
+  neurons_ambiguous = "gray60", 
+  NE = "#FF7F0E", 
+  `5HT` = "#FFBB78", 
+  astrocytes = "#2CA02C", 
+  endothelial_mural = "#98DF8A", 
+  macrophages_microglia = "#D62728", 
+  oligodendrocytes = "#FF9896", 
+  OPCs = "#9467BD"))
+
 
 # row annotation
-row_ha <- rowAnnotation(population = cluster_pops_rev)
+row_ha <- rowAnnotation(
+  population = cluster_pops_rev, 
+  show_annotation_name = FALSE, 
+  col = colors_clusters)
 # column annotation
-col_ha <- columnAnnotation(marker = annotation_broad$cluster)
+col_ha <- columnAnnotation(
+  marker = marker_labels, 
+  show_annotation_name = FALSE, 
+  show_legend = FALSE, 
+  col = colors_markers)
 
 Heatmap(
-  hm_mat, name = "logcounts", 
-  right_annotation = row_ha, bottom_annotation = col_ha, 
-  cluster_rows = FALSE, cluster_columns = FALSE)
+  hm_mat, 
+  name = "mean\nlogcounts", 
+  column_title = "LC clusters mean marker expression", 
+  column_title_gp = gpar(fontface = "bold"), 
+  col = brewer.pal(n = 7, "OrRd"), 
+  right_annotation = row_ha, 
+  bottom_annotation = col_ha, 
+  row_order = cluster_pops_order, 
+  cluster_rows = FALSE, 
+  cluster_columns = FALSE, 
+  column_split = marker_labels, 
+  column_names_gp = gpar(fontface = "italic"), 
+  rect_gp = gpar(col = "gray50"))
 
 
 # ----------------------------------------------
