@@ -1,6 +1,6 @@
 ########################################################################
 # LC snRNA-seq analyses: cluster identification using known marker genes
-# Lukas Weber, July 2022
+# Lukas Weber, Sep 2022
 # using code by Matthew N Tran
 ########################################################################
 
@@ -18,7 +18,7 @@ library(RColorBrewer)
 library(pheatmap)
 
 
-dir_plots <- here("plots", "snRNAseq_alt", "06_cluster_identification", "known_markers")
+dir_plots <- here("plots", "snRNAseq", "06_cluster_identification", "known_markers")
 
 
 # ---------------
@@ -27,7 +27,7 @@ dir_plots <- here("plots", "snRNAseq_alt", "06_cluster_identification", "known_m
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE_alt", "sce_clustering")
+fn <- here("processed_data", "SCE", "sce_clustering")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
