@@ -407,6 +407,8 @@ hm <- Heatmap(
   row_order = cluster_pops_order, 
   cluster_rows = FALSE, 
   cluster_columns = FALSE, 
+  row_split = cluster_pops_rev, 
+  row_title = NULL, 
   column_split = marker_labels, 
   column_names_gp = gpar(fontface = "italic"), 
   rect_gp = gpar(col = "gray50", lwd = 0.5))
@@ -415,11 +417,11 @@ hm <- Heatmap(
 # save heatmap (vertical format)
 fn <- file.path(dir_plots, "clustering_heatmap_complex")
 
-pdf(paste0(fn, ".pdf"), width = 8, height = 6.25)
+pdf(paste0(fn, ".pdf"), width = 8, height = 6.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 8 * 200, height = 6.25 * 200, res = 200)
+png(paste0(fn, ".png"), width = 8 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 
