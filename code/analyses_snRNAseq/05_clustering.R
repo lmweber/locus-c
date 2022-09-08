@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering using high-resolution k-means and graph-based clustering
 
-set.seed(1234)
+set.seed(3)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
@@ -59,14 +59,14 @@ ix <- c(
   TH = which(rowData(sce)$gene_name == "TH"), 
   SLC6A2 = which(rowData(sce)$gene_name == "SLC6A2"), 
   DBH = which(rowData(sce)$gene_name == "DBH"), 
-  TPH2 = which(rowData(sce)$gene_name == "TPH2"), 
   SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
-  SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7"), 
-  CHAT = which(rowData(sce)$gene_name == "CHAT"), 
-  ACHE = which(rowData(sce)$gene_name == "ACHE"), 
-  BCHE = which(rowData(sce)$gene_name == "BCHE"), 
-  SLC18A3 = which(rowData(sce)$gene_name == "SLC18A3"), 
-  PRIMA1 = which(rowData(sce)$gene_name == "PRIMA1")
+  TPH2 = which(rowData(sce)$gene_name == "TPH2"), 
+  SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")#, 
+  #CHAT = which(rowData(sce)$gene_name == "CHAT"), 
+  #ACHE = which(rowData(sce)$gene_name == "ACHE"), 
+  #BCHE = which(rowData(sce)$gene_name == "BCHE"), 
+  #SLC18A3 = which(rowData(sce)$gene_name == "SLC18A3"), 
+  #PRIMA1 = which(rowData(sce)$gene_name == "PRIMA1")
 )
 
 n_clus <- length(table(colLabels(sce)))
@@ -184,8 +184,8 @@ table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
 # NE neuron cluster and 5-HT neuron cluster identified from marker genes above
-clus_NE <- 16
-clus_5HT <- 14
+clus_NE <- 6
+clus_5HT <- 16
 
 sum(colLabels(sce) == clus_NE)
 sum(colLabels(sce) == clus_5HT)
@@ -199,14 +199,14 @@ rowSums(tbl)
 
 
 # supervised thresholding
-table(colData(sce)$supervisedNE)
-table(colData(sce)$supervisedNE, colData(sce)$Sample)[2, ]
+table(colData(sce)$supervisedNE2of3)
+table(colData(sce)$supervisedNE2of3, colData(sce)$Sample)[2, ]
 
 
 # comparison between unsupervised clustering and supervised thresholding
 table(
   unsupervised = colLabels(sce) == clus_NE, 
-  supervised = colData(sce)$supervisedNE
+  supervised = colData(sce)$supervisedNE2of3
 )
 
 
@@ -215,7 +215,7 @@ table(
 # unsupervised
 summary(colData(sce)$subsets_Mito_percent[colLabels(sce) == clus_NE])
 # supervised
-summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE])
+summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE2of3])
 
 
 # for plotting
@@ -228,7 +228,7 @@ sce_clusNE <- sce_plot[, colLabels(sce_plot) == clus_NE]
 sce_clus5HT <- sce_plot[, colLabels(sce_plot) == clus_5HT]
 
 # supervised
-sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE]
+sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE2of3]
 
 
 genes_NE <- c("TH", "SLC6A2", "DBH")
@@ -246,7 +246,7 @@ colData(sce)$Key <- paste(colData(sce)$Sample, colData(sce)$Barcode, sep = "_")
 
 x <- list(
   `clustering NE` = colData(sce)$Key[colLabels(sce) == clus_NE], 
-  `supervised NE` = colData(sce)$Key[colData(sce)$supervisedNE]
+  `supervised NE` = colData(sce)$Key[colData(sce)$supervisedNE2of3]
 )
 
 ggVennDiagram(x) + 
@@ -390,7 +390,7 @@ ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
 # supervised thresholding
 
 # NE neurons
-plotReducedDim(sce, dimred = "UMAP", colour_by = "supervisedNE") + 
+plotReducedDim(sce, dimred = "UMAP", colour_by = "supervisedNE2of3") + 
   scale_color_manual(values = c("navy", "red"), name = "NE neurons") + 
   ggtitle("Supervised thresholding")
 
