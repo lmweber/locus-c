@@ -454,7 +454,7 @@ plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") +
   theme_classic() + 
   ggtitle("LC clustering")
 
-fn <- file.path(dir_plots, "UMAP_clustering_merged")
+fn <- file.path(dir_plots, "clustering_UMAP_merged")
 ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4.75)
 ggsave(paste0(fn, ".png"), width = 6.5, height = 4.75)
 
