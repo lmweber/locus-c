@@ -391,13 +391,7 @@ cluster_pops_rev <- rep(names(cluster_pops), times = sapply(cluster_pops, length
 names(cluster_pops_rev) <- unname(unlist(cluster_pops))
 cluster_pops_rev <- cluster_pops_rev[as.character(sort(cluster_pops_order))]
 
-# # swap values and names of list
-# cluster_pops_rev <- rep(names(cluster_pops), times = sapply(cluster_pops, length))
-# #names(cluster_pops_rev) <- unname(unlist(cluster_pops))
-# #cluster_pops_rev <- cluster_pops_rev[order(as.numeric(names(cluster_pops_rev)))]
-
 cluster_pops_rev <- factor(cluster_pops_rev, levels = names(cluster_pops))
-#cluster_pops_rev <- cluster_pops_rev[cluster_pops_order]
 
 # colors: from tableau20 and tableau10medium
 colors_clusters <- list(population = c(
@@ -413,11 +407,17 @@ colors_clusters <- list(population = c(
   OPCs = "#9467BD"))
 
 
+# number of nuclei per cluster
+n <- table(colLabels(sce))
+
+
 # row annotation
 row_ha <- rowAnnotation(
+  n = anno_barplot(as.numeric(tbl), gp = gpar(fill = "black"), border = FALSE), 
   population = cluster_pops_rev, 
   show_annotation_name = FALSE, 
   col = colors_clusters)
+
 # column annotation
 col_ha <- columnAnnotation(
   marker = marker_labels, 
@@ -425,7 +425,8 @@ col_ha <- columnAnnotation(
   show_legend = FALSE, 
   col = colors_markers)
 
-Heatmap(
+
+hm <- Heatmap(
   hm_mat, 
   name = "mean\nlogcounts", 
   column_title = "LC clusters mean marker expression", 
@@ -438,7 +439,19 @@ Heatmap(
   cluster_columns = FALSE, 
   column_split = marker_labels, 
   column_names_gp = gpar(fontface = "italic"), 
-  rect_gp = gpar(col = "gray50"))
+  rect_gp = gpar(col = "gray50", lwd = 0.5))
+
+
+# save heatmap (vertical format)
+fn <- file.path(dir_plots, "clustering_heatmap_complex")
+
+pdf(paste0(fn, ".pdf"), width = 8, height = 6.25)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 8 * 200, height = 6.25 * 200, res = 200)
+hm
+dev.off()
 
 
 # ----------------------------------------------
