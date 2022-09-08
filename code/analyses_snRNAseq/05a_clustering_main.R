@@ -13,7 +13,7 @@ library(ggplot2)
 library(ggVennDiagram)
 
 
-dir_plots <- here("plots", "snRNAseq", "05_clustering")
+dir_plots <- here("plots", "snRNAseq", "05a_clustering_main")
 
 
 # ---------------
