@@ -363,14 +363,13 @@ colors_markers <- list(marker = c(
   neuron = "black", 
   excitatory = "#1F77B4", 
   inhibitory = "#AEC7E8", 
-  NE = "#FF7F0E", 
-  `5HT` = "#FFBB78", 
-  astrocytes = "#2CA02C", 
+  NE = "#D62728", 
+  `5HT` = "#9467BD", 
+  astrocytes = "#FF7F0E", 
   endothelial_mural = "#98DF8A", 
-  macrophages_microglia = "#D62728", 
-  oligodendrocytes = "#FF9896", 
-  OPCs = "#9467BD"))
-
+  macrophages_microglia = "#8C564B", 
+  oligodendrocytes = "#9EDAE5", 
+  OPCs = "#17BECF"))
 
 # cluster labels
 cluster_pops <- list(
@@ -398,13 +397,13 @@ colors_clusters <- list(population = c(
   excitatory = "#1F77B4", 
   inhibitory = "#AEC7E8", 
   neurons_ambiguous = "gray60", 
-  NE = "#FF7F0E", 
-  `5HT` = "#FFBB78", 
-  astrocytes = "#2CA02C", 
+  NE = "#D62728", 
+  `5HT` = "#9467BD", 
+  astrocytes = "#FF7F0E", 
   endothelial_mural = "#98DF8A", 
-  macrophages_microglia = "#D62728", 
-  oligodendrocytes = "#FF9896", 
-  OPCs = "#9467BD"))
+  macrophages_microglia = "#8C564B", 
+  oligodendrocytes = "#9EDAE5", 
+  OPCs = "#17BECF"))
 
 
 # number of nuclei per cluster
@@ -452,6 +451,22 @@ dev.off()
 png(paste0(fn, ".png"), width = 8 * 200, height = 6.25 * 200, res = 200)
 hm
 dev.off()
+
+
+
+# palettes from scater
+tableau20 = c("#1F77B4", "#AEC7E8", "#FF7F0E", "#FFBB78", "#2CA02C", 
+              "#98DF8A", "#D62728", "#FF9896", "#9467BD", "#C5B0D5", 
+              "#8C564B", "#C49C94", "#E377C2", "#F7B6D2", "#7F7F7F", 
+              "#C7C7C7", "#BCBD22", "#DBDB8D", "#17BECF", "#9EDAE5")
+tableau10medium = c("#729ECE", "#FF9E4A", "#67BF5C", "#ED665D", 
+                    "#AD8BC9", "#A8786E", "#ED97CA", "#A2A2A2", 
+                    "#CDCC5D", "#6DCCDA")
+colors <- unique(c(tableau20, tableau10medium))
+
+
+
+
 
 
 # ----------------------------------------------
