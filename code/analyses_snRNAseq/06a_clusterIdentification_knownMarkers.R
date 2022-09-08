@@ -229,7 +229,8 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # order clusters
-order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 4, 30, 6, 7, 8, 15, 18, 22, 26, 9, 25, 1, 24, 13, 10, 14, 20, 12, 23)
+order_broad <- c(29, 26, 17, 14, 1, 8, 7, 24, 18, 21, 20, 23, 19, 30, 13, 3, 5, 2, 6, 16, 22, 25, 15, 11, 9, 10, 27, 4, 28, 12)
+#order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 4, 30, 6, 7, 8, 15, 18, 22, 26, 9, 25, 1, 24, 13, 10, 14, 20, 12, 23)
 
 set.seed(1)
 pal <- sample(tableau20)[seq_along(types_broad)]
@@ -291,16 +292,16 @@ dev.off()
 # UMAP with merged clusters
 
 labels_merged <- fct_collapse(colData(sce)$label, 
-  excitatory = c("27", "2"), 
-  inhibitory = c("29", "28", "17", "19", "21", "11", "5", "16"), 
-  neurons_ambiguous = c("3", "4", "30", "6", "7", "8", "15", "18", "22", "26"), 
-  NE = "9", 
-  `5HT` = "25", 
-  astrocytes = "1", 
-  endothelial_mural = "24", 
-  macrophages_microglia = "13", 
-  oligodendrocytes = c("10", "14", "20", "12"), 
-  OPCs = "23")
+  excitatory = "29", 
+  inhibitory = c("26", "17", "14", "1", "8", "7", "24", "18"), 
+  neurons_ambiguous = c("21", "20", "23", "19", "30", "13", "3", "5", "2"), 
+  NE = "6", 
+  `5HT` = "16", 
+  astrocytes = c("22", "25"), 
+  endothelial_mural = "15", 
+  macrophages_microglia = "11", 
+  oligodendrocytes = c("9", "10", "27", "4"), 
+  OPCs = c("28", "12"))
 labels_merged <- fct_relevel(labels_merged, 
   c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
     "endothelial_mural", "macrophages_microglia", "oligodendrocytes", "OPCs"))
