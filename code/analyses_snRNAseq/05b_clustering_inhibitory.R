@@ -47,6 +47,47 @@ sce <- sce[, ix_select]
 dim(sce)
 
 
+# ------------------------------
+# Re-calculate logcounts and PCA
+# ------------------------------
+
+# re-calculate logcounts and PCA on subset to ensure PCs capture the most relevant variation
+
+# normalization using library size factors (instead of by deconvolution) since
+# there is no major population variation within this subset
+sce <- computeLibraryFactors(sce)
+sce <- logNormCounts(sce)
+
+
+# feature selection (within subset)
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(sce)$gene_name)
+table(is_mito)
+rowData(sce)$gene_name[is_mito]
+
+# fit mean-variance relationship
+dec <- modelGeneVar(sce, subset.row = !is_mito)
+# select top HVGs
+top_hvgs <- getTopHVGs(dec, prop = 0.1)
+
+
+# dimensionality reduction (within subset)
+
+# note: not applying any batch integration (for consistency with main clustering)
+
+# calculate PCA (on top HVGs)
+set.seed(123)
+sce <- runPCA(sce, subset_row = top_hvgs)
+
+# calculate UMAP (on top PCs)
+set.seed(123)
+sce <- runUMAP(sce, dimred = "PCA")
+colnames(reducedDim(sce, "UMAP")) <- paste0("UMAP", seq_len(ncol(reducedDim(sce, "UMAP"))))
+
+reducedDimNames(sce)
+
+
 # --------------------
 # Secondary clustering
 # --------------------
@@ -56,12 +97,12 @@ dim(sce)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering algorithm using high-resolution k-means and graph-based clustering
 
-set.seed(100)
+set.seed(123)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
   BLUSPARAM = TwoStepParam(
-    first = KmeansParam(centers = 2000), 
+    first = KmeansParam(centers = 1000), 
     second = NNGraphParam(k = 10)
   )
 )
