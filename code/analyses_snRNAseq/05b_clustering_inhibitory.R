@@ -167,6 +167,7 @@ colData(sce_full)$label_inhibitory <- clus_inhibitory
 # check
 table(colData(sce_full)$label)
 table(colData(sce_full)$label_inhibitory)
+table(colData(sce_full)$label_inhibitory, useNA = "always")
 
 
 # -----------
@@ -175,6 +176,6 @@ table(colData(sce_full)$label_inhibitory)
 
 # note saving 'sce_full' object
 
-fn_out <- here("processed_data", "SCE", "sce_clustering_inhibitory")
+fn_out <- here("processed_data", "SCE", "sce_clustering_secondary")
 saveRDS(sce_full, paste0(fn_out, ".rds"))
 
