@@ -158,15 +158,15 @@ table(duplicated(colnames(sce_full)))
 table(colnames(sce) %in% colnames(sce_full))
 
 # match and store cluster labels
-clus_secondary <- rep(NA, ncol(sce_full))
-names(clus_secondary) <- colnames(sce_full)
-clus_secondary[colnames(sce)] <- colData(sce)$label
+clus_inhibitory <- rep(NA, ncol(sce_full))
+names(clus_inhibitory) <- colnames(sce_full)
+clus_inhibitory[colnames(sce)] <- colData(sce)$label
 
-colData(sce_full)$label_secondary <- clus_secondary
+colData(sce_full)$label_inhibitory <- clus_inhibitory
 
 # check
 table(colData(sce_full)$label)
-table(colData(sce_full)$label_secondary)
+table(colData(sce_full)$label_inhibitory)
 
 
 # -----------
@@ -175,6 +175,6 @@ table(colData(sce_full)$label_secondary)
 
 # note saving 'sce_full' object
 
-fn_out <- here("processed_data", "SCE", "sce_clustering_secondary")
+fn_out <- here("processed_data", "SCE", "sce_clustering_inhibitory")
 saveRDS(sce_full, paste0(fn_out, ".rds"))
 
