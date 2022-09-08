@@ -383,7 +383,7 @@ n <- table(colLabels(sce))
 
 # row annotation
 row_ha <- rowAnnotation(
-  n = anno_barplot(as.numeric(tbl), gp = gpar(fill = "black"), border = FALSE), 
+  n = anno_barplot(as.numeric(n), gp = gpar(fill = "black"), border = FALSE), 
   population = cluster_pops_rev, 
   show_annotation_name = FALSE, 
   col = colors_clusters)
