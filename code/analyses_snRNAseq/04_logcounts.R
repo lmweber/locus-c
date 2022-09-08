@@ -1,6 +1,6 @@
 ##############################################################################
 # LC snRNA-seq analyses: normalization, feature selection, dimension reduction
-# Lukas Weber, July 2022
+# Lukas Weber, Sep 2022
 ##############################################################################
 
 
@@ -17,7 +17,7 @@ library(ggplot2)
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE_alt", "sce_QCandFiltered")
+fn <- here("processed_data", "SCE", "sce_QCandFiltered")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -78,6 +78,6 @@ reducedDimNames(sce)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_logcounts")
+fn_out <- here("processed_data", "SCE", "sce_logcounts")
 saveRDS(sce, paste0(fn_out, ".rds"))
 

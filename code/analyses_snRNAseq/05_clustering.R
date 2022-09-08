@@ -1,6 +1,6 @@
 ###############################################################
 # LC snRNA-seq analyses: clustering and supervised thresholding
-# Lukas Weber, July 2022
+# Lukas Weber, Sep 2022
 ###############################################################
 
 
@@ -13,7 +13,7 @@ library(ggplot2)
 library(ggVennDiagram)
 
 
-dir_plots <- here("plots", "snRNAseq_alt", "05_clustering")
+dir_plots <- here("plots", "snRNAseq", "05_clustering")
 
 
 # ---------------
@@ -22,7 +22,7 @@ dir_plots <- here("plots", "snRNAseq_alt", "05_clustering")
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE_alt", "sce_logcounts")
+fn <- here("processed_data", "SCE", "sce_logcounts")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -415,6 +415,6 @@ ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_clustering")
+fn_out <- here("processed_data", "SCE", "sce_clustering")
 saveRDS(sce, paste0(fn_out, ".rds"))
 

@@ -1,6 +1,6 @@
 ###########################################################
 # LC snRNA-seq analyses: quality control and gene filtering
-# Lukas Weber, July 2022
+# Lukas Weber, Sep 2022
 ###########################################################
 
 
@@ -11,7 +11,7 @@ library(scran)
 library(ggplot2)
 
 
-dir_plots <- here("plots", "snRNAseq_alt", "03_quality_control")
+dir_plots <- here("plots", "snRNAseq", "03_quality_control")
 
 
 # ---------------
@@ -20,7 +20,7 @@ dir_plots <- here("plots", "snRNAseq_alt", "03_quality_control")
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE_alt", "sce_doubletsRemoved")
+fn <- here("processed_data", "SCE", "sce_doubletsRemoved")
 sce <- readRDS(paste0(fn, ".rds"))
 
 table(colData(sce)$Sample)
@@ -31,12 +31,14 @@ table(colData(sce)$Sample)
 # --------------------
 
 # perform QC on sum UMI counts and number of detected genes
-# note: not using mitochondrial percentage, since this is high for biological reasons in LC-NE neurons
+# note: not using mitochondrial proportion (due to biological reasons in LC-NE neurons)
 
 # store QC metrics
 sce <- addPerCellQC(sce, subsets = list(Mito = which(seqnames(sce) == "chrM")))
 
 # check distributions
+range(colData(sce)$sum)
+range(colData(sce)$detected)
 quantile(colData(sce)$sum, seq(0, 1, by = 0.1))
 quantile(colData(sce)$detected, seq(0, 1, by = 0.1))
 
@@ -45,14 +47,14 @@ reasons <- perCellQCFilters(sce)
 attr(reasons$low_lib_size, "thresholds")
 attr(reasons$low_n_features, "thresholds")
 
-# note: 3 MADs is below minimum values observed for both sum UMIs and detected genes, 
-# and we do not want to filter out high values since LC-NE neurons are very large; 
-# so we keep all cells
+# note: 3 MADs is outside range of values (minimum and maximum) for both sum sum
+# UMIs and detected genes, so we keep all cells
 
 colData(sce)$discard <- FALSE
 
 
 # note high mitochondrial percentages
+range(colData(sce)$subsets_Mito_percent)
 quantile(colData(sce)$subsets_Mito_percent, seq(0, 1, by = 0.1))
 quantile(colData(sce)$subsets_Mito_percent, seq(0.9, 1, by = 0.01))
 mean(colData(sce)$subsets_Mito_percent > 10)
@@ -85,6 +87,8 @@ ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
 
 nonzero_TH <- counts(sce)[which(rowData(sce)$gene_name == "TH"), ] > 0
 
+mean(nonzero_TH)
+
 summary(colData(sce)$subsets_Mito_percent[nonzero_TH])
 
 
@@ -109,6 +113,6 @@ dim(sce)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE_alt", "sce_QCandFiltered")
+fn_out <- here("processed_data", "SCE", "sce_QCandFiltered")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
