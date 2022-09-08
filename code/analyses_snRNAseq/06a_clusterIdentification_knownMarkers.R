@@ -290,35 +290,6 @@ p
 dev.off()
 
 
-# UMAP with merged clusters
-
-labels_merged <- fct_collapse(colData(sce)$label, 
-  excitatory = "29", 
-  inhibitory = c("26", "17", "14", "1", "8", "7", "24", "18"), 
-  neurons_ambiguous = c("21", "20", "23", "19", "30", "13", "3", "5", "2"), 
-  NE = "6", 
-  `5HT` = "16", 
-  astrocytes = c("22", "25"), 
-  endothelial_mural = "15", 
-  macrophages_microglia = "11", 
-  oligodendrocytes = c("9", "10", "27", "4"), 
-  OPCs = c("28", "12"))
-labels_merged <- fct_relevel(labels_merged, 
-  c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
-    "endothelial_mural", "macrophages_microglia", "oligodendrocytes", "OPCs"))
-colData(sce)$labels_merged <- labels_merged
-
-
-plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
-  scale_color_manual(values = unname(pal[-1]), name = "cluster") + 
-  theme_classic() + 
-  ggtitle("Unsupervised clustering")
-
-fn <- file.path(dir_plots, "UMAP_clustering_merged")
-ggsave(paste0(fn, ".pdf"), width = 6, height = 4.75)
-ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
-
-
 # ----------------------------------------
 # Alternative heatmap using ComplexHeatmap
 # ----------------------------------------
@@ -451,6 +422,41 @@ dev.off()
 png(paste0(fn, ".png"), width = 8 * 200, height = 6.25 * 200, res = 200)
 hm
 dev.off()
+
+
+# ---------
+# UMAP plot
+# ---------
+
+# UMAP of clustering
+
+labels_merged <- fct_collapse(colData(sce)$label, 
+  excitatory = "29", 
+  inhibitory = c("26", "17", "14", "1", "8", "7", "24", "18"), 
+  neurons_ambiguous = c("21", "20", "23", "19", "30", "13", "3", "5", "2"), 
+  NE = "6", 
+  `5HT` = "16", 
+  astrocytes = c("22", "25"), 
+  endothelial_mural = "15", 
+  macrophages_microglia = "11", 
+  oligodendrocytes = c("9", "10", "27", "4"), 
+  OPCs = c("28", "12"))
+
+labels_merged <- fct_relevel(labels_merged, 
+  c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
+    "endothelial_mural", "macrophages_microglia", "oligodendrocytes", "OPCs"))
+
+colData(sce)$labels_merged <- labels_merged
+
+
+plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
+  scale_color_manual(values = colors_clusters[[1]], name = "clusters (merged)") + 
+  theme_classic() + 
+  ggtitle("LC clustering")
+
+fn <- file.path(dir_plots, "UMAP_clustering_merged")
+ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4.75)
+ggsave(paste0(fn, ".png"), width = 6.5, height = 4.75)
 
 
 # ----------------------------------------------
