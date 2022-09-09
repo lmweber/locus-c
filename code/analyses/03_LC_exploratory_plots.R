@@ -54,6 +54,8 @@ ix_VIP <- which(rowData(spe)$gene_name == "VIP")
 ix_PVALB <- which(rowData(spe)$gene_name == "PVALB")
 ix_MOBP <- which(rowData(spe)$gene_name == "MOBP")
 ix_MBP <- which(rowData(spe)$gene_name == "MBP")
+ix_GAD1 <- which(rowData(spe)$gene_name == "GAD1")
+ix_GAD2 <- which(rowData(spe)$gene_name == "GAD2")
 
 df <- as.data.frame(cbind(
   colData(spe), 
@@ -67,7 +69,9 @@ df <- as.data.frame(cbind(
   VIP = counts(spe)[ix_VIP, ], 
   PVALB = counts(spe)[ix_PVALB, ], 
   MOBP = counts(spe)[ix_MOBP, ], 
-  MBP = counts(spe)[ix_MBP, ]
+  MBP = counts(spe)[ix_MBP, ], 
+  GAD1 = counts(spe)[ix_GAD1, ], 
+  GAD2 = counts(spe)[ix_GAD2, ]
 ))
 
 
@@ -291,6 +295,50 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres,
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "counts_MBP")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot GAD1 expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = GAD1)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts", breaks = range(df$GAD1)) + 
+  scale_y_reverse() + 
+  ggtitle("GAD1 expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_GAD1")
+ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
+ggsave(paste0(fn, ".png"), width = 9, height = 4)
+
+
+# plot GAD2 expression
+ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
+               color = GAD2)) + 
+  facet_wrap(~ sample_id, nrow = 2, scales = "free") + 
+  geom_point(size = 0.1) + 
+  scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
+                       name = "counts", breaks = range(df$GAD2)) + 
+  scale_y_reverse() + 
+  ggtitle("GAD2 expression") + 
+  theme_bw() + 
+  theme(aspect.ratio = 1, 
+        panel.grid = element_blank(), 
+        plot.title = element_text(face = "italic"), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+fn <- file.path(dir_plots, "counts_GAD2")
 ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
 ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
