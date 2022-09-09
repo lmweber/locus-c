@@ -414,7 +414,7 @@ hm <- Heatmap(
   rect_gp = gpar(col = "gray50", lwd = 0.5))
 
 
-# save heatmap (vertical format)
+# save heatmap
 fn <- file.path(dir_plots, "clustering_heatmap_complex")
 
 pdf(paste0(fn, ".pdf"), width = 8, height = 6.5)
