@@ -294,7 +294,7 @@ dev.off()
 # Alternative heatmap using ComplexHeatmap
 # ----------------------------------------
 
-hm_mat <- t(do.call(cbind, lapply(cell.idx, function(ii) rowMeans(dat[markers_broad, ii]))))
+hm_mat <- t(do.call(cbind, lapply(cell.idx, function(i) rowMeans(dat[markers_broad, i]))))
 
 # markers to show
 markers <- c(
