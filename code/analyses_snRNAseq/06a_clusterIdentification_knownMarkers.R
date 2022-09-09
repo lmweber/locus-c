@@ -376,7 +376,7 @@ neuron_pops <- ifelse(
 colors_clusters <- list(population = c(
   excitatory = "#1F77B4", 
   inhibitory = "#AEC7E8", 
-  neurons_ambiguous = "gray50", 
+  neurons_ambiguous = "gray60", 
   NE = "#D62728", 
   `5HT` = "#9467BD", 
   astrocytes = "#FF7F0E", 
