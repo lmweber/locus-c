@@ -342,6 +342,7 @@ colors_markers <- list(marker = c(
   oligodendrocytes = "#9EDAE5", 
   OPCs = "#17BECF"))
 
+
 # cluster labels
 cluster_pops <- list(
   excitatory = 29, 
@@ -363,11 +364,19 @@ cluster_pops_rev <- cluster_pops_rev[as.character(sort(cluster_pops_order))]
 
 cluster_pops_rev <- factor(cluster_pops_rev, levels = names(cluster_pops))
 
+
+# second set of cluster labels
+neuron_pops <- ifelse(
+  cluster_pops_rev %in% c("excitatory", "inhibitory", "NE", "5HT", "neurons_ambiguous"), 
+  "neuronal", "non-neuronal") %>% 
+  factor(., levels = c("neuronal", "non-neuronal"))
+
+
 # colors: from tableau20 and tableau10medium
 colors_clusters <- list(population = c(
   excitatory = "#1F77B4", 
   inhibitory = "#AEC7E8", 
-  neurons_ambiguous = "gray60", 
+  neurons_ambiguous = "gray50", 
   NE = "#D62728", 
   `5HT` = "#9467BD", 
   astrocytes = "#FF7F0E", 
@@ -376,6 +385,11 @@ colors_clusters <- list(population = c(
   oligodendrocytes = "#9EDAE5", 
   OPCs = "#17BECF"))
 
+colors_neurons <- list(class = c(
+  neuronal = "black", 
+  `non-neuronal` = "gray90"
+))
+
 
 # number of nuclei per cluster
 n <- table(colLabels(sce))
@@ -383,10 +397,11 @@ n <- table(colLabels(sce))
 
 # row annotation
 row_ha <- rowAnnotation(
-  n = anno_barplot(as.numeric(n), gp = gpar(fill = "black"), border = FALSE), 
+  n = anno_barplot(as.numeric(n), gp = gpar(fill = "navy"), border = FALSE), 
+  class = neuron_pops, 
   population = cluster_pops_rev, 
   show_annotation_name = FALSE, 
-  col = colors_clusters)
+  col = c(colors_clusters, colors_neurons))
 
 # column annotation
 col_ha <- columnAnnotation(
