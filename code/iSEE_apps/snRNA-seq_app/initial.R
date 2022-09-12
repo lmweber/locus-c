@@ -33,7 +33,7 @@ initial[["ReducedDimensionPlot1"]] <- new("ReducedDimensionPlot", Type = "UMAP",
 ################################################################################
 
 initial[["ComplexHeatmapPlot1"]] <- new("ComplexHeatmapPlot", Assay = "logcounts", CustomRows = TRUE, 
-    CustomRowsText = "SNAP25\nSLC17A6\nGAD1\nDBH\nTH\nSLC6A2\nSLC6A4\nSLC5A7\nGFAP\nFLT1\nC3\nMBP\nVCAN", 
+    CustomRowsText = "SNAP25\nSYT1\nSLC17A6\nGAD1\nGAD2\nDBH\nTH\nSLC6A2\nTPH2\nSLC6A4\nSLC5A7\nGFAP\nFLT1\nC3\nMBP\nVCAN", 
     ClusterRows = FALSE, ClusterRowsDistance = "spearman", ClusterRowsMethod = "ward.D2", 
     DataBoxOpen = FALSE, VisualChoices = "Annotations", ColumnData = c("label", 
     "Donor"), RowData = character(0), CustomBounds = FALSE, LowerBound = 0L, 
