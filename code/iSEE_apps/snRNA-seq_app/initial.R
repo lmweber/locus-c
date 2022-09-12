@@ -71,7 +71,7 @@ initial[["FeatureAssayPlot1"]] <- new("FeatureAssayPlot", Assay = "logcounts", X
     XAxisFeatureSource = "---", XAxisFeatureDynamicSource = FALSE, 
     YAxisFeatureName = "SNAP25", YAxisFeatureSource = "RowDataTable1", 
     YAxisFeatureDynamicSource = TRUE, FacetRowByColData = "Sample", 
-    FacetColumnByColData = "Sample", ColorByColumnData = "Donor", 
+    FacetColumnByColData = "Sample", ColorByColumnData = "label", 
     ColorByFeatureNameAssay = "logcounts", ColorBySampleNameColor = "#FF0000", 
     ShapeByColumnData = "Sample", SizeByColumnData = "sum", FacetRowBy = "None", 
     FacetColumnBy = "None", ColorBy = "Column data", ColorByDefaultColor = "#000000", 
