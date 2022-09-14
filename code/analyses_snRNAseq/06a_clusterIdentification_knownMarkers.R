@@ -679,6 +679,6 @@ ggsave(paste0(fn, ".png"), width = 6, height = 9)
 
 # save object with merged cluster labels
 
-fn_out <- here("processed_data", "SCE", "sce_merged")
+fn_out <- here("processed_data", "SCE", "sce_clustering_merged")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
