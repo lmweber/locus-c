@@ -6,7 +6,7 @@ library("paletteer")
 library("scuttle")
 library("SpatialExperiment")
 
-sce <- readRDS("sce_clustering_secondary.rds")
+sce <- readRDS("sce_clustering_merged.rds")
 
 ## Make unique gene names
 rownames(sce) <-
@@ -20,13 +20,14 @@ sce$Donor <- gsub("_LC", "", sce$Sample)
 ## From https://github.com/LieberInstitute/10xPilot_snRNAseq-human/blob/810b47364af4c8afe426bd2a6b559bd6a9f1cc98/shiny_apps/tran2021_AMY/app.R#L10-L14
 ## Related to https://github.com/iSEE/iSEE/issues/568
 colData(sce) <- cbind(
-  colData(sce)[, !colnames(colData(sce)) %in% c("Donor", "label")],
-  colData(sce)[, c("label", "Donor")]
+  colData(sce)[, !colnames(colData(sce)) %in% c("Donor", "label_merged")],
+  colData(sce)[, c("label_merged", "Donor")]
 )
 
 sce$Donor <- as.factor(sce$Donor)
+sce$label_merged <- as.factor(sce$label_merged)
 
-sce <- registerAppOptions(sce, color.maxlevels = length(unique(sce$label)))
+#sce <- registerAppOptions(sce, color.maxlevels = length(unique(sce$label_merged)))
 
 iSEE(sce,
      appTitle = "snRNA-seq LC 2022",
@@ -41,8 +42,9 @@ iSEE(sce,
          names(cols) <- levels(sce$Donor)
          return(cols)
        }#,
-       # label = function(n) {
-       #   return(unique(sce$label))
-       # }
+        # label_merged = function(n) {
+        #   return(label_merged)
+        # }
      ))
 )
+
