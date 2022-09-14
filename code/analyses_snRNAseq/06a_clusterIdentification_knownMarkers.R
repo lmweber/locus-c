@@ -28,7 +28,7 @@ dir_plots <- here("plots", "snRNAseq", "06_cluster_identification", "known_marke
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_clustering")
+fn <- here("processed_data", "SCE", "sce_clustering_secondary")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -447,7 +447,7 @@ dev.off()
 
 # UMAP of clustering
 
-labels_merged <- fct_collapse(colData(sce)$label, 
+label_merged <- fct_collapse(colData(sce)$label, 
   excitatory = "29", 
   inhibitory = c("26", "17", "14", "1", "8", "7", "24", "18"), 
   neurons_ambiguous = c("21", "20", "23", "19", "30", "13", "3", "5", "2"), 
@@ -459,14 +459,14 @@ labels_merged <- fct_collapse(colData(sce)$label,
   oligodendrocytes = c("9", "10", "27", "4"), 
   OPCs = c("28", "12"))
 
-labels_merged <- fct_relevel(labels_merged, 
+label_merged <- fct_relevel(label_merged, 
   c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
     "endothelial_mural", "macrophages_microglia", "oligodendrocytes", "OPCs"))
 
-colData(sce)$labels_merged <- labels_merged
+colData(sce)$label_merged <- label_merged
 
 
-plotReducedDim(sce, dimred = "UMAP", colour_by = "labels_merged") + 
+plotReducedDim(sce, dimred = "UMAP", colour_by = "label_merged") + 
   scale_color_manual(values = colors_clusters[[1]], name = "clusters (merged)") + 
   theme_classic() + 
   ggtitle("LC clustering")
@@ -671,4 +671,14 @@ ggplot(df, aes(x = cluster, y = n_nuclei)) +
 fn <- here(dir_plots, paste0("numberNuclei_perSample"))
 ggsave(paste0(fn, ".pdf"), width = 6, height = 9)
 ggsave(paste0(fn, ".png"), width = 6, height = 9)
+
+
+# -----------
+# Save object
+# -----------
+
+# save object with merged cluster labels
+
+fn_out <- here("processed_data", "SCE", "sce_merged")
+saveRDS(sce, paste0(fn_out, ".rds"))
 
