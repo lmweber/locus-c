@@ -42,50 +42,60 @@ table(colLabels(sce), colData(sce)$Sample)
 # DE testing
 # ----------
 
-# pairwise DE testing between merged clusters
+# pairwise DE testing between neuronal clusters
 
 
 # store total UMI counts per gene
 rowData(sce)$sum_gene <- rowSums(counts(sce))
 
 
-# remove ambiguous neurons cluster
-ix_ambiguous <- colData(sce)$label_merged == "neurons_ambiguous"
-table(ix_ambiguous)
+# select neuronal clusters only (excluding ambiguous)
+clus_neurons <- c(
+  29, ## excitatory
+  26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
+  6,  ## NE
+  16  ## 5-HT
+)
+ix_neurons <- colData(sce)$label %in% clus_neurons
+table(ix_neurons)
 
-sce <- sce[, !ix_ambiguous]
+sce <- sce[, ix_neurons]
 dim(sce)
 
-# remove empty level
-colData(sce)$label_merged <- droplevels(colData(sce)$label_merged)
+# remove empty levels
+colData(sce)$label <- droplevels(colData(sce)$label)
 
 
 # calculate DE tests
 # note: not blocking by sample since 1 out of 3 samples contains almost zero NE neurons
 marker_info <- scoreMarkers(
   sce, 
-  groups = colData(sce)$label_merged, 
+  groups = colData(sce)$label, 
   row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")]
 )
 # marker_info <- findMarkers(
-#   sce, 
-#   groups = colData(sce)$label_merged, 
-#   lfc = 1, 
-#   direction = "up", 
+#   sce,
+#   groups = colData(sce)$label,
+#   lfc = 1,
+#   direction = "up",
 #   row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")]
 # )
 
-marker_info$NE
-marker_info$`5HT`
+marker_info
+
+marker_info[["6"]]
+#View(as.data.frame(marker_info[["6"]]))
+marker_info[["16"]]
+#View(as.data.frame(marker_info[["16"]]))
 
 
 # check some known genes
 
-ix_known <- which(marker_info$NE$gene_name %in% c("TH", "SLC6A2", "DBH"))
-marker_info$NE[ix_known, ]
+ix_known <- which(marker_info[["6"]]$gene_name %in% c("TH", "SLC6A2", "DBH"))
+marker_info[["6"]][ix_known, ]
 
-ix_known <- which(marker_info$NE$gene_name %in% c("TPH2", "SLC6A4"))
-marker_info$`5HT`[ix_known, ]
+ix_known <- which(marker_info[["16"]]$gene_name %in% c("TPH2", "SLC6A4"))
+marker_info[["16"]][ix_known, ]
 
 
 # significant DE genes
@@ -98,11 +108,11 @@ marker_info$`5HT`[ix_known, ]
 # using mean Cohen's d statistic (i.e. standardized log-fold-change) across
 # pairwise comparisons as ranking metric (from OSCA chapter 6)
 
-ordered <- marker_info$NE[order(marker_info$NE$mean.logFC.cohen, decreasing = TRUE), ]
+ordered <- marker_info[["6"]][order(marker_info[["6"]]$mean.logFC.cohen, decreasing = TRUE), ]
 head(ordered)
 #View(as.data.frame(ordered))
 
-ordered <- marker_info$`5HT`[order(marker_info$`5HT`$mean.logFC.cohen, decreasing = TRUE), ]
+ordered <- marker_info[["16"]][order(marker_info[["16"]]$mean.logFC.cohen, decreasing = TRUE), ]
 head(ordered)
 #View(as.data.frame(ordered))
 
