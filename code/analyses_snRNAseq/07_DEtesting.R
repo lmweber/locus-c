@@ -76,21 +76,14 @@ marker_info <- findMarkers(
   direction = "up", 
   row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")]
 )
-# marker_info <- scoreMarkers(
-#   sce, 
-#   groups = colData(sce)$label, 
-#   row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")]
-# )
 
 marker_info
 
-# NE neurons
+# NE neuron cluster
 marker_info[["6"]]
-#View(as.data.frame(marker_info[["6"]]))
 
-# 5-HT neurons
+# 5-HT neuron cluster
 marker_info[["16"]]
-#View(as.data.frame(marker_info[["16"]]))
 
 
 # check some known genes
@@ -103,22 +96,12 @@ marker_info[["16"]][ix_known, ]
 
 
 # significant DE genes
+
 table(marker_info[["6"]]$FDR < 1)
-table(marker_info[["6"]]$FDR < 0.05)
-table(marker_info[["6"]]$FDR < 1e-6)
 table(marker_info[["6"]]$FDR < 1e-100)
 
-
-# using mean Cohen's d statistic (i.e. standardized log-fold-change) across
-# pairwise comparisons as ranking metric (from OSCA chapter 6)
-
-# ordered <- marker_info[["6"]][order(marker_info[["6"]]$mean.logFC.cohen, decreasing = TRUE), ]
-# head(ordered)
-# #View(as.data.frame(ordered))
-# 
-# ordered <- marker_info[["16"]][order(marker_info[["16"]]$mean.logFC.cohen, decreasing = TRUE), ]
-# head(ordered)
-# #View(as.data.frame(ordered))
+table(marker_info[["16"]]$FDR < 1)
+table(marker_info[["16"]]$FDR < 1e-100)
 
 
 # -------------------------
@@ -133,16 +116,16 @@ logfc <- marker_info[["6"]]$summary.logFC
 names(fdr) <- names(logfc) <- marker_info[["6"]]$gene_name
 
 
-# identify significant genes (low FDR and high logFC)
-thresh_fdr <- 1e-6  ## absolute scale
-thresh_logfc <- log2(2)  ## log2 scale
+# select highly significant genes
+
+thresh_fdr <- 0.05
+thresh_logfc <- log2(2)
 sig <- (fdr < thresh_fdr) & (logfc > thresh_logfc)
-
-# highly significant thresholds
-highlysig <- (fdr < 1e-20) & (logfc > log2(4))
-
-# number of significant genes
 table(sig)
+
+thresh_fdr <- 1e-20
+thresh_logfc <- log2(4)
+highlysig <- (fdr < thresh_fdr) & (logfc > thresh_logfc)
 table(highlysig)
 
 
@@ -150,32 +133,30 @@ df <- data.frame(
   gene = names(fdr), 
   FDR = fdr, 
   log2FC = logfc, 
-  sig = sig, 
   highlysig = highlysig
 )
 
 pal <- c("black", "red")
 
 
-# volcano plot with labels
+# volcano plot
 set.seed(123)
 ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
   geom_point(data = df[df$highlysig, ], size = 0.5) + 
-  geom_text_repel(data = df[df$highlysig, ], 
-                  size = 1.5, nudge_y = 0.1, 
-                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
-                  max.overlaps = 20) + 
+  #geom_text_repel(data = df[df$highlysig, ], 
+  #                size = 1.5, nudge_y = 0.1, 
+  #                force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
+  #                max.overlaps = 20) + 
   scale_color_manual(values = pal, guide = "none") + 
-  geom_hline(yintercept = -log10(1e-20), lty = "dashed", color = "royalblue") + 
-  #geom_vline(xintercept = -thresh_logfc, lty = "dashed", color = "royalblue") + 
-  geom_vline(xintercept = log2(4), lty = "dashed", color = "royalblue") + 
+  geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
   ggtitle("NE neuron cluster vs. all neuronal clusters") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting_NEneuronsVsAllOtherNeuronalClusters")
+fn <- file.path(dir_plots, "DEtesting_NEneuronsVsAllOtherNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -192,10 +173,16 @@ logfc <- marker_info[["16"]]$summary.logFC
 names(fdr) <- names(logfc) <- marker_info[["16"]]$gene_name
 
 
-# highly significant thresholds
-highlysig <- (fdr < 1e-20) & (logfc > log2(4))
+# select highly significant genes
 
-# number of significant genes
+thresh_fdr <- 0.05
+thresh_logfc <- log2(2)
+sig <- (fdr < thresh_fdr) & (logfc > thresh_logfc)
+table(sig)
+
+thresh_fdr <- 1e-20
+thresh_logfc <- log2(4)
+highlysig <- (fdr < thresh_fdr) & (logfc > thresh_logfc)
 table(highlysig)
 
 
@@ -209,25 +196,24 @@ df <- data.frame(
 pal <- c("black", "red")
 
 
-# volcano plot with labels
+# volcano plot
 set.seed(123)
 ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
   geom_point(data = df[df$highlysig, ], size = 0.5) + 
-  geom_text_repel(data = df[df$highlysig, ], 
-                  size = 1.5, nudge_y = 0.1, 
-                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
-                  max.overlaps = 20) + 
+  #geom_text_repel(data = df[df$highlysig, ], 
+  #                size = 1.5, nudge_y = 0.1, 
+  #                force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
+  #                max.overlaps = 20) + 
   scale_color_manual(values = pal, guide = "none") + 
-  geom_hline(yintercept = -log10(1e-20), lty = "dashed", color = "royalblue") + 
-  #geom_vline(xintercept = -thresh_logfc, lty = "dashed", color = "royalblue") + 
-  geom_vline(xintercept = log2(4), lty = "dashed", color = "royalblue") + 
-  ggtitle("NE neuron cluster vs. all neuronal clusters") + 
+  geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
+  ggtitle("5-HT neuron cluster vs. all neuronal clusters") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting_5HTneuronsVsAllOtherNeuronalClusters")
+fn <- file.path(dir_plots, "DEtesting_5HTneuronsVsAllOtherNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
