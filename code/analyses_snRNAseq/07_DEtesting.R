@@ -138,15 +138,20 @@ thresh_fdr <- 1e-6  ## absolute scale
 thresh_logfc <- log2(2)  ## log2 scale
 sig <- (fdr < thresh_fdr) & (logfc > thresh_logfc)
 
+# highly significant thresholds
+highlysig <- (fdr < 1e-20) & (logfc > log2(4))
+
 # number of significant genes
 table(sig)
+table(highlysig)
 
 
 df <- data.frame(
   gene = names(fdr), 
   FDR = fdr, 
   log2FC = logfc, 
-  sig = sig
+  sig = sig, 
+  highlysig = highlysig
 )
 
 pal <- c("black", "red")
@@ -154,17 +159,17 @@ pal <- c("black", "red")
 
 # volcano plot with labels
 set.seed(123)
-ggplot(df, aes(x = log2FC, y = -log10(FDR), color = sig, label = gene)) + 
+ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
-  geom_point(data = df[df$sig, ], size = 0.5) + 
-  #geom_text_repel(data = df[df$sig, ], 
-  #                size = 1.5, nudge_y = 0.1, 
-  #                force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
-  #                max.overlaps = 20) + 
+  geom_point(data = df[df$highlysig, ], size = 0.5) + 
+  geom_text_repel(data = df[df$highlysig, ], 
+                  size = 1.5, nudge_y = 0.1, 
+                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
+                  max.overlaps = 20) + 
   scale_color_manual(values = pal, guide = "none") + 
-  geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
+  geom_hline(yintercept = -log10(1e-20), lty = "dashed", color = "royalblue") + 
   #geom_vline(xintercept = -thresh_logfc, lty = "dashed", color = "royalblue") + 
-  geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = log2(4), lty = "dashed", color = "royalblue") + 
   ggtitle("NE neuron cluster vs. all neuronal clusters") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
