@@ -628,7 +628,7 @@ dev.off()
 
 
 # ----------------
-# number of nuclei
+# Number of nuclei
 # ----------------
 
 # plot number of nuclei per cluster: all samples
@@ -671,6 +671,60 @@ ggplot(df, aes(x = cluster, y = n_nuclei)) +
 fn <- here(dir_plots, paste0("numberNuclei_perSample"))
 ggsave(paste0(fn, ".pdf"), width = 6, height = 9)
 ggsave(paste0(fn, ".png"), width = 6, height = 9)
+
+
+# ----------------------
+# QC metrics per cluster
+# ----------------------
+
+df <- as.data.frame(colData(sce)) %>% 
+  select(sum, detected, subsets_Mito_percent, Sample, label, label_merged) %>% 
+  mutate(label = factor(label, levels = cluster_pops_order))
+
+
+# sum UMI counts per cluster
+
+ggplot(df, aes(x = label, y = sum, color = label_merged)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = colors_clusters$population, name = "population") + 
+  labs(x = "cluster", 
+       y = "sum UMI counts") + 
+  ggtitle("Sum UMI counts per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("perClusterQCmetrics_sumUMI"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# detected genes per cluster
+
+ggplot(df, aes(x = label, y = detected, color = label_merged)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = colors_clusters$population, name = "population") + 
+  labs(x = "detected genes", 
+       y = "sum UMI counts") + 
+  ggtitle("Detected genes per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("perClusterQCmetrics_detectedGenes"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# mitochondrial proportion per cluster
+
+ggplot(df, aes(x = label, y = subsets_Mito_percent, color = label_merged)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = colors_clusters$population, name = "population") + 
+  labs(x = "mitochondrial percentage", 
+       y = "sum UMI counts") + 
+  ggtitle("Mitochondrial percentage per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("perClusterQCmetrics_mitochondrial"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
 
 # -----------
