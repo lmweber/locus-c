@@ -184,7 +184,7 @@ nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
 rownames(hmat) <- nms
 
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
-colnames(hmat) <- c("NE", "other")
+colnames(hmat) <- c("NE", "inhibitory")
 
 # remove mitochondrial genes from heatmap
 ix_mito <- grepl("^MT-", rownames(hmat))
@@ -201,7 +201,7 @@ hm <- Heatmap(
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
-  column_title = "NE vs. other\nneuronal clusters", 
+  column_title = "NE vs. other\ninhibitory clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "logcounts\n(grand mean)"
 )
@@ -324,7 +324,7 @@ nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
 rownames(hmat) <- nms
 
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
-colnames(hmat) <- c("5-HT", "other")
+colnames(hmat) <- c("5-HT", "inhibitory")
 
 # select top n
 hmat <- hmat[1:50, ]
@@ -335,7 +335,7 @@ hm <- Heatmap(
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
-  column_title = "5-HT vs. other\nneuronal clusters", 
+  column_title = "5-HT vs. other\ninhibitory clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "logcounts\n(grand mean)"
 )
