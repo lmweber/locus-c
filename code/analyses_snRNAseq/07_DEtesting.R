@@ -214,9 +214,9 @@ hm
 dev.off()
 
 
-# -----------
-# Spreadsheet
-# -----------
+# -----------------------
+# Spreadsheet: NE neurons
+# -----------------------
 
 # save spreadsheet
 
@@ -236,7 +236,7 @@ df <- as.data.frame(df)
 rownames(df) <- NULL
 
 
-# save .csv files
+# save .csv file
 fn <- file.path(dir_outputs, "DEtesting_NEvsOtherNeuronal.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
@@ -296,4 +296,81 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
 fn <- file.path(dir_plots, "DEtesting_5HTneuronsVsAllOtherNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+
+
+# ---------------------
+# Heatmap: 5-HT neurons
+# ---------------------
+
+# 5-HT neurons
+
+hmat <- marker_info[["16"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
+
+# select significant
+sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
+hmat <- hmat[sig, ]
+
+# order by FDR and select top 50 for plot
+hmat <- hmat[order(hmat$FDR), ]
+
+# format gene names and FDRs in row names
+nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
+rownames(hmat) <- nms
+
+hmat <- as.matrix(hmat[, c("self.average", "other.average")])
+colnames(hmat) <- c("5-HT", "other")
+
+# select top 50
+hmat <- hmat[1:50, ]
+
+# create heatmap
+hm <- Heatmap(
+  hmat, 
+  cluster_rows = FALSE, cluster_columns = FALSE, 
+  column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
+  row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  column_title = "5-HT vs. other\nneuronal clusters", 
+  column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
+  name = "logcounts\n(grand mean)"
+)
+
+hm
+
+# save heatmap
+fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsOtherNeuronal")
+
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 7)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 7 * 200, res = 200)
+hm
+dev.off()
+
+
+# -------------------------
+# Spreadsheet: 5-HT neurons
+# -------------------------
+
+# save spreadsheet
+
+cols <- c("gene_id", "gene_name", "sum_gene", "p.value", "FDR", "summary.logFC")
+#cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
+df <- marker_info[["16"]][, cols]
+colnames(df)[c(4, 6)] <- c("p_value", "logFC")
+
+# select significant
+sig <- with(df, FDR < 0.05 & logFC > 1)
+df <- df[sig, ]
+
+# order by FDR
+df <- df[order(df$FDR), ]
+
+df <- as.data.frame(df)
+rownames(df) <- NULL
+
+
+# save .csv file
+fn <- file.path(dir_outputs, "DEtesting_5HTvsOtherNeuronal.csv")
+write.csv(df, file = fn, row.names = FALSE)
 
