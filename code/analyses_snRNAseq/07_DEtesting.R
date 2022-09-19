@@ -51,9 +51,8 @@ table(colLabels(sce), colData(sce)$Sample)
 rowData(sce)$sum_gene <- rowSums(counts(sce))
 
 
-# select neuronal clusters (excluding ambiguous)
+# select inhibitory neuronal clusters (excluding excitatory and ambiguous)
 clus_neurons <- c(
-  29, ## excitatory
   26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
   6,  ## NE
   16  ## 5-HT
@@ -160,7 +159,7 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting_NEneuronsVsAllOtherNeuronal")
+fn <- file.path(dir_plots, "DEtesting_NEneuronsVsInhibitoryNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -204,7 +203,7 @@ hm <- Heatmap(
 hm
 
 # save heatmap
-fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsOtherNeuronal")
+fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsInhibitoryNeuronal")
 
 pdf(paste0(fn, ".pdf"), width = 3.75, height = 7)
 hm
@@ -238,7 +237,7 @@ rownames(df) <- NULL
 
 
 # save .csv file
-fn <- file.path(dir_outputs, "DEtesting_NEvsOtherNeuronal.csv")
+fn <- file.path(dir_outputs, "DEtesting_NEvsInhibitoryNeuronal.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
 
@@ -294,7 +293,7 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting_5HTneuronsVsAllOtherNeuronal")
+fn <- file.path(dir_plots, "DEtesting_5HTneuronsVsInhibitoryNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -338,7 +337,7 @@ hm <- Heatmap(
 hm
 
 # save heatmap
-fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsOtherNeuronal")
+fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsInhibitoryNeuronal")
 
 pdf(paste0(fn, ".pdf"), width = 3.75, height = 7)
 hm
@@ -372,6 +371,6 @@ rownames(df) <- NULL
 
 
 # save .csv file
-fn <- file.path(dir_outputs, "DEtesting_5HTvsOtherNeuronal.csv")
+fn <- file.path(dir_outputs, "DEtesting_5HTvsInhibitoryNeuronal.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
