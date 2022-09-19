@@ -51,7 +51,7 @@ table(colLabels(sce), colData(sce)$Sample)
 rowData(sce)$sum_gene <- rowSums(counts(sce))
 
 
-# select inhibitory neuronal clusters (excluding excitatory and ambiguous)
+# select neuronal clusters to test against (excluding ambiguous)
 clus_neurons <- c(
   26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
   6,  ## NE
@@ -176,7 +176,7 @@ hmat <- marker_info[["6"]][, c("gene_name", "self.average", "other.average", "FD
 sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
 hmat <- hmat[sig, ]
 
-# order by FDR and select top 50 for plot
+# order by FDR and select top n for plot
 hmat <- hmat[order(hmat$FDR), ]
 
 # format gene names and FDRs in row names
@@ -186,8 +186,14 @@ rownames(hmat) <- nms
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
 colnames(hmat) <- c("NE", "other")
 
-# select top 50
-hmat <- hmat[1:50, ]
+# remove mitochondrial genes from heatmap
+ix_mito <- grepl("^MT-", rownames(hmat))
+table(ix_mito)
+hmat <- hmat[!ix_mito, ]
+dim(hmat)
+
+# select top n
+hmat <- hmat[1:70, ]
 
 # create heatmap
 hm <- Heatmap(
@@ -205,11 +211,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsInhibitoryNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 7)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 9)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 7 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 9 * 200, res = 200)
 hm
 dev.off()
 
@@ -310,7 +316,7 @@ hmat <- marker_info[["16"]][, c("gene_name", "self.average", "other.average", "F
 sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
 hmat <- hmat[sig, ]
 
-# order by FDR and select top 50 for plot
+# order by FDR and select top n for plot
 hmat <- hmat[order(hmat$FDR), ]
 
 # format gene names and FDRs in row names
@@ -320,7 +326,7 @@ rownames(hmat) <- nms
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
 colnames(hmat) <- c("5-HT", "other")
 
-# select top 50
+# select top n
 hmat <- hmat[1:50, ]
 
 # create heatmap
