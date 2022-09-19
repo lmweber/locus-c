@@ -15,9 +15,11 @@ library(tibble)
 library(ggplot2)
 library(ggnewscale)
 library(ggrepel)
+library(ComplexHeatmap)
 
 
 dir_plots <- here("plots", "snRNAseq", "07_DEtesting")
+dir_outputs <- here("outputs", "snRNAseq", "07_DEtesting")
 
 
 # ---------------
@@ -74,7 +76,8 @@ marker_info <- findMarkers(
   groups = colData(sce)$label, 
   lfc = 1, 
   direction = "up", 
-  row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")]
+  row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")], 
+  add.summary = TRUE
 )
 
 marker_info
@@ -116,7 +119,7 @@ logfc <- marker_info[["6"]]$summary.logFC
 names(fdr) <- names(logfc) <- marker_info[["6"]]$gene_name
 
 
-# select highly significant genes
+# select significant genes
 
 thresh_fdr <- 0.05
 thresh_logfc <- log2(2)
@@ -161,6 +164,83 @@ ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
+# -------------------
+# Heatmap: NE neurons
+# -------------------
+
+# NE neurons
+
+hmat <- marker_info[["6"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
+
+# select significant
+sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
+hmat <- hmat[sig, ]
+
+# order by FDR and select top 50 for plot
+hmat <- hmat[order(hmat$FDR), ]
+
+# format gene names and FDRs in row names
+nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
+rownames(hmat) <- nms
+
+hmat <- as.matrix(hmat[, c("self.average", "other.average")])
+colnames(hmat) <- c("NE", "other")
+
+# select top 50
+hmat <- hmat[1:50, ]
+
+# create heatmap
+hm <- Heatmap(
+  hmat, 
+  cluster_rows = FALSE, cluster_columns = FALSE, 
+  column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
+  row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  column_title = "NE vs. other\nneuronal clusters", 
+  column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
+  name = "logcounts\n(grand mean)"
+)
+
+hm
+
+# save heatmap
+fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsOtherNeuronal")
+
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 7)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 7 * 200, res = 200)
+hm
+dev.off()
+
+
+# -----------
+# Spreadsheet
+# -----------
+
+# save spreadsheet
+
+cols <- c("gene_id", "gene_name", "sum_gene", "p.value", "FDR", "summary.logFC")
+#cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
+df <- marker_info[["6"]][, cols]
+colnames(df)[c(4, 6)] <- c("p_value", "logFC")
+
+# select significant
+sig <- with(df, FDR < 0.05 & logFC > 1)
+df <- df[sig, ]
+
+# order by FDR
+df <- df[order(df$FDR), ]
+
+df <- as.data.frame(df)
+rownames(df) <- NULL
+
+
+# save .csv files
+fn <- file.path(dir_outputs, "DEtesting_NEvsOtherNeuronal.csv")
+write.csv(df, file = fn, row.names = FALSE)
+
+
 # ---------------------------
 # Volcano plots: 5-HT neurons
 # ---------------------------
@@ -173,7 +253,7 @@ logfc <- marker_info[["16"]]$summary.logFC
 names(fdr) <- names(logfc) <- marker_info[["16"]]$gene_name
 
 
-# select highly significant genes
+# select significant genes
 
 thresh_fdr <- 0.05
 thresh_logfc <- log2(2)
