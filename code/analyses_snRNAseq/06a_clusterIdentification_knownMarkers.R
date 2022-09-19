@@ -631,22 +631,25 @@ dev.off()
 # Number of nuclei
 # ----------------
 
-# plot number of nuclei per cluster: all samples
+# plot number of nuclei per cluster
+
+tbl <- table(colLabels(sce))
 
 df <- data.frame(
-  cluster = names(table(colLabels(sce))), 
-  n_nuclei = as.numeric(table(colLabels(sce))))
-df$cluster <- factor(df$cluster, levels = order_broad)
+  cluster = factor(names(tbl), levels = cluster_pops_order), 
+  n_nuclei = as.numeric(tbl), 
+  population = unname(cluster_pops_rev))
 
-ggplot(df, aes(x = cluster, y = n_nuclei)) + 
-  geom_bar(stat = "identity", fill = "navy") + 
-  ylab("number of nuclei") + 
-  ggtitle("Number of nuclei per cluster: all samples") + 
+ggplot(df, aes(x = cluster, y = n_nuclei, fill = population)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = colors_clusters$population, name = "population") + 
+  labs(y = "number of nuclei") + 
+  ggtitle("Number of nuclei per cluster") + 
   theme_bw()
 
-fn <- here(dir_plots, paste0("numberNuclei_allSamples"))
-ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
-ggsave(paste0(fn, ".png"), width = 6, height = 4)
+fn <- here(dir_plots, paste0("numberNuclei_perCluster"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
 
 # plot number of nuclei per cluster: per sample
@@ -668,7 +671,7 @@ ggplot(df, aes(x = cluster, y = n_nuclei)) +
   ggtitle("Number of nuclei per cluster: per sample") + 
   theme_bw()
 
-fn <- here(dir_plots, paste0("numberNuclei_perSample"))
+fn <- here(dir_plots, paste0("numberNuclei_perCluster_perSample"))
 ggsave(paste0(fn, ".pdf"), width = 6, height = 9)
 ggsave(paste0(fn, ".png"), width = 6, height = 9)
 
