@@ -82,6 +82,7 @@ marker_info <- findMarkers(
 
 marker_info
 
+
 # NE neuron cluster
 marker_info[["6"]]
 
