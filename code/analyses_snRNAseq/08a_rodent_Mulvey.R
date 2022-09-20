@@ -79,18 +79,13 @@ stopifnot(length(human_genes) == sum(human_genes %in% rowData(sce)$gene_name))
 
 # enrichment in NE cluster vs. other neuronal clusters
 
-# function from rafalib package
-splitit <- function(x) split(seq(along = x), x)
-
-
-# calculate matrix of values: genes x clusters
-
-cell_idx <- splitit(sce$label)
+ix_genes <- rowData(sce)$gene_name %in% human_genes
+table(ix_genes)
 
 dat <- as.matrix(logcounts(sce))
 rownames(dat) <- rowData(sce)$gene_name
 
-mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[human_genes, i]))))
+dat <- dat[ix_genes, ]
 
 
 # subset neuronal clusters
@@ -103,41 +98,47 @@ clus_neuronalExcNE <- c(
   16  ## 5-HT
 )
 
-mat_NE <- mat[clus_NE, ]
-mat_neuronalExcNE <- mat[clus_neuronalExcNE, ]
+ix_NE <- colData(sce)$label %in% clus_NE
+ix_other <- colData(sce)$label %in% clus_neuronalExcNE
 
-# grand mean across neuronal clusters excluding NE
-meanNeuronalExcNE <- colMeans(mat_neuronalExcNE)
+table(ix_NE)
+table(ix_other)
 
+stopifnot(length(ix_NE) == ncol(dat))
+stopifnot(length(ix_other) == ncol(dat))
 
-stopifnot(all(names(mat_NE) == colnames(mat_neuronalExcNE)))
+clusters <- rep("nonneuron", ncol(dat))
+clusters[ix_NE] <- "NE"
+clusters[ix_other] <- "other"
 
+# order genes by expression within NE cluster
+ord <- order(rowMeans(dat[, ix_NE]))
+genes_ord <- rownames(dat)[ord]
 
-ord <- order(mat_NE)
-
+# data frame for boxplots
 df <- data.frame(
-  gene = names(mat_NE), 
-  NE = mat_NE, 
-  other = meanNeuronalExcNE) %>% 
-  pivot_longer(
-    cols = c("NE", "other"), 
-    names_to = "clusters", 
-    values_to = "mean"
-  ) %>% 
-  mutate(gene = factor(gene, levels = names(mat_NE)[ord]))
+  t(dat[ord, ]), 
+  clusters = clusters) %>% 
+  filter(clusters %in% c("NE", "other")) %>% 
+  pivot_longer(cols = -clusters, names_to = "gene", values_to = "logcounts") %>% 
+  mutate(clusters = factor(clusters, levels = c("other", "NE"))) %>%  ## reversed for plot
+  mutate(gene = factor(gene, levels = genes_ord))
 
 
 # -------------
 # plot boxplots
 # -------------
 
-ggplot(df, aes(x = mean, y = gene, color = clusters, fill = clusters)) + 
-  geom_boxplot(alpha = 0.75, outlier.size = 0.5) + 
-  #scale_color_manual(values = pal_rev, name = "annotation", 
-  #                   guide = guide_legend(reverse = TRUE)) + 
-  #scale_fill_manual(values = pal_rev, name = "annotation", 
-  #                  guide = guide_legend(reverse = TRUE)) + 
-  labs(x = "mean logcounts") + 
+pal <- c("darkmagenta", "gray60")
+pal_rev <- rev(pal)
+
+# note: not showing outliers
+ggplot(df, aes(x = logcounts, y = gene, color = clusters, fill = clusters)) + 
+  geom_boxplot(alpha = 0.75, outlier.shape = NA) + 
+  scale_color_manual(values = pal_rev, 
+                     guide = guide_legend(reverse = TRUE)) + 
+  scale_fill_manual(values = pal_rev, 
+                    guide = guide_legend(reverse = TRUE)) + 
   ggtitle("Mulvey et al. genes") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
