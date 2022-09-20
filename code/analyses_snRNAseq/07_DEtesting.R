@@ -324,7 +324,7 @@ nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
 rownames(hmat) <- nms
 
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
-colnames(hmat) <- c("NE", "other")
+colnames(hmat) <- c("5-HT", "other")
 
 # remove mitochondrial genes from heatmap
 ix_mito <- grepl("^MT-", rownames(hmat))
