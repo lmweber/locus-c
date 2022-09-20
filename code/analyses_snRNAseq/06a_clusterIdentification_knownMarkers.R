@@ -450,9 +450,9 @@ dev.off()
 # UMAP of clustering
 
 label_merged <- fct_collapse(colData(sce)$label, 
-  excitatory = "29", 
+  excitatory = c("29", "21", "20", "23"), 
   inhibitory = c("26", "17", "14", "1", "8", "7", "24", "18"), 
-  neurons_ambiguous = c("21", "20", "23", "19", "30", "13", "3", "5", "2"), 
+  neurons_ambiguous = c("19", "30", "13", "3", "5", "2"), 
   NE = "6", 
   `5HT` = "16", 
   astrocytes = c("22", "25"), 
