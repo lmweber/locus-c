@@ -228,7 +228,7 @@ hm <- Heatmap(
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
-  column_title = "NE vs. other\ninhibitory clusters", 
+  column_title = "NE vs. other\nneuronal clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "mean\nlogcounts"
 )
@@ -369,7 +369,7 @@ hm <- Heatmap(
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
-  column_title = "5-HT vs. other\ninhibitory clusters", 
+  column_title = "5-HT vs. other\nneuronal clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "mean\nlogcounts"
 )
