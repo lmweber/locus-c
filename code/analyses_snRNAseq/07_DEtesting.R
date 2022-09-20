@@ -327,7 +327,7 @@ hmat <- as.matrix(hmat[, c("self.average", "other.average")])
 colnames(hmat) <- c("5-HT", "other")
 
 # select top n
-hmat <- hmat[1:50, ]
+hmat <- hmat[1:70, ]
 
 # create heatmap
 hm <- Heatmap(
@@ -345,11 +345,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsInhibitoryNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 7)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 9)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 7 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 9 * 200, res = 200)
 hm
 dev.off()
 
