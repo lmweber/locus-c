@@ -51,87 +51,61 @@ table(colLabels(sce), colData(sce)$Sample)
 rowData(sce)$sum_gene <- rowSums(counts(sce))
 
 
-# select neuronal clusters (excluding ambiguous) to test against for NE neurons
-# excluding 5-HT since these are too similar to NE
-clus_neurons_NE <- c(
+# select neuronal clusters (excluding ambiguous) to test against
+clus_neurons <- c(
   29, 21, 20, 23,  ## excitatory
   26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
-  6  ## NE
-)
-ix_neurons_NE <- colData(sce)$label %in% clus_neurons_NE
-table(ix_neurons_NE)
-
-sce_NE <- sce[, ix_neurons_NE]
-dim(sce_NE)
-# remove empty levels
-colData(sce_NE)$label <- droplevels(colData(sce_NE)$label)
-
-
-# select neuronal clusters (excluding ambiguous) to test against for 5-HT neurons
-# excluding NE since these are too similar to 5-HT
-clus_neurons_5HT <- c(
-  29, 21, 20, 23,  ## excitatory
-  26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
+  6,  ## NE
   16  ## 5-HT
 )
-ix_neurons_5HT <- colData(sce)$label %in% clus_neurons_5HT
-table(ix_neurons_5HT)
+ix_neurons <- colData(sce)$label %in% clus_neurons
+table(ix_neurons)
 
-sce_5HT <- sce[, ix_neurons_5HT]
-dim(sce_5HT)
+sce <- sce[, ix_neurons]
+dim(sce)
+
 # remove empty levels
-colData(sce_5HT)$label <- droplevels(colData(sce_5HT)$label)
+colData(sce)$label <- droplevels(colData(sce)$label)
 
 
 # calculate DE tests
 # note: not blocking by sample since 1 out of 3 samples contains almost zero NE neurons
 # testing for genes with log-fold-changes significantly greater than 1 (lfc = 1, direction = "up")
-
-marker_info_NE <- findMarkers(
-  sce_NE, 
-  groups = colData(sce_NE)$label, 
+marker_info <- findMarkers(
+  sce, 
+  groups = colData(sce)$label, 
   lfc = 1, 
   direction = "up", 
-  row.data = rowData(sce_NE)[, c("gene_id", "gene_name", "sum_gene")], 
+  row.data = rowData(sce)[, c("gene_id", "gene_name", "sum_gene")], 
   add.summary = TRUE
 )
 
-marker_info_5HT <- findMarkers(
-  sce_5HT, 
-  groups = colData(sce_5HT)$label, 
-  lfc = 1, 
-  direction = "up", 
-  row.data = rowData(sce_5HT)[, c("gene_id", "gene_name", "sum_gene")], 
-  add.summary = TRUE
-)
-
-marker_info_NE
-marker_info_5HT
+marker_info
 
 
 # NE neuron cluster
-marker_info_NE[["6"]]
+marker_info[["6"]]
 
 # 5-HT neuron cluster
-marker_info_5HT[["16"]]
+marker_info[["16"]]
 
 
 # check some known genes
 
-ix_known <- which(marker_info_NE[["6"]]$gene_name %in% c("TH", "SLC6A2", "DBH"))
-marker_info_NE[["6"]][ix_known, ]
+ix_known <- which(marker_info[["6"]]$gene_name %in% c("TH", "SLC6A2", "DBH"))
+marker_info[["6"]][ix_known, ]
 
-ix_known <- which(marker_info_5HT[["16"]]$gene_name %in% c("TPH2", "SLC6A4"))
-marker_info_5HT[["16"]][ix_known, ]
+ix_known <- which(marker_info[["16"]]$gene_name %in% c("TPH2", "SLC6A4"))
+marker_info[["16"]][ix_known, ]
 
 
 # significant DE genes
 
-table(marker_info_NE[["6"]]$FDR < 1)
-table(marker_info_NE[["6"]]$FDR < 1e-100)
+table(marker_info[["6"]]$FDR < 1)
+table(marker_info[["6"]]$FDR < 1e-100)
 
-table(marker_info_5HT[["16"]]$FDR < 1)
-table(marker_info_5HT[["16"]]$FDR < 1e-100)
+table(marker_info[["16"]]$FDR < 1)
+table(marker_info[["16"]]$FDR < 1e-100)
 
 
 # -------------------------
@@ -140,10 +114,10 @@ table(marker_info_5HT[["16"]]$FDR < 1e-100)
 
 # NE neurons
 
-fdr <- marker_info_NE[["6"]]$FDR
-logfc <- marker_info_NE[["6"]]$summary.logFC
+fdr <- marker_info[["6"]]$FDR
+logfc <- marker_info[["6"]]$summary.logFC
 
-names(fdr) <- names(logfc) <- marker_info_NE[["6"]]$gene_name
+names(fdr) <- names(logfc) <- marker_info[["6"]]$gene_name
 
 
 # select significant genes
@@ -197,7 +171,7 @@ ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 # NE neurons
 
-hmat <- marker_info_NE[["6"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
+hmat <- marker_info[["6"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
 
 # select significant
 sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
@@ -255,7 +229,7 @@ dev.off()
 
 cols <- c("gene_id", "gene_name", "sum_gene", "p.value", "FDR", "summary.logFC")
 #cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
-df <- marker_info_NE[["6"]][, cols]
+df <- marker_info[["6"]][, cols]
 colnames(df)[c(4, 6)] <- c("p_value", "logFC")
 
 # select significant
@@ -281,10 +255,10 @@ write.csv(df, file = fn, row.names = FALSE)
 
 # 5-HT neurons
 
-fdr <- marker_info_5HT[["16"]]$FDR
-logfc <- marker_info_5HT[["16"]]$summary.logFC
+fdr <- marker_info[["16"]]$FDR
+logfc <- marker_info[["16"]]$summary.logFC
 
-names(fdr) <- names(logfc) <- marker_info_5HT[["16"]]$gene_name
+names(fdr) <- names(logfc) <- marker_info[["16"]]$gene_name
 
 
 # select significant genes
@@ -338,7 +312,7 @@ ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 # 5-HT neurons
 
-hmat <- marker_info_5HT[["16"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
+hmat <- marker_info[["16"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
 
 # select significant
 sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
@@ -396,7 +370,7 @@ dev.off()
 
 cols <- c("gene_id", "gene_name", "sum_gene", "p.value", "FDR", "summary.logFC")
 #cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
-df <- marker_info_5HT[["16"]][, cols]
+df <- marker_info[["16"]][, cols]
 colnames(df)[c(4, 6)] <- c("p_value", "logFC")
 
 # select significant
