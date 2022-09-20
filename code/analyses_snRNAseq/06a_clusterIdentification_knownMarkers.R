@@ -161,13 +161,13 @@ markers_broad <- c(
   # neuron markers
   "SNAP25", "SYT1", 
   # excitatory (glutamatergic) neuron markers
-  "SLC17A7", "SLC17A6", "SLC17A8", ## alternative names: VGLUT1, VGLUT2, VGLUT3
+  "SLC17A6", "SLC17A8", ## alternative names: VGLUT1, VGLUT2, VGLUT3; removed "SLC17A7"
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
   # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", ## "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", "HTR3A" (not present in our data)
   # NE neuron markers
-  "DBH", "TH", "SLC6A2", "DDC", ## "SLC18A2", "GCH1", 
+  "DBH", "TH", "SLC6A2", "SLC18A2", ## "DDC", "GCH1", 
   # 5-HT (serotonin) markers
   "TPH2", "SLC6A4", ## "TPH1", 
   # astrocytes
@@ -299,10 +299,10 @@ hm_mat <- t(do.call(cbind, lapply(cell.idx, function(i) rowMeans(dat[markers_bro
 # markers to show
 markers <- c(
   "SNAP25", "SYT1", 
-  "SLC17A7", "SLC17A6", 
+  "SLC17A6", 
   "GAD1", "GAD2", 
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", 
-  "DBH", "TH", "SLC6A2", "DDC", 
+  "DBH", "TH", "SLC6A2", "SLC18A2", 
   "TPH2", "SLC6A4", 
   "GFAP", "AQP4", 
   "CLDN5", "FLT1", "RBPMS", 
@@ -317,7 +317,7 @@ hm_mat <- hm_mat[, markers]
 # marker labels
 marker_labels <- c(
   rep("neuron", 2), 
-  rep("excitatory", 2), 
+  rep("excitatory", 1), 
   rep("inhibitory", 8), 
   rep("NE", 4), 
   rep("5HT", 2), 
@@ -345,9 +345,9 @@ colors_markers <- list(marker = c(
 
 # cluster labels
 cluster_pops <- list(
-  excitatory = 29, 
+  excitatory = c(29, 21, 20, 23), 
   inhibitory = c(26, 17, 14, 1, 8, 7, 24, 18), 
-  neurons_ambiguous = c(21, 20, 23, 19, 30, 13, 3, 5, 2), 
+  neurons_ambiguous = c(19, 30, 13, 3, 5, 2), 
   NE = 6, 
   `5HT` = 16, 
   astrocytes = c(22, 25), 
@@ -427,6 +427,8 @@ hm <- Heatmap(
   column_split = marker_labels, 
   column_names_gp = gpar(fontface = "italic"), 
   rect_gp = gpar(col = "gray50", lwd = 0.5))
+
+hm
 
 
 # save heatmap
