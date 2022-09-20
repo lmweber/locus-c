@@ -193,7 +193,7 @@ hmat <- hmat[!ix_mito, ]
 dim(hmat)
 
 # select top n
-hmat <- hmat[1:70, ]
+hmat <- hmat[1:100, ]
 
 # create heatmap
 hm <- Heatmap(
@@ -203,7 +203,7 @@ hm <- Heatmap(
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   column_title = "NE vs. other\ninhibitory clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
-  name = "logcounts\n(grand mean)"
+  name = "mean\nlogcounts"
 )
 
 hm
@@ -211,11 +211,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsInhibitoryNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 9)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 12)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 9 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 12 * 200, res = 200)
 hm
 dev.off()
 
@@ -324,10 +324,16 @@ nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
 rownames(hmat) <- nms
 
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
-colnames(hmat) <- c("5-HT", "other")
+colnames(hmat) <- c("NE", "other")
+
+# remove mitochondrial genes from heatmap
+ix_mito <- grepl("^MT-", rownames(hmat))
+table(ix_mito)
+hmat <- hmat[!ix_mito, ]
+dim(hmat)
 
 # select top n
-hmat <- hmat[1:70, ]
+hmat <- hmat[1:100, ]
 
 # create heatmap
 hm <- Heatmap(
@@ -337,7 +343,7 @@ hm <- Heatmap(
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   column_title = "5-HT vs. other\ninhibitory clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
-  name = "logcounts\n(grand mean)"
+  name = "mean\nlogcounts"
 )
 
 hm
@@ -345,11 +351,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsInhibitoryNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 9)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 12)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 9 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 12 * 200, res = 200)
 hm
 dev.off()
 
