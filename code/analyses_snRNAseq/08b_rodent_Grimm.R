@@ -135,7 +135,7 @@ ggplot(df, aes(x = logcounts, y = gene, color = clusters, fill = clusters)) +
         axis.text.y = element_text(size = 9, face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "enrichment_Grimm_NEcluster")
+fn <- here(dir_plots, "boxplots_Grimm_NEcluster")
 ggsave(paste0(fn, ".pdf"), width = 4.75, height = 5.75)
 ggsave(paste0(fn, ".png"), width = 4.75, height = 5.75)
 
