@@ -73,9 +73,11 @@ human_genes <- human_genes[ix_keep]
 stopifnot(length(human_genes) == sum(human_genes %in% rowData(sce)$gene_name))
 
 
-# ------------
-# plot heatmap
-# ------------
+# --------------------
+# calculate enrichment
+# --------------------
+
+# enrichment in NE cluster vs. other neuronal clusters
 
 # function from rafalib package
 splitit <- function(x) split(seq(along = x), x)
@@ -91,42 +93,58 @@ rownames(dat) <- rowData(sce)$gene_name
 mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[human_genes, i]))))
 
 
-# number of nuclei per cluster
-n <- table(colLabels(sce))
+# subset neuronal clusters
+clus_NE <- c(
+  6  ## NE
+)
+clus_neuronalExcNE <- c(
+  29, 21, 20, 23,  ## excitatory
+  26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
+  16  ## 5-HT
+)
+
+mat_NE <- mat[clus_NE, ]
+mat_neuronalExcNE <- mat[clus_neuronalExcNE, ]
+
+# grand mean across neuronal clusters excluding NE
+meanNeuronalExcNE <- colMeans(mat_neuronalExcNE)
 
 
-# row annotation
-row_ha <- rowAnnotation(
-  n = anno_barplot(as.numeric(n), gp = gpar(fill = "navy"), border = FALSE), 
-  show_annotation_name = FALSE)
+stopifnot(all(names(mat_NE) == colnames(mat_neuronalExcNE)))
 
 
-hm <- Heatmap(
-  mat, 
-  name = "mean\nlogcounts", 
-  column_title = "Mulvey et al. genes", 
-  column_title_gp = gpar(fontface = "bold"), 
-  col = brewer.pal(n = 7, "OrRd"), 
-  right_annotation = row_ha, 
-  #row_order = cluster_pops_order, 
-  cluster_rows = FALSE, 
-  cluster_columns = FALSE, 
-  #row_split = cluster_pops_rev, 
-  row_title = NULL, 
-  column_names_gp = gpar(fontface = "italic"), 
-  rect_gp = gpar(col = "gray50", lwd = 0.5))
+ord <- order(mat_NE)
 
-hm
+df <- data.frame(
+  gene = names(mat_NE), 
+  NE = mat_NE, 
+  other = meanNeuronalExcNE) %>% 
+  pivot_longer(
+    cols = c("NE", "other"), 
+    names_to = "clusters", 
+    values_to = "mean"
+  ) %>% 
+  mutate(gene = factor(gene, levels = names(mat_NE)[ord]))
 
 
-# save heatmap
-fn <- file.path(dir_plots, "Mulvey_genes_clusters")
+# -------------
+# plot boxplots
+# -------------
 
-pdf(paste0(fn, ".pdf"), width = 8, height = 6.5)
-hm
-dev.off()
+ggplot(df, aes(x = mean, y = gene, color = clusters, fill = clusters)) + 
+  geom_boxplot(alpha = 0.75, outlier.size = 0.5) + 
+  #scale_color_manual(values = pal_rev, name = "annotation", 
+  #                   guide = guide_legend(reverse = TRUE)) + 
+  #scale_fill_manual(values = pal_rev, name = "annotation", 
+  #                  guide = guide_legend(reverse = TRUE)) + 
+  labs(x = "mean logcounts") + 
+  ggtitle("Mulvey et al. genes") + 
+  theme_bw() + 
+  theme(plot.title = element_text(face = "bold"), 
+        axis.text.y = element_text(size = 9, face = "italic"), 
+        axis.title.y = element_blank())
 
-png(paste0(fn, ".png"), width = 8 * 200, height = 6.5 * 200, res = 200)
-hm
-dev.off()
+fn <- here(dir_plots, "enrichment_Mulvey_NEcluster")
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 6.5)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 6.5)
 
