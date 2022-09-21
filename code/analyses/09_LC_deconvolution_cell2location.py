@@ -1,7 +1,6 @@
 ###########################################################
 # LC analyses: spot-level deconvolution using cell2location
-# using merged reference clusters
-# Lukas Weber, Jun 2022
+# Lukas Weber, Sep 2022
 ###########################################################
 
 # references:
@@ -19,9 +18,10 @@
 
 
 # start interactive session on JHPCE GPU node:
-# qrsh -l caracol,mem_free=128G,h_vmem=128G
+# qrsh -l caracol,mem_free=128G,h_vmem=128G -now n
+# qrsh -l caracol,mem_free=20G,h_vmem=24G -now n
 
-# module load conda_R/4.1.x
+# module load conda_R/4.2
 # R
 
 
