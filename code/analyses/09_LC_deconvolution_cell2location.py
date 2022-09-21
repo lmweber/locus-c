@@ -19,7 +19,11 @@
 
 # start interactive session on JHPCE GPU node:
 # qrsh -l caracol,mem_free=128G,h_vmem=128G -now n
-# qrsh -l caracol,mem_free=20G,h_vmem=24G -now n
+# qrsh -l gpu,mem_free=128G,h_vmem=128G -now n
+# # select free GPU
+# nvidia-smi
+# CUDA_VISIBLE_DEVICES=2
+
 
 # module load conda_R/4.2
 # R
