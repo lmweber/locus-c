@@ -20,9 +20,6 @@
 # start interactive session on JHPCE GPU node:
 # qrsh -l caracol,mem_free=128G,h_vmem=128G -now n
 # qrsh -l gpu,mem_free=128G,h_vmem=128G -now n
-# # select free GPU
-# nvidia-smi
-# CUDA_VISIBLE_DEVICES=2
 
 
 # module load conda_R/4.2
@@ -38,17 +35,15 @@
 library(here)
 library(SpatialExperiment)
 
-fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
+fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
 spe <- readRDS(fn_spe)
+
 dim(spe)
 
-
-# remove samples from donors that were not included in matched snRNA-seq data 
-# (Br8153, Br5459) and/or NE neurons were not captured in Visium data (Br5459_LC_round2)
-samples_remove <- c("Br8153_LC_round2", "Br5459_LC_round2", "Br8153_LC_round3")
+# remove samples where NE neurons were not captured
+samples_remove <- "Br5459_LC_round2"
 spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
 colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
-dim(spe)
 
 # check sample IDs
 table(colData(spe)$sample_id)
@@ -61,33 +56,38 @@ table(colData(spe)$sample_part_id)
 
 # load snRNA-seq SCE object for use within Python session with reticulate
 
-fn_sce <- here("processed_data", "SCE", "sce_updated_LC.rda")
-load(fn_sce)
+fn_sce <- here("processed_data", "SCE", "sce_clustering_merged")
+sce <- readRDS(paste0(fn_sce, ".rds"))
 
-dim(sce.lc)
+dim(sce)
 
 # check sample IDs
-table(colData(sce.lc)$Sample)
+table(colData(sce)$Sample)
 
 # check annotated clusters
-table(colData(sce.lc)$cellType.merged)
+table(colData(sce)$label)
+table(colData(sce)$label_merged)
 
-# remove ambiguous clusters ("ambig.lowNTx_A" to "ambig.lowNTx_F")
-ambig_names <- paste0("ambig.lowNTx_", LETTERS)
-ix_remove <- colData(sce.lc)$cellType.merged %in% ambig_names
+# remove ambiguous neuron clusters
+
+ix_remove <- colData(sce)$label_merged == "neurons_ambiguous"
 table(ix_remove)
-sce.lc <- sce.lc[, !ix_remove]
-colData(sce.lc)$cellType.merged <- droplevels(colData(sce.lc)$cellType.merged)
-table(colData(sce.lc)$cellType.merged)
 
-dim(sce.lc)
+sce <- sce[, !ix_remove]
+dim(sce)
+
+colData(sce)$label <- droplevels(colData(sce)$label)
+colData(sce)$label_merged <- droplevels(colData(sce)$label_merged)
+
+table(colData(sce)$label)
+table(colData(sce)$label_merged)
 
 
 # ---------------------------------
 # extract components from R objects
 # ---------------------------------
 
-# extract components from SPE/SCE objects to create new AnnData objects
+# extract components from SPE and SCE objects in R to create new AnnData objects in Python
 # see https://theislab.github.io/scanpy-in-R/, section 4.4.1: "Creating AnnData from SingleCellExperiment"
 # note: use standard data.frames instead of DataFrames so reticulate can access them
 
@@ -99,16 +99,12 @@ spe_coldata <- as.data.frame(colData(spe))
 spe_coldata_combined <- cbind(as.data.frame(colData(spe)), spatialCoords(spe))
 
 # SCE object
-sce_counts <- assay(sce.lc, "counts")
-sce_binomial_deviance_residuals <- assay(sce.lc, "binomial_deviance_residuals")
-sce_logcounts <- assay(sce.lc, "logcounts")
-sce_rowdata <- as.data.frame(rowData(sce.lc))
-sce_coldata <- as.data.frame(colData(sce.lc))
-sce_GLMPCA_approx <- reducedDim(sce.lc, "GLMPCA_approx")
-sce_GLMPCA_MNN <- reducedDim(sce.lc, "GLMPCA_MNN")
-sce_glmpca_mnn_50 <- reducedDim(sce.lc, "glmpca_mnn_50")
-sce_UMAP <- reducedDim(sce.lc, "UMAP")
-sce_TSNE <- reducedDim(sce.lc, "TSNE")
+sce_counts <- assay(sce, "counts")
+sce_logcounts <- assay(sce, "logcounts")
+sce_rowdata <- as.data.frame(rowData(sce))
+sce_coldata <- as.data.frame(colData(sce))
+sce_PCA <- reducedDim(sce, "PCA")
+sce_UMAP <- reducedDim(sce, "UMAP")
 
 
 # --------------------
