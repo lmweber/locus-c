@@ -232,7 +232,7 @@ scvi.data.setup_anndata(adata=adata_ref,
                         # 10x reaction / sample / batch
                         batch_key='Sample',
                         # cell type, covariate used for constructing signatures
-                        labels_key='label_merged'
+                        labels_key='label'
                        )
 scvi.data.view_anndata_setup(adata_ref)
 
