@@ -317,6 +317,7 @@ mod = cell2location.models.Cell2location(
     detection_alpha=20
 )
 
+# runtime: ~1.5 hours
 mod.train(max_epochs=30000,
           # train using full data (batch_size=None)
           batch_size=None,
