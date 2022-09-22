@@ -33,15 +33,15 @@ sample_ids
 
 # names of columns containing deconvolved cell types
 cols <- c(
-  "meanscell_abundance_w_sf_Astro", 
-  "meanscell_abundance_w_sf_Endo.Mural", 
-  paste0("meanscell_abundance_w_sf_Excit_", LETTERS[1:6]), 
-  paste0("meanscell_abundance_w_sf_Inhib_", LETTERS[1:6]), 
-  "meanscell_abundance_w_sf_Micro", 
-  "meanscell_abundance_w_sf_Neuron.5HT", 
-  "meanscell_abundance_w_sf_Neuron.NE", 
-  "meanscell_abundance_w_sf_Oligo", 
-  "meanscell_abundance_w_sf_OPC"
+  "meanscell_abundance_w_sf_excitatory", 
+  "meanscell_abundance_w_sf_inhibitory", 
+  "meanscell_abundance_w_sf_NE", 
+  "meanscell_abundance_w_sf_5HT", 
+  "meanscell_abundance_w_sf_astrocytes", 
+  "meanscell_abundance_w_sf_endothelial_mural", 
+  "meanscell_abundance_w_sf_macrophages_microglia", 
+  "meanscell_abundance_w_sf_oligodendrocytes", 
+  "meanscell_abundance_w_sf_OPCs"
 )
 
 
