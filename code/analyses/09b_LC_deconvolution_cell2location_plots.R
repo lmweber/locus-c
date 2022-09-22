@@ -21,7 +21,7 @@ dir_plots <- here("plots", "07_deconvolution", "cell2location", "merged")
 
 # load SPE object containing cell2location results
 
-fn_spe <- here("processed_data", "SPE", "LC_cell2location_merged.rds")
+fn_spe <- here("processed_data", "SPE", "LC_cell2location.rds")
 spe <- readRDS(fn_spe)
 
 # check
