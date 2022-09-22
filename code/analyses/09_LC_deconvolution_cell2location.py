@@ -144,7 +144,7 @@ import seaborn as sns
 
 # define results folders
 
-results_folder = '/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/processed_data/deconvolution/merged/'
+results_folder = '/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/processed_data/cell2location/'
 # create paths and names to results folders for reference regression and cell2location models
 ref_run_name = f'{results_folder}/reference_signatures'
 run_name = f'{results_folder}/cell2location_map'
@@ -174,11 +174,8 @@ adata_sce = sc.AnnData(
     var = r.sce_rowdata, 
     dtype = r.sce_counts.dtype
 )
-adata_sce.obsm['GLMPCA_approx'] = r.sce_GLMPCA_approx
-adata_sce.obsm['GLMPCA_MNN'] = r.sce_GLMPCA_MNN
-adata_sce.obsm['glmpca_mnn_50'] = r.sce_glmpca_mnn_50
+adata_sce.obsm['PCA'] = r.sce_PCA
 adata_sce.obsm['UMAP'] = r.sce_UMAP
-adata_sce.obsm['TSNE'] = r.sce_TSNE
 
 
 # -------------------------------
@@ -235,7 +232,7 @@ scvi.data.setup_anndata(adata=adata_ref,
                         # 10x reaction / sample / batch
                         batch_key='Sample',
                         # cell type, covariate used for constructing signatures
-                        labels_key='cellType.merged'
+                        labels_key='label_merged'
                        )
 scvi.data.view_anndata_setup(adata_ref)
 
