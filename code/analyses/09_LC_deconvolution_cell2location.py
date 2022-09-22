@@ -412,7 +412,7 @@ colData(spe) <- cbind(colData(spe), py$obsm['means_cell_abundance_w_sf'])
 
 
 # save SPE object for further plotting
-fn <- here("processed_data", "SPE", "LC_cell2location_merged.rds")
+fn <- here("processed_data", "SPE", "LC_cell2location.rds")
 saveRDS(spe, file = fn)
 
 
