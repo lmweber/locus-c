@@ -1,7 +1,6 @@
 ###################################################################
 # LC analyses: spot-level deconvolution using cell2location - plots
-# using merged reference clusters
-# Lukas Weber, Jun 2022
+# Lukas Weber, Sep 2022
 ###################################################################
 
 
@@ -12,7 +11,7 @@ library(viridis)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07_deconvolution", "cell2location", "merged")
+dir_plots <- here("plots", "07_deconvolution", "cell2location")
 
 
 # ---------------
@@ -33,15 +32,27 @@ sample_ids
 
 # names of columns containing deconvolved cell types
 cols <- c(
-  "meanscell_abundance_w_sf_excitatory", 
-  "meanscell_abundance_w_sf_inhibitory", 
-  "meanscell_abundance_w_sf_NE", 
-  "meanscell_abundance_w_sf_5HT", 
-  "meanscell_abundance_w_sf_astrocytes", 
-  "meanscell_abundance_w_sf_endothelial_mural", 
-  "meanscell_abundance_w_sf_macrophages_microglia", 
-  "meanscell_abundance_w_sf_oligodendrocytes", 
-  "meanscell_abundance_w_sf_OPCs"
+  "meanscell_abundance_w_sf_1", 
+  "meanscell_abundance_w_sf_4", 
+  "meanscell_abundance_w_sf_6", 
+  "meanscell_abundance_w_sf_7", 
+  "meanscell_abundance_w_sf_8", 
+  "meanscell_abundance_w_sf_9", 
+  "meanscell_abundance_w_sf_10", 
+  "meanscell_abundance_w_sf_11", 
+  "meanscell_abundance_w_sf_12", 
+  "meanscell_abundance_w_sf_14", 
+  "meanscell_abundance_w_sf_15", 
+  "meanscell_abundance_w_sf_16", 
+  "meanscell_abundance_w_sf_17", 
+  "meanscell_abundance_w_sf_18", 
+  "meanscell_abundance_w_sf_22", 
+  "meanscell_abundance_w_sf_24", 
+  "meanscell_abundance_w_sf_25", 
+  "meanscell_abundance_w_sf_26", 
+  "meanscell_abundance_w_sf_27", 
+  "meanscell_abundance_w_sf_28", 
+  "meanscell_abundance_w_sf_29"
 )
 
 
@@ -113,7 +124,7 @@ for (q in seq_along(cols)) {
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  fn <- here(dir_plots, paste0("cell2location_merged_", gsub("^.*sf_", "", cols[q])))
+  fn <- here(dir_plots, paste0("cell2location_", gsub("^.*sf_", "", cols[q])))
   ggsave(paste0(fn, ".pdf"), plot = p, width = 7, height = 4.75)
   ggsave(paste0(fn, ".png"), plot = p, width = 7, height = 4.75)
 }
