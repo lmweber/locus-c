@@ -126,7 +126,7 @@ spe <- read10xVisium(
   samples = here(df_samples$path_spaceranger, df_samples$sample_id, "outs"), 
   sample_id = df_samples$sample_id, 
   type = "sparse", 
-  data = "raw", 
+  data = "filtered", 
   images = c("hires", "lowres"), 
   load = TRUE
 )
