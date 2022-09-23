@@ -82,6 +82,14 @@ for (s in seq_along(sample_part_ids)) {
     filter_genes_pcspots = 0.5
   )
   
+  # remove any zeros introduced by filtering
+  ix_zeros <- colSums(counts(spe_sub)) == 0
+  if (sum(ix_zeros) > 0) {
+    spe_sub <- spe_sub[, !ix_zeros]
+  }
+  
+  dim(spe_sub)
+  
   # re-calculate logcounts after filtering
   spe_sub <- computeLibraryFactors(spe_sub)
   spe_sub <- logNormCounts(spe_sub)
