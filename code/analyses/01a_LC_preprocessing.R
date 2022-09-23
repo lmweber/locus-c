@@ -77,32 +77,13 @@ files_annot <- list(
   Br8153_LC_round3 = c(here("inputs", "annotations", "Br8153_LC_round3", "Br8153_LC_round3_left_lasso_spots.csv"))
 )
 
-# part IDs per sample
-part_ids <- list(
-  Br6522_LC_1_round1 = "single", 
-  Br6522_LC_2_round1 = "single", 
-  Br8153_LC_round2 = c("left", "right"), 
-  Br5459_LC_round2 = c("left", "right"), 
-  Br2701_LC_round2 = c("top", "bottom"), 
-  Br6522_LC_round3 = c("left", "right"), 
-  Br8079_LC_round3 = c("left", "right"), 
-  Br2701_LC_round3 = c("left", "right"), 
-  Br8153_LC_round3 = "left"
-)
-
-# number of parts per sample
-n_parts <- unname(sapply(files_annot, length))
-
 
 stopifnot(length(sample_ids) == length(donor_ids))
 stopifnot(length(sample_ids) == length(round_ids))
 stopifnot(length(sample_ids) == length(paths_spaceranger))
 stopifnot(length(sample_ids) == length(paths_vistoseg))
 stopifnot(length(sample_ids) == length(files_annot))
-stopifnot(length(sample_ids) == length(part_ids))
-stopifnot(length(sample_ids) == length(n_parts))
 stopifnot(all(sample_ids == names(files_annot)))
-stopifnot(all(sample_ids == names(part_ids)))
 
 
 # combined data frame of sample-level information
@@ -110,7 +91,6 @@ df_samples <- data.frame(
   sample_id = sample_ids, 
   donor_id = donor_ids, 
   round_id = round_ids, 
-  n_parts = n_parts, 
   path_spaceranger = paths_spaceranger, 
   path_vistoseg = paths_vistoseg
 )
@@ -225,16 +205,14 @@ colData(spe)$cell_count <- vistoseg_all$count
 # load .csv files containing manual annotations and store as follows:
 # - one column with region-level annotations
 # - one column with spot-level annotations
-# - one column identifying parts of each sample
 
 colData(spe)$annot_region <- as.logical(NA)
-colData(spe)$part_id <- as.character(NA)
 colData(spe)$annot_spot <- as.logical(NA)
 
 # loop over samples
 for (i in seq_along(files_annot)) {
   fns <- files_annot[[i]]
-  # loop over parts per sample
+  # loop over files per sample
   for (k in seq_along(fns)) {
     df <- read.csv(fns[k])
     # check that annotation names are as expected, i.e. sample_name_lasso and 
@@ -250,8 +228,6 @@ for (i in seq_along(files_annot)) {
     keys_region <- rownames(df)[grepl("lasso", df$ManualAnnotation)]
     print(length(keys_region))
     colData(spe)[keys_region, "annot_region"] <- TRUE
-    # part IDs
-    colData(spe)[keys_region, "part_id"] <- part_ids[[i]][k]
     # individual spots
     keys_spot <- rownames(df)[grepl("spot", df$ManualAnnotation)]
     print(length(keys_spot))
@@ -263,21 +239,14 @@ for (i in seq_along(files_annot)) {
 colData(spe)$annot_region[is.na(colData(spe)$annot_region)] <- FALSE
 colData(spe)$annot_spot[is.na(colData(spe)$annot_spot)] <- FALSE
 
-# replace NA values for part IDs with "none"
-colData(spe)$part_id[is.na(colData(spe)$part_id)] <- "none"
 
-# store combined sample IDs and part IDs
-colData(spe)$sample_part_id <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
+# ---------------
+# create part IDs
+# ---------------
 
+# create part IDs to identify tissue parts per sample
 
-# -------------------------------------
-# create part IDs for full tissue parts
-# -------------------------------------
-
-# create part IDs for full tissue parts (not just overlapping with annotated 
-# regions) and replace part IDs above (which are for annotated regions only)
-
-# define regions for each sample based on spatial coordinates from interactive plots
+# manually segmenting areas based on spatial coordinates in interactive plots
 
 part_ids_all <- rep(NA, ncol(spe))
 
@@ -311,12 +280,15 @@ for (s in seq_along(sample_ids)) {
     cnd2 <- with(colData(spe_sub), array_col > 90)
     part_ids_all[ix] <- ifelse(cnd1, "right", ifelse(cnd2, "lefttop", "leftbottom"))
   } else if (sample_ids[s] == "Br8079_LC_round3") {
+    # 2 parts
     cnd <- with(colData(spe_sub), array_row < 41)
     part_ids_all[ix] <- ifelse(cnd, "left", "right")
   } else if (sample_ids[s] == "Br2701_LC_round3") {
+    # 2 parts
     cnd <- with(colData(spe_sub), array_row < 40)
     part_ids_all[ix] <- ifelse(cnd, "left", "right")
   } else if (sample_ids[s] == "Br8153_LC_round3") {
+    # 2 parts
     cnd <- with(colData(spe_sub), array_row < 45)
     part_ids_all[ix] <- ifelse(cnd, "left", "right")
   }
@@ -324,7 +296,11 @@ for (s in seq_along(sample_ids)) {
 
 stopifnot(length(part_ids_all) == ncol(spe))
 
+# store part IDs
 colData(spe)$part_id <- part_ids_all
+
+# store combined sample IDs and part IDs
+colData(spe)$sample_part_id <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
 
 
 # ---------------------------
