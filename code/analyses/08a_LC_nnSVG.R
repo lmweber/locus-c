@@ -1,18 +1,18 @@
 ########################################
 # LC analyses: identify SVGs using nnSVG
-# Lukas Weber, Jun 2022
+# Lukas Weber, Sep 2022
 ########################################
 
-# qrsh -pe local 10 -l mem_free=6G,h_vmem=7G,h_fsize=200G
-# module load conda_R/devel
+# qrsh -pe local 10 -l mem_free=5G,h_vmem=6G,h_fsize=200G
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
 # /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
-library(SpatialExperiment)
 library(here)
+library(SpatialExperiment)
 library(scater)
 library(scran)
 library(nnSVG)
