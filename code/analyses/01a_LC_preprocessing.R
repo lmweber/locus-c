@@ -334,12 +334,10 @@ rowRanges(spe) <- gtf[match_genes]
 rowRanges(spe)
 
 
-# -----------
-# save object
-# -----------
+# ---------------
+# save SPE object
+# ---------------
 
-# save as .rds and .RData
 fn_out <- here("processed_data", "SPE", "LC_preprocessing")
 saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
 
