@@ -270,6 +270,59 @@ colData(spe)$part_id[is.na(colData(spe)$part_id)] <- "none"
 colData(spe)$sample_part_id <- paste(colData(spe)$sample_id, colData(spe)$part_id, sep = "_")
 
 
+# -------------------------------------
+# create part IDs for full tissue parts
+# -------------------------------------
+
+# create part IDs for full tissue parts (not just overlapping with annotated 
+# regions) and replace part IDs above (which are for annotated regions only)
+
+# define regions for each sample based on spatial coordinates from interactive plots
+
+part_ids_all <- rep(NA, ncol(spe))
+
+for (s in seq_along(sample_ids)) {
+  ix <- colData(spe)$sample_id == sample_ids[s]
+  spe_sub <- spe[, ix]
+  
+  if (sample_ids[s] == "Br6522_LC_1_round1") {
+    # 1 part
+    part_ids_all[ix] <- "single"
+  } else if (sample_ids[s] == "Br6522_LC_2_round1") {
+    # 1 part
+    part_ids_all[ix] <- "single"
+  } else if (sample_ids[s] == "Br8153_LC_round2") {
+    # 2 parts
+    cnd <- with(colData(spe_sub), array_row < 50)
+    part_ids_all[ix] <- ifelse(cnd, "left", "right")
+  } else if (sample_ids[s] == "Br5459_LC_round2") {
+    # 2 parts
+    cnd <- with(colData(spe_sub), (array_row < 26 & array_col > 20) | 
+                                  (array_row < 28 & array_col <= 20))
+    part_ids_all[ix] <- ifelse(cnd, "left", "right")
+  } else if (sample_ids[s] == "Br2701_LC_round2") {
+    # 2 parts
+    cnd <- with(colData(spe_sub), (array_row < 30 & array_col > 88) | 
+                                  (array_row >= 30 & array_col > 82))
+    part_ids_all[ix] <- ifelse(cnd, "top", "bottom")
+  } else if (sample_ids[s] == "Br6522_LC_round3") {
+    # 3 parts
+    cnd1 <- with(colData(spe_sub), array_row > 50)
+    cnd2 <- with(colData(spe_sub), array_col > 90)
+    part_ids_all[ix] <- ifelse(cnd1, "right", ifelse(cnd2, "lefttop", "leftbottom"))
+  } else if (sample_ids[s] == "Br8079_LC_round3") {
+    cnd <- with(colData(spe_sub), array_row < 41)
+    part_ids_all[ix] <- ifelse(cnd, "left", "right")
+  } else if (sample_ids[s] == "Br2701_LC_round3") {
+    cnd <- with(colData(spe_sub), array_row < 40)
+    part_ids_all[ix] <- ifelse(cnd, "left", "right")
+  } else if (sample_ids[s] == "Br8153_LC_round3") {
+    cnd <- with(colData(spe_sub), array_row < 45)
+    part_ids_all[ix] <- ifelse(cnd, "left", "right")
+  }
+}
+
+
 # ---------------------------
 # additional gene information
 # ---------------------------
