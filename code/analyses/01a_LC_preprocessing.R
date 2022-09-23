@@ -1,19 +1,19 @@
-############################
-# LC analyses: preprocessing
-# Lukas Weber, Jun 2022
-############################
+###################################
+# LC Visium analyses: preprocessing
+# Lukas Weber, Sep 2022
+###################################
 
-# note: using R 4.2, Bioconductor 3.15, SpatialExperiment 1.6.0
+# note: using R 4.2, Bioconductor 3.15, SpatialExperiment 1.6.1
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
 # /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
-library(SpatialExperiment)
 library(here)
+library(SpatialExperiment)
 
 
 # -------------------
