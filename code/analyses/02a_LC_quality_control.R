@@ -1,17 +1,17 @@
-##############################
-# LC analyses: quality control
-# Lukas Weber, Aug 2022
-##############################
+#####################################
+# LC Visium analyses: quality control
+# Lukas Weber, Sep 2022
+#####################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
 # /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
-library(SpatialExperiment)
 library(here)
+library(SpatialExperiment)
 library(scater)
 library(scran)
 library(dplyr)
@@ -42,11 +42,8 @@ table(colData(spe)$sample_id)
 # spots over tissue
 # -----------------
 
-# keep only spots over tissue
-spe <- spe[, colData(spe)$in_tissue]
-dim(spe)
-
-table(colData(spe)$sample_id)
+# check SPE object contains only spots over tissue
+table(colData(spe)$in_tissue)
 
 
 # ------------
@@ -480,11 +477,10 @@ spe <- spe[, !colData(spe)$discard]
 dim(spe)
 
 
-# -----------
-# save object
-# -----------
+# ---------------
+# save SPE object
+# ---------------
 
 fn_out <- here("processed_data", "SPE", "LC_qualityControlled")
 saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
 

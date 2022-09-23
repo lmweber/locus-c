@@ -1,17 +1,17 @@
-########################
-# LC analyses: filtering
-# Lukas Weber, Jun 2022
-########################
+###############################
+# LC Visium analyses: filtering
+# Lukas Weber, Sep 2022
+###############################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
 # /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
-library(SpatialExperiment)
 library(here)
+library(SpatialExperiment)
 
 
 # ---------
@@ -76,11 +76,10 @@ table(rowSums(counts(spe)) == 0, useNA = "always")
 table(colSums(counts(spe)) == 0, useNA = "always")
 
 
-# -----------
-# save object
-# -----------
+# ---------------
+# save SPE object
+# ---------------
 
 fn_out <- here("processed_data", "SPE", "LC_filtered")
 saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
 
