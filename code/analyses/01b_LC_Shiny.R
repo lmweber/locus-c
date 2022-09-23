@@ -1,17 +1,17 @@
-######################################################
-# LC analyses: script to save SPE object for Shiny app
-# Lukas Weber, Jun 2022
-######################################################
+##############################################
+# LC Visium analyses: SPE object for Shiny app
+# Lukas Weber, Sep 2022
+##############################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
 # /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
-library(SpatialExperiment)
 library(here)
+library(SpatialExperiment)
 library(scater)
 library(scran)
 
@@ -63,9 +63,8 @@ colData(spe)$expr_chrM_ratio <- colData(spe)$expr_chrM / colData(spe)$sum_umi
 
 
 ## Spots over tissue
-## Keep only spots over tissue
-spe <- spe[, colData(spe)$in_tissue]
-dim(spe)
+## Check SPE object contains only spots over tissue
+table(colData(spe)$in_tissue)
 
 
 ## Filter zeros (genes and spots)
@@ -121,25 +120,9 @@ colData(spe)$counts_SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A
 
 # using scater and scran packages
 
-# quick clustering for pool-based size factors
-# with blocks by sample
-set.seed(123)
-qclus <- quickCluster(spe, block = colData(spe)$sample_id)
-
-table(qclus)
-table(colData(spe)$sample_id, qclus)
-
-# calculate size factors
-spe <- computeSumFactors(spe, cluster = qclus)
+# calculate library size factors
+spe <- computeLibraryFactors(spe)
 summary(sizeFactors(spe))
-
-# note: remove small number of spots with size factors == 0
-table(sizeFactors(spe) == 0)
-sum(is.na(sizeFactors(spe)))
-dim(spe)
-
-spe <- spe[, !(sizeFactors(spe) == 0)]
-dim(spe)
 
 # calculate logcounts
 spe <- logNormCounts(spe)
@@ -152,9 +135,9 @@ colData(spe)$logcounts_TH <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"
 colData(spe)$logcounts_SLC6A2 <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
 
-# -----------
-# save object
-# -----------
+# ---------------
+# save SPE object
+# ---------------
 
 # save as .rds and .RData
 fn_out <- here("processed_data", "SPE", "LC_Shiny")
