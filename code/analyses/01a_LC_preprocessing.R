@@ -322,6 +322,10 @@ for (s in seq_along(sample_ids)) {
   }
 }
 
+stopifnot(length(part_ids_all) == ncol(spe))
+
+colData(spe)$part_id <- part_ids_all
+
 
 # ---------------------------
 # additional gene information
