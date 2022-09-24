@@ -78,8 +78,9 @@ for (s in seq_along(sample_part_ids)) {
   # run nnSVG filtering for mitochondrial gene and low-expressed genes
   spe_sub <- filter_genes(
     spe_sub, 
-    filter_genes_ncounts = 2, 
-    filter_genes_pcspots = 0.5
+    filter_genes_ncounts = 3, 
+    filter_genes_pcspots = 1, 
+    filter_mito = FALSE
   )
   
   # remove any zeros introduced by filtering
