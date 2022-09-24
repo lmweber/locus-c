@@ -79,7 +79,7 @@ for (s in seq_along(sample_part_ids)) {
   spe_sub <- filter_genes(
     spe_sub, 
     filter_genes_ncounts = 3, 
-    filter_genes_pcspots = 0.75, 
+    filter_genes_pcspots = 0.5, 
     filter_mito = FALSE
   )
   
