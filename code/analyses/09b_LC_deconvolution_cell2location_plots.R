@@ -30,7 +30,8 @@ head(colData(spe), 2)
 sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
-# names of columns containing deconvolved cell types
+
+# select columns containing deconvolved cell types
 cols <- c(
   "meanscell_abundance_w_sf_1", 
   "meanscell_abundance_w_sf_4", 
