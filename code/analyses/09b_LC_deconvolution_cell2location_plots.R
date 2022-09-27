@@ -125,7 +125,11 @@ for (q in seq_along(cols)) {
           axis.text = element_blank(), 
           axis.ticks = element_blank())
   
-  fn <- here(dir_plots, paste0("cell2location_", gsub("^.*sf_", "", cols[q])))
+  if (!dir.exists(here(dir_plots, "all_samples"))) {
+    dir.create(here(dir_plots, sample_ids[s]), recursive = TRUE)
+  }
+  fn <- here(dir_plots, "all_samples", 
+             paste0("cell2location_", gsub("^.*sf_", "", cols[q])))
   ggsave(paste0(fn, ".pdf"), plot = p, width = 7, height = 4.75)
   ggsave(paste0(fn, ".png"), plot = p, width = 7, height = 4.75)
 }
