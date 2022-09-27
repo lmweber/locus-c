@@ -97,7 +97,7 @@ for (s in seq_along(sample_ids)) {
 }
 
 
-# plot each cell type across samples
+# plot each cell type across all Visium samples
 
 min_all <- min(as.matrix(colData(spe)[, cols]))
 max_all <- max(as.matrix(colData(spe)[, cols]))
