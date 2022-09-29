@@ -1,17 +1,17 @@
 ############################
 # LC analyses: nnSVG results
-# Lukas Weber, Jun 2022
+# Lukas Weber, Sep 2022
 ############################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
 # /dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/
 
 
-library(SpatialExperiment)
 library(here)
+library(SpatialExperiment)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -28,7 +28,15 @@ dir_outputs <- here("outputs", "08_nnSVG")
 # load data
 # ---------
 
-# load results from previous script
+# load saved SPE object from previous scripts
+
+fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
+spe <- readRDS(fn_spe)
+
+dim(spe)
+
+
+# load saved nnSVG results from previous scripts
 
 fn_out <- here(dir_outputs, "LC_nnSVG_results.rds")
 res_list <- readRDS(fn_out)
@@ -41,26 +49,28 @@ sample_part_ids <- c(
   "Br6522_LC_1_round1_single", 
   "Br6522_LC_2_round1_single", 
   "Br8153_LC_round2_left", "Br8153_LC_round2_right", 
-  "Br2701_LC_round2_bottom", "Br2701_LC_round2_top", 
-  "Br6522_LC_round3_left", "Br6522_LC_round3_right", 
+  "Br2701_LC_round2_top", "Br2701_LC_round2_bottom", 
+  "Br6522_LC_round3_leftbottom", "Br6522_LC_round3_right", 
   "Br8079_LC_round3_left", "Br8079_LC_round3_right", 
   "Br2701_LC_round3_left", "Br2701_LC_round3_right", 
   "Br8153_LC_round3_left"
 )
-sample_part_ids
+
+stopifnot(all(names(res_list) == sample_part_ids))
 
 
-# ---------------
-# combine results
-# ---------------
+# ------------------------------------
+# combine results for multiple samples
+# ------------------------------------
 
-# sum gene ranks across sample-parts to generate overall ranking
+# combine results for multiple sample-part IDs by summing or binning gene ranks 
+# to generate an overall ranking
 
 # number of genes that passed filtering for each sample-part
 sapply(res_list, nrow)
 
 
-# match results from each sample-part and store in correct rows
+# match results from each sample-part and store in matching rows
 res_ranks <- matrix(NA, nrow = nrow(spe), ncol = length(sample_part_ids))
 rownames(res_ranks) <- rownames(spe)
 colnames(res_ranks) <- sample_part_ids
@@ -73,11 +83,17 @@ for (s in seq_along(sample_part_ids)) {
   res_ranks[rownames_s, s] <- res_list[[s]][, "rank"]
 }
 
-# keep only genes that were not filtered out in all sample-parts
-res_ranks <- na.omit(res_ranks)
+
+# remove genes that were filtered out in all sample-parts
+ix_allna <- apply(res_ranks, 1, function(r) all(is.na(r)))
+res_ranks <- res_ranks[!ix_allna, ]
+
+dim(res_ranks)
+
 
 # calculate average ranks
-avg_ranks <- sort(rowMeans(res_ranks))
+# note missing values due to filtering for sample-parts
+avg_ranks <- sort(rowMeans(res_ranks, na.rm = TRUE))
 
 
 # summary table
@@ -96,7 +112,7 @@ head(df_summary, 20)
 # plot top SVGs
 # -------------
 
-ix_gene <- which(rowData(spe)$gene_name == "DBH")
+ix_gene <- which(rowData(spe)$gene_name == "CAPS")
 
 df <- as.data.frame(cbind(
   colData(spe), 
@@ -110,7 +126,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = gene)) +
   scale_color_gradient(low = "gray80", high = "red", trans = "sqrt", 
                        name = "counts", breaks = range(df$gene)) + 
   scale_y_reverse() + 
-  ggtitle("SVG expression") + 
+  ggtitle(paste0(rowData(spe)$gene_name[ix_gene], " expression")) + 
   theme_bw() + 
   theme(aspect.ratio = 1, 
         panel.grid = element_blank(), 
