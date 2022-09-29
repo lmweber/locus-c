@@ -105,7 +105,7 @@ df_summary <- data.frame(
   row.names = names(avg_ranks)
 )
 
-head(df_summary, 20)
+head(df_summary, 50)
 
 
 # -------------
