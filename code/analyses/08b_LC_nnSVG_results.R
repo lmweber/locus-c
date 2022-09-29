@@ -108,9 +108,9 @@ df_summary <- data.frame(
 head(df_summary, 50)
 
 
-# -------------
-# plot top SVGs
-# -------------
+# ------------
+# plot top SVG
+# ------------
 
 ix_gene <- which(rowData(spe)$gene_name == "CAPS")
 
@@ -134,4 +134,26 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = gene)) +
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank())
+
+
+# ----------------
+# save spreadsheet
+# ----------------
+
+# save spreadsheet containing list of top SVGs
+
+res_ranks_ord <- res_ranks[rownames(df_summary), ]
+colnames(res_ranks_ord) <- paste0("rank_", colnames(res_ranks_ord))
+
+stopifnot(all(rownames(df_summary) == rownames(res_ranks_ord)))
+stopifnot(nrow(df_summary) == nrow(res_ranks_ord))
+
+df <- cbind(df_summary, res_ranks_ord)
+
+rownames(df) <- NULL
+
+
+# save .csv file
+fn <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks.csv")
+write.csv(df, file = fn, row.names = FALSE)
 
