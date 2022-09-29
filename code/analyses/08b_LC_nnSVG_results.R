@@ -105,7 +105,12 @@ df_summary <- data.frame(
   row.names = names(avg_ranks)
 )
 
-head(df_summary, 50)
+n <- 50
+head(df_summary, n)
+
+
+# top n genes
+top_n_genes <- df_summary$gene_name[1:n]
 
 
 # ------------
@@ -143,7 +148,6 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = gene)) +
 # save spreadsheet containing list of top SVGs
 
 res_ranks_ord <- res_ranks[rownames(df_summary), ]
-colnames(res_ranks_ord) <- paste0("rank_", colnames(res_ranks_ord))
 
 stopifnot(all(rownames(df_summary) == rownames(res_ranks_ord)))
 stopifnot(nrow(df_summary) == nrow(res_ranks_ord))
@@ -156,4 +160,36 @@ rownames(df) <- NULL
 # save .csv file
 fn <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks.csv")
 write.csv(df, file = fn, row.names = FALSE)
+
+
+# ------------
+# summary plot
+# ------------
+
+df_plot <- df[1:n, ] %>% 
+  select(-c("gene_id", "gene_type")) %>% 
+  pivot_longer(., cols = -c("gene_name", "avg_rank"), values_to = "rank", names_to = "sample_part") %>% 
+  mutate(sample_part = factor(sample_part, levels = sample_part_ids)) %>% 
+  rename(gene = gene_name) %>% 
+  mutate(gene = factor(gene, levels = top_n_genes))
+
+
+pal <- unname(c(palette.colors(8, "Okabe-Ito")[2:8], 
+                palette.colors(36, "Polychrome 36")[c(3:4, 6:36)]))[1:13]
+
+ggplot(df_plot) + 
+  geom_boxplot(aes(x = rank, y = gene, group = gene), 
+               alpha = 0, outlier.shape = NA) + 
+  geom_point(aes(x = rank, y = gene, group = gene, color = sample_part), 
+             shape = 1, stroke = 0.75) + 
+  scale_y_discrete(limits = rev) + 
+  scale_color_manual(values = pal) + 
+  ggtitle("Top SVGs (nnSVG)") + 
+  theme_bw() + 
+  theme(axis.text.y = element_text(face = "italic"), 
+        axis.title.y = element_blank())
+
+fn <- here(dir_plots, "topSVGs_nnSVG_ranks")
+ggsave(paste0(fn, ".pdf"), width = 8, height = 7)
+ggsave(paste0(fn, ".png"), width = 8, height = 7)
 
