@@ -227,6 +227,6 @@ ggplot(df_plot, aes(x = n_nonNA, y = gene, fill = all_Br8079)) +
         axis.title.y = element_blank())
 
 fn <- here(dir_plots, "topSVGs_nnSVG_numberWithinTop")
-ggsave(paste0(fn, ".pdf"), width = 4, height = 7)
-ggsave(paste0(fn, ".png"), width = 4, height = 7)
+ggsave(paste0(fn, ".pdf"), width = 5, height = 7)
+ggsave(paste0(fn, ".png"), width = 5, height = 7)
 
