@@ -258,60 +258,33 @@ write.table(
 
 
 
-### Updated to here ###
-
-
-
 ### Gene marker sets (analogous to layer marker setup) ==============
-  # We'll use the 'enriched' stats--i.e. '1vAll' with the medianNon0
-  # Remember from `scran::findMarkers()`:
-  #           - the 'log.FDR' are on the natural log scale, NOT BASE 10
-  
-library(SingleCellExperiment)
 
-## Load marker stats
-load(here("processed_data","SCE_MT",
-          "markers-stats_LC-n3_findMarkers_19cellTypes.rda"), verbose=T)
-    # markers.lc.t.1vAll, medianNon0.lc
+### using NE neuron marker gene set from DE testing
 
-# Already in Ensembl IDs?
-head(rownames(markers.lc.t.1vAll[["Astro"]][["Astro_enriched"]]))
+de_genes_NE <- read.csv(
+  here("outputs", "snRNAseq", "07_DEtesting", 
+       "DEtesting_NEvsOtherNeuronal.csv")
+)
 
-## These stats now have both an '_enriched' & '_depleted' result - take the '_enriched'
-sapply(markers.lc.t.1vAll, names)
-markers.lc.enriched <- lapply(markers.lc.t.1vAll, function(x){x[[2]]})
-    
-sapply(markers.lc.enriched, function(x){table(x$log.FDR < log(1e-6) & x$non0median==TRUE)})
-    #       Astro Endo.Mural Excit_A Excit_B Excit_C Excit_D Excit_E Excit_F Inhib_A
-    # FALSE 32016      31388   29649   29578   31468   30078   31652   31974   31952
-    # TRUE    207        835    2574    2645     755    2145     571     249     271
+de_genes_NE <- de_genes_NE$gene_id
 
-    #       Inhib_B Inhib_C Inhib_D Inhib_E Inhib_F Micro Neuron.5HT Neuron.NE Oligo
-    # FALSE   28191   31347   31202   31528   31772 32085      31706     31861 31085
-    # TRUE     4032     876    1021     695     451   138        517       362  1138
-
-    #         OPC
-    # FALSE 31906
-    # TRUE    317
+head(de_genes_NE)
+length(de_genes_NE)
 
 
-lc.markerSet <- data.frame()
-for(i in names(markers.lc.enriched)){
-  lc.i <- data.frame(Set=rep(i, sum(markers.lc.enriched[[i]]$log.FDR < log(1e-6) &
-                                         markers.lc.enriched[[i]]$non0median==TRUE)),
-             Gene=rownames(markers.lc.enriched[[i]])[markers.lc.enriched[[i]]$log.FDR < log(1e-6) &
-                                                          markers.lc.enriched[[i]]$non0median==TRUE])
-  lc.markerSet <- rbind(lc.markerSet, lc.i)
-}
+# format data frame for MAGMA
+marker_set <- data.frame(
+  Set = "NE", 
+  Gene = de_genes_NE
+)
 
-head(lc.markerSet)
-table(lc.markerSet$Set)  # looks good
+head(marker_set)
+dim(marker_set)
 
-nrow(lc.markerSet)  # [1] 19799
-    # and btw:
-    length(unique(lc.markerSet$Gene)) #[1] 7919
 
-# Write out
-write.table(lc.markerSet, file=here("code","magma","/lcMarkerSets_fdr1e-6.txt"), sep="\t",
-            row.names=F, col.names=T, quote=F)
+# save
+write.table(
+  marker_set, file = here("code", "magma", "marker_set_NE.txt"), 
+  sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 
