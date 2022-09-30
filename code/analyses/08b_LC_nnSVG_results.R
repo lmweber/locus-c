@@ -196,7 +196,7 @@ ggsave(paste0(fn, ".pdf"), width = 8, height = 7)
 ggsave(paste0(fn, ".png"), width = 8, height = 7)
 
 
-# plot number of sample-parts within top 100 SVGs per gene
+# plot number of sample-parts within top 50 SVGs per gene
 
 length(sample_part_ids)
 dim(df)
