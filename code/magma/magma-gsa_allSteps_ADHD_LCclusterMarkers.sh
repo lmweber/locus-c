@@ -5,14 +5,12 @@
 #$ -e ./logs/magma-gsa_steps1-3_ADHD_MNT06Jun2022.e
 #$ -l bluejay,mem_free=16G,h_vmem=20G
 
+
 echo "**** Job starts ****"
 date
 
 ## Load MAGMA
 module load magma/1.10
-
-## List current modules for reproducibility
-module list
 
 ## Set some variables/paths
 model="snp-wise"
@@ -21,10 +19,9 @@ BFILE=/dcl02/lieber/ajaffe/SpatialTranscriptomics/HumanPilot/Analysis/Layer_Gues
 
 setcol=1
 genecol=2
-gs_lc=/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/magma/lcMarkerSets_fdr1e-6.txt
+gs_lc=/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/magma/marker_set_NE.txt
 
 SUMMSTATS=/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/code/magma/GWAS_Results/daner_adhd_meta_filtered_NA_iPSYCH23_PGC11_sigPCs_woSEX_2ell6sd_EUR_Neff_70.meta
-
 
 
 ## Step 1 - Annotation (SNP : gene mapping)
@@ -39,3 +36,4 @@ magma --gene-results SNP_Data/ADHD_Demontis2019_LC_snp-wise.genes.raw --set-anno
 
 echo "**** Job ends ****"
 date
+
