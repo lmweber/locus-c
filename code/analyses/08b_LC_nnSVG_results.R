@@ -202,17 +202,21 @@ length(sample_part_ids)
 dim(df)
 
 ranks_per_sample_part <- as.matrix(df[1:n, 5:17])
+ranks_per_sample_part_notBr8079 <- as.matrix(df[1:n, c(5:12, 15:17)])
 
 n_nonNA <- unname(apply(ranks_per_sample_part, 1, function(r) length(sample_part_ids) - sum(is.na(r))))
+all_Br8079 <- apply(ranks_per_sample_part_notBr8079, 1, function(r) all(is.na(r)))
 
 df_plot <- df[1:n, ] %>% 
   mutate(n_nonNA = n_nonNA) %>% 
+  mutate(all_Br8079 = all_Br8079) %>% 
   select(c("gene_name", "n_nonNA")) %>% 
   rename(gene = gene_name) %>% 
   mutate(gene = factor(gene, levels = top_n_genes))
 
-ggplot(df_plot, aes(x = n_nonNA, y = gene)) + 
-  geom_bar(stat = "identity", fill = "navy") + 
+ggplot(df_plot, aes(x = n_nonNA, y = gene, fill = all_Br8079)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("navy", "maroon"), name = "Br8079 only") + 
   scale_x_continuous(breaks = 0:13) + 
   scale_y_discrete(limits = rev) + 
   xlab("number of sample-parts within top 50 SVGs") + 
