@@ -162,9 +162,11 @@ fn <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
 
-# ------------
-# summary plot
-# ------------
+# -------------
+# summary plots
+# -------------
+
+# plot ranks per sample-part per gene
 
 df_plot <- df[1:n, ] %>% 
   select(-c("gene_id", "gene_type")) %>% 
@@ -192,4 +194,35 @@ ggplot(df_plot) +
 fn <- here(dir_plots, "topSVGs_nnSVG_ranks")
 ggsave(paste0(fn, ".pdf"), width = 8, height = 7)
 ggsave(paste0(fn, ".png"), width = 8, height = 7)
+
+
+# plot number of sample-parts within top 100 SVGs per gene
+
+length(sample_part_ids)
+dim(df)
+
+ranks_per_sample_part <- as.matrix(df[1:n, 5:17])
+
+n_nonNA <- unname(apply(ranks_per_sample_part, 1, function(r) length(sample_part_ids) - sum(is.na(r))))
+
+df_plot <- df[1:n, ] %>% 
+  mutate(n_nonNA = n_nonNA) %>% 
+  select(c("gene_name", "n_nonNA")) %>% 
+  rename(gene = gene_name) %>% 
+  mutate(gene = factor(gene, levels = top_n_genes))
+
+ggplot(df_plot, aes(x = n_nonNA, y = gene)) + 
+  geom_bar(stat = "identity", fill = "navy") + 
+  scale_x_continuous(breaks = 0:13) + 
+  scale_y_discrete(limits = rev) + 
+  xlab("number of sample-parts within top 50 SVGs") + 
+  ggtitle("Top SVGs (nnSVG)") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.text.y = element_text(face = "italic"), 
+        axis.title.y = element_blank())
+
+fn <- here(dir_plots, "topSVGs_nnSVG_numberWithinTop")
+ggsave(paste0(fn, ".pdf"), width = 4, height = 7)
+ggsave(paste0(fn, ".png"), width = 4, height = 7)
 
