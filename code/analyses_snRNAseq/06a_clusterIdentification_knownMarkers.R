@@ -741,9 +741,3 @@ ggsave(paste0(fn, ".png"), width = 8, height = 4)
 fn_out <- here("processed_data", "SCE", "sce_clustering_merged")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
-
-# save copy of object for ExperimentHub
-
-fn_out <- here("processed_data", "SCE", "LC_SingleCellExperiment_EHub")
-saveRDS(sce, paste0(fn_out, ".rds"))
-
