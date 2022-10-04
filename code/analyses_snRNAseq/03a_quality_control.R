@@ -1,7 +1,7 @@
-###########################################################
-# LC snRNA-seq analyses: quality control and gene filtering
+########################################
+# LC snRNA-seq analyses: quality control
 # Lukas Weber, Sep 2022
-###########################################################
+########################################
 
 
 library(here)
@@ -92,27 +92,10 @@ mean(nonzero_TH)
 summary(colData(sce)$subsets_Mito_percent[nonzero_TH])
 
 
-# --------------------------
-# Filter low-expressed genes
-# --------------------------
-
-# note: keep both protein-coding and non-protein-coding genes
-
-n_umis <- 30
-ix_remove <- rowSums(counts(sce)) < n_umis
-table(ix_remove)
-
-dim(sce)
-
-sce <- sce[!ix_remove, ]
-
-dim(sce)
-
-
 # -----------
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE", "sce_QCandFiltered")
+fn_out <- here("processed_data", "SCE", "sce_qualityControlled")
 saveRDS(sce, paste0(fn_out, ".rds"))
 

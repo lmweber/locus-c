@@ -17,7 +17,7 @@ library(ggplot2)
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_QCandFiltered")
+fn <- here("processed_data", "SCE", "sce_qualityControlled")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
