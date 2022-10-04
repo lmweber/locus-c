@@ -1,6 +1,6 @@
 ###############################
 # LC Visium analyses: filtering
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###############################
 
 # module load conda_R/4.2
@@ -20,7 +20,7 @@ library(SpatialExperiment)
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
+fn_spe <- here("processed_data", "SPE", "LC_ExperimentHub.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
@@ -35,7 +35,7 @@ table(colData(spe)$sample_id)
 # filter out genes with extremely low expression
 # using simple threshold on total UMI counts summed across all spots
 
-n_umis <- 10
+n_umis <- 80
 ix_low_genes <- rowSums(counts(spe)) < n_umis
 table(ix_low_genes)
 
