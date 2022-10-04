@@ -25,7 +25,7 @@ dir_plots <- here("plots", "03_quality_control")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
+fn_spe <- here("processed_data", "SPE", "LC_qualityControlled.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
@@ -33,14 +33,13 @@ dim(spe)
 table(colData(spe)$sample_id)
 
 
-# ---------------------------
-# normalization and logcounts
-# ---------------------------
+# -----------------------------
+# compare normalization methods
+# -----------------------------
 
-# normalization and log-transformed normalized counts (logcounts)
+# compare normalization by deconvolution vs. library size factors
 # using code from OSCA
 
-# compare deconvolution size factors and library size factors
 # note this is a multi-sample dataset
 
 # deconvolution size factors
@@ -71,12 +70,17 @@ plot(x = sf_lib, y = sf_deconv, pch = 16, cex = 0.3, col = qclus, log = "xy",
 dev.off()
 
 
-# use library size factors and calculate logcounts
+# ---------------------------
+# normalization and logcounts
+# ---------------------------
+
+# calculate logcounts (log-transformed normalized counts) using scran package
+# using library size factors
 
 spe <- computeLibraryFactors(spe)
-stopifnot(all(sizeFactors(spe) == sf_lib))
-
 spe <- logNormCounts(spe)
+
+assayNames(spe)
 
 
 # ---------------
