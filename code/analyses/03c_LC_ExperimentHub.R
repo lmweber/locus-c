@@ -52,6 +52,6 @@ head(colData(spe), 2)
 # save SPE object
 # ---------------
 
-fn_out <- here("processed_data", "SPE", "LC_ExperimentHub")
+fn_out <- here("processed_data", "SPE", "LC_SpatialExperiment_EHub")
 saveRDS(spe, paste0(fn_out, ".rds"))
 

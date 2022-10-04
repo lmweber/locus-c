@@ -20,7 +20,7 @@ library(SpatialExperiment)
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_ExperimentHub.rds")
+fn_spe <- here("processed_data", "SPE", "LC_SpatialExperiment_EHub.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
