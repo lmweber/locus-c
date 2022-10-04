@@ -21,7 +21,7 @@ library(RColorBrewer)
 
 
 # directory to save plots
-dir_plots <- here("plots", "03_exploratory_plots")
+dir_plots <- here("plots", "02_exploratory_plots")
 
 
 # ---------
@@ -30,7 +30,7 @@ dir_plots <- here("plots", "03_exploratory_plots")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
+fn_spe <- here("processed_data", "SPE", "LC_preprocessing.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)

@@ -21,7 +21,7 @@ library(ggnewscale)
 
 
 # directory to save plots
-dir_plots <- here("plots", "02_quality_control")
+dir_plots <- here("plots", "03_quality_control")
 
 
 # ---------
