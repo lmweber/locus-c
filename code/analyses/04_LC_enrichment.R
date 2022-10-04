@@ -27,7 +27,7 @@ dir_plots <- here("plots", "04_enrichment")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
+fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)

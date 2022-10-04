@@ -30,7 +30,7 @@ dir_outputs <- here("outputs", "08_nnSVG")
 
 # load saved SPE object from previous scripts
 
-fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
+fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
