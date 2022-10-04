@@ -46,6 +46,22 @@ table(colData(spe)$sample_id)
 table(colData(spe)$in_tissue)
 
 
+# ---------------
+# sample-level QC
+# ---------------
+
+# remove sample(s) where NE neurons were not captured (based on exploratory plots)
+
+samples_remove <- "Br5459_LC_round2"
+
+spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
+colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
+
+dim(spe)
+
+table(colData(spe)$sample_id)
+
+
 # ------------
 # filter zeros
 # ------------
@@ -238,8 +254,8 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "QC_samples_lowUMIs")
-ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
-ggsave(paste0(fn, ".png"), width = 9, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
 
 # plot low number of detected genes
@@ -268,8 +284,8 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "QC_samples_lowDetected")
-ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
-ggsave(paste0(fn, ".png"), width = 9, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
 
 # plot high mitochondrial percentage
@@ -298,8 +314,8 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "QC_samples_highMito")
-ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
-ggsave(paste0(fn, ".png"), width = 9, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
 
 # plot discarded spots
@@ -328,8 +344,8 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.ticks = element_blank())
 
 fn <- file.path(dir_plots, "QC_samples_discard")
-ggsave(paste0(fn, ".pdf"), width = 9, height = 4)
-ggsave(paste0(fn, ".png"), width = 9, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
 
 # ----------------
