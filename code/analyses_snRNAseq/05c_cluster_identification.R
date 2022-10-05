@@ -19,7 +19,7 @@ library(ComplexHeatmap)
 library(pheatmap)
 
 
-dir_plots <- here("plots", "snRNAseq", "06_cluster_identification", "known_markers")
+dir_plots <- here("plots", "snRNAseq", "05c_cluster_identification", "known_markers")
 
 
 # ---------------
