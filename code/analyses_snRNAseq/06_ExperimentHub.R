@@ -14,11 +14,13 @@ library(SingleCellExperiment)
 
 # load SCE objects from previous script
 
+
 # SCE object without gene filtering
 fn <- here("processed_data", "SCE", "sce_logcounts")
 sce_logcounts <- readRDS(paste0(fn, ".rds"))
 
 dim(sce_logcounts)
+
 
 # SCE object containing cluster labels
 fn <- here("processed_data", "SCE", "sce_clustering_merged")
@@ -35,6 +37,8 @@ dim(sce_clustering_merged)
 
 stopifnot(ncol(sce_logcounts) == ncol(sce_clustering_merged))
 stopifnot(all(colnames(sce_logcounts) == colnames(sce_clustering_merged)))
+stopifnot(all(colData(sce_logcounts)$Sample == colData(sce_clustering_merged)$Sample))
+stopifnot(all(colData(sce_logcounts)$Barcode == colData(sce_clustering_merged)$Barcode))
 
 
 # select columns in colData to keep
@@ -42,7 +46,7 @@ stopifnot(all(colnames(sce_logcounts) == colnames(sce_clustering_merged)))
 cols_keep_logcounts <- c(1:2, 8:15)
 colnames(colData(sce_logcounts))[cols_keep_logcounts]
 
-cols_keep_clustering_merged <- c(27, 16, 30:31, 26, 28:29)
+cols_keep_clustering_merged <- c(27, 16, 31, 30, 28, 29, 26)
 colnames(colData(sce_clustering_merged))[cols_keep_clustering_merged]
 
 
