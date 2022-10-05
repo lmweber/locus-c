@@ -44,8 +44,10 @@ spatialLIBD::run_app(
     "sum_gene", 
     "expr_chrM", 
     "expr_chrM_ratio", 
+    "counts_DBH", 
     "counts_TH", 
     "counts_SLC6A2", 
+    "logcounts_DBH", 
     "logcounts_TH", 
     "logcounts_SLC6A2"
   ), 
