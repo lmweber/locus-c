@@ -29,6 +29,27 @@ sce_clustering_merged <- readRDS(paste0(fn, ".rds"))
 dim(sce_clustering_merged)
 
 
+# ------------
+# Remove zeros
+# ------------
+
+# remove genes with zero expression
+
+ix_zeros <- rowSums(counts(sce_logcounts)) == 0
+table(ix_zeros)
+
+dim(sce_logcounts)
+
+sce_logcounts <- sce_logcounts[!ix_zeros, ]
+
+dim(sce_logcounts)
+
+
+# check no new zeros introduced
+table(rowSums(counts(sce_logcounts)) == 0, useNA = "always")
+table(colSums(counts(sce_logcounts)) == 0, useNA = "always")
+
+
 # -----------------------------------
 # Create SCE object for ExperimentHub
 # -----------------------------------
