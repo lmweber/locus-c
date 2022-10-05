@@ -1,6 +1,6 @@
 ########################################################################
 # LC snRNA-seq analyses: cluster identification using known marker genes
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 # using code by Matthew N Tran
 ########################################################################
 

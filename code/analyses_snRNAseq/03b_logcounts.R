@@ -1,6 +1,6 @@
 ##############################################################################
 # LC snRNA-seq analyses: normalization, feature selection, dimension reduction
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ##############################################################################
 
 

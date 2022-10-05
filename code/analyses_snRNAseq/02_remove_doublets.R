@@ -1,6 +1,6 @@
 ########################################
 # LC snRNA-seq analyses: remove doublets
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ########################################
 
 # run in interactive session on JHPCE

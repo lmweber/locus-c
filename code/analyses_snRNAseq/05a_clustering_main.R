@@ -1,6 +1,6 @@
 ###############################################################
 # LC snRNA-seq analyses: clustering and supervised thresholding
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###############################################################
 
 

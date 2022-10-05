@@ -1,6 +1,6 @@
 ##################################################################
 # LC snRNA-seq analyses: build SCE object from Cell Ranger outputs
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 # using code by Matthew N Tran and Leonardo Collado-Torres
 ##################################################################
 
