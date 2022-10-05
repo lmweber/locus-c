@@ -62,7 +62,7 @@ stopifnot(all(colData(sce_logcounts)$Sample == colData(sce_clustering_merged)$Sa
 stopifnot(all(colData(sce_logcounts)$Barcode == colData(sce_clustering_merged)$Barcode))
 
 
-# select columns in colData to keep
+# select and re-order columns in colData to keep
 
 cols_keep_logcounts <- c(1:2, 8:12, 14:15)
 colnames(colData(sce_logcounts))[cols_keep_logcounts]
