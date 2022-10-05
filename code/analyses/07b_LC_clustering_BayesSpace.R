@@ -1,6 +1,6 @@
 ##########################################################
 # LC analyses: spatially aware clustering using BayesSpace
-# Lukas Weber, Jun 2022
+# Lukas Weber, Oct 2022
 ##########################################################
 
 # module load conda_R/devel
@@ -17,7 +17,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06b_clustering_BayesSpace")
+dir_plots <- here("plots", "07b_clustering_BayesSpace")
 
 
 # ---------

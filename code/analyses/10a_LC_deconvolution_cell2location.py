@@ -1,6 +1,6 @@
 ###########################################################
 # LC analyses: spot-level deconvolution using cell2location
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###########################################################
 
 # references:

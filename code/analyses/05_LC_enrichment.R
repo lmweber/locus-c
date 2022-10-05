@@ -1,6 +1,6 @@
 #########################################
 # LC analyses: enrichment of marker genes
-# Lukas Weber, Jun 2022
+# Lukas Weber, Oct 2022
 #########################################
 
 # module load conda_R/devel
@@ -18,7 +18,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "04_enrichment")
+dir_plots <- here("plots", "05_enrichment")
 
 
 # ---------

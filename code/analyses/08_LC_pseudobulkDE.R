@@ -1,6 +1,6 @@
 ################################################################
 # LC analyses: pseudobulked differential expression (DE) testing
-# Lukas Weber, Jun 2022
+# Lukas Weber, Oct 2022
 ################################################################
 
 # adapting code by Leonardo Collado-Torres, Abby Spangler, and Sowmya Parthiban from:
@@ -29,10 +29,10 @@ library(ComplexHeatmap)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07_pseudobulkDE")
+dir_plots <- here("plots", "08_pseudobulkDE")
 
 # directory to save outputs
-dir_outputs <- here("outputs", "07_pseudobulkDE")
+dir_outputs <- here("outputs", "08_pseudobulkDE")
 
 
 # ---------

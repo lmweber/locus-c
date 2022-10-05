@@ -1,6 +1,6 @@
 #############################################
 # LC analyses: batch correction using Harmony
-# Lukas Weber, Jun 2022
+# Lukas Weber, Oct 2022
 #############################################
 
 # module load conda_R/devel
@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06a_batch_correction")
+dir_plots <- here("plots", "07a_batch_correction")
 
 
 # ---------

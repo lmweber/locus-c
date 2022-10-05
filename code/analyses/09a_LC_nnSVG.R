@@ -1,6 +1,6 @@
 ###############################################
 # LC Visium analyses: identify SVGs using nnSVG
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###############################################
 
 # qrsh -pe local 10 -l mem_free=5G,h_vmem=6G,h_fsize=200G -now n
@@ -19,7 +19,7 @@ library(scran)
 
 
 # directory to save outputs
-dir_outputs <- here("outputs", "08_nnSVG")
+dir_outputs <- here("outputs", "09_nnSVG")
 
 
 # ---------

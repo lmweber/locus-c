@@ -1,6 +1,6 @@
 ###################################################################
 # LC analyses: spot-level deconvolution using cell2location - plots
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###################################################################
 
 
@@ -11,7 +11,7 @@ library(viridis)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07_deconvolution", "cell2location")
+dir_plots <- here("plots", "10_deconvolution", "cell2location")
 
 
 # ---------------

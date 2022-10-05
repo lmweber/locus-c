@@ -1,6 +1,6 @@
 ############################
 # LC analyses: nnSVG results
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ############################
 
 # module load conda_R/4.2
@@ -18,10 +18,10 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "08_nnSVG")
+dir_plots <- here("plots", "09_nnSVG")
 
 # directory to save outputs
-dir_outputs <- here("outputs", "08_nnSVG")
+dir_outputs <- here("outputs", "09_nnSVG")
 
 
 # ---------

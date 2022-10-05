@@ -1,6 +1,6 @@
 ################################################
-# LC analyses: Mulvey et al. (2018) rodent genes
-# Lukas Weber, Jun 2022
+# LC analyses: Grimm et al. (2004) rodent genes
+# Lukas Weber, Oct 2022
 ################################################
 
 # module load conda_R/devel
@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_rodent_genes")
+dir_plots <- here("plots", "06_rodent_genes")
 
 
 # ---------
@@ -44,34 +44,24 @@ sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
 
-# --------------------
-# load mouse gene list
-# --------------------
+# ------------------
+# load rat gene list
+# ------------------
 
-# list of 45 mouse genes for LC from Mulvey et al. (2018), Figure 2A
+# list of rat genes for LC from Grimm et al. (2004), Figure 4
 
-fn <- here("inputs", "Mulvey_markers", "Mulvey2018_Fig2A_markers.txt")
-mouse_genes <- read.table(fn)[, 1]
-
-length(mouse_genes)
-mouse_genes
-
-
-# converted to human genes using biomaRt (code below) and by searching for genes
-# individually at: https://www.ncbi.nlm.nih.gov/gene/
+# converted to human genes by searching individually at https://www.ncbi.nlm.nih.gov/gene/
 
 human_genes <- c(
-  "AGTR1", "ASB4", "CALCR", "CALR3", "CHODL", "CHRNA6", "CILP", "CYB561", 
-  "DBH", "DDC", "DLK1", "ADGRE1", "EYA2", "SHISAL2B", "FAM183A", "FIBCD1", 
-  "GAL", "GCH1", "GLRA2", "GNG4", "GPX3", "GTF2A1L", "HCRTR1", "IGSF5", "MAOA", 
-  "MRAP2", "MYOM2", "NEUROG2", "SLC9B2", "NXPH4", "OVGP1", "PCBD1", "PHOX2A", 
-  "PHOX2B", "PLA2G4D", "PTGER2", "SLC18A2", "SLC31A1", "SLC6A2", "STBD1", 
-  "SYT17", "TH", "TM4SF1", "TM4SF5", "TRAF3IP2")
+  "CBR3", "DNAH5", "SERPINE1", "LAYN", "TPH2", "RPH3AL", "NGB", "CYB561", 
+  "GNAS", "SLC31A1", "TCP1", "PPIC", "COLEC10", "RAB3B", "MAOA", "PCBP3", 
+  "TSPAN12", "FBP1", "DBH", "SERPINF1", "TXK", "SEC16B", "TRAF1", "PTGES", 
+  "GGT5", "MMP2", "MCAM", "TFAP2A", "ACSL1", "UPB1", "UCP3", "COL5A1", 
+  "ALDH1A1", "FBN1")
 
-human_genes <- sort(human_genes)
 length(human_genes)
 
-# 36 out of 45 genes present in filtered SPE object
+# 31 out of 34 genes present in filtered SPE object
 sum(human_genes %in% rowData(spe)$gene_name)
 
 # keep genes that are present in filtered SPE object
@@ -79,24 +69,6 @@ ix_keep <- which(human_genes %in% rowData(spe)$gene_name)
 human_genes <- human_genes[ix_keep]
 
 stopifnot(length(human_genes) == sum(human_genes %in% rowData(spe)$gene_name))
-
-
-# code to convert to human gene names using biomaRt (not used)
-
-# using code from biomaRt vignette and 
-# https://www.r-bloggers.com/2016/10/converting-mouse-to-human-gene-names-with-biomart-package/
-
-# library(biomaRt)
-# 
-# human <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-# mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
-# 
-# genes <- getLDS(
-#   attributes = c("mgi_symbol"), filters = "mgi_symbol", values = mouse_genes, 
-#   mart = mouse, attributesL = c("hgnc_symbol"), martL = human, uniqueRows = TRUE
-# )
-# 
-# human_genes <- sort(genes[, 2])
 
 
 # ---------------
@@ -134,10 +106,10 @@ for (s in seq_along(sample_ids)) {
             axis.text = element_blank(), 
             axis.ticks = element_blank())
     
-    if (!dir.exists(here(dir_plots, "Mulvey", sample_ids[s]))) {
-      dir.create(here(dir_plots, "Mulvey", sample_ids[s]), recursive = TRUE)
+    if (!dir.exists(here(dir_plots, "Grimm", sample_ids[s]))) {
+      dir.create(here(dir_plots, "Grimm", sample_ids[s]), recursive = TRUE)
     }
-    fn <- here(dir_plots, "Mulvey", sample_ids[s], 
+    fn <- here(dir_plots, "Grimm", sample_ids[s], 
                paste0("counts_", human_genes[g], "_", sample_ids[s]))
     ggsave(paste0(fn, ".pdf"), width = 4, height = 3.25)
     ggsave(paste0(fn, ".png"), width = 4, height = 3.25)
@@ -242,15 +214,15 @@ ggplot(df, aes(x = gene, y = mean, color = regions, fill = regions)) +
   scale_color_manual(values = pal, name = "annotation") + 
   scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
-  ggtitle("Mulvey et al. (2018) genes") + 
+  ggtitle("Grimm et al. (2004) genes") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
                                    face = "italic", hjust = 1))
 
-fn <- here(dir_plots, "enrichment_Mulvey_annotatedRegions_horizontal")
-ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
+fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_horizontal")
+ggsave(paste0(fn, ".pdf"), width = 6.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 
 
 # plot enrichment: vertical format
@@ -261,13 +233,13 @@ ggplot(df_rev, aes(x = mean, y = gene, color = regions, fill = regions)) +
   scale_fill_manual(values = pal_rev, name = "annotation", 
                     guide = guide_legend(reverse = TRUE)) + 
   labs(x = "mean logcounts per spot") + 
-  ggtitle("Mulvey et al. (2018) genes") + 
+  ggtitle("Grimm et al. (2004) genes") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         axis.text.y = element_text(size = 9, face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "enrichment_Mulvey_annotatedRegions_vertical")
-ggsave(paste0(fn, ".pdf"), width = 4.75, height = 6.5)
-ggsave(paste0(fn, ".png"), width = 4.75, height = 6.5)
+fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_vertical")
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 5.75)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 5.75)
 
