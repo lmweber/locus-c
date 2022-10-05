@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 sce_full <- sce
 
 # select inhibitory neuron clusters (from marker expression in heatmap)
-clus_select <- c(26, 17, 14, 1, 8, 7, 24, 18)
+clus_select <- c(24, 25, 14, 4, 8, 20, 17)
 
 ix_select <- colLabels(sce) %in% clus_select
 table(ix_select)
