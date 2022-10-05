@@ -64,7 +64,7 @@ stopifnot(all(colData(sce_logcounts)$Barcode == colData(sce_clustering_merged)$B
 
 # select columns in colData to keep
 
-cols_keep_logcounts <- c(1:2, 8:15)
+cols_keep_logcounts <- c(1:2, 8:12, 14:15)
 colnames(colData(sce_logcounts))[cols_keep_logcounts]
 
 cols_keep_clustering_merged <- c(27, 16, 31, 30, 28, 29, 26)
@@ -76,6 +76,10 @@ colnames(colData(sce_clustering_merged))[cols_keep_clustering_merged]
 colData(sce_logcounts) <- cbind(
   colData(sce_logcounts)[, cols_keep_logcounts], 
   colData(sce_clustering_merged)[, cols_keep_clustering_merged])
+
+
+# check
+head(colData(sce_logcounts), 2)
 
 
 # -----------
