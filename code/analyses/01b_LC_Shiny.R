@@ -103,6 +103,7 @@ colData(spe)$ManualAnnotation <- "NA"
 
 ## Genes of interest
 ## UMIs per spot for some key genes of interest
+colData(spe)$counts_DBH <- counts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
 colData(spe)$counts_TH <- counts(spe)[which(rowData(spe)$gene_name == "TH"), ]
 colData(spe)$counts_SLC6A2 <- counts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
