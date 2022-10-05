@@ -1,7 +1,7 @@
-###############################################
-# LC Visium analyses: dataset for ExperimentHub
+##################################################
+# LC Visium analyses: SPE object for ExperimentHub
 # Lukas Weber, Oct 2022
-###############################################
+##################################################
 
 # module load conda_R/4.2
 # Rscript filename.R

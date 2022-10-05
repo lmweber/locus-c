@@ -1,6 +1,6 @@
 #################################################
 # LC Visium analyses: normalization and logcounts
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 #################################################
 
 # module load conda_R/4.2

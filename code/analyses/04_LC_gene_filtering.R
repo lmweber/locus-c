@@ -1,7 +1,7 @@
-###############################
-# LC Visium analyses: filtering
+####################################
+# LC Visium analyses: gene filtering
 # Lukas Weber, Oct 2022
-###############################
+####################################
 
 # module load conda_R/4.2
 # Rscript filename.R
