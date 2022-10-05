@@ -28,7 +28,7 @@ dir_plots <- here("plots", "snRNAseq", "06_cluster_identification", "known_marke
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_clustering")
+fn <- here("processed_data", "SCE", "sce_clustering_secondary")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
