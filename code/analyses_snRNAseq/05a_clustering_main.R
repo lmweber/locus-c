@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering algorithm using high-resolution k-means and graph-based clustering
 
-set.seed(3)
+set.seed(125)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
@@ -116,22 +116,22 @@ colData(sce)$posStrictDBH <- counts(sce)[ix_DBH, ] > 1
 
 
 # intersection set
-colData(sce)$supervisedNE = colData(sce)$posTH & colData(sce)$posSLC6A2 & colData(sce)$posDBH
-table(colData(sce)$supervisedNE)
-table(colData(sce)$Sample, colData(sce)$supervisedNE)
+colData(sce)$supervisedNE3of3 = colData(sce)$posTH & colData(sce)$posSLC6A2 & colData(sce)$posDBH
+table(colData(sce)$supervisedNE3of3)
+table(colData(sce)$Sample, colData(sce)$supervisedNE3of3)
 # union set (> 0)
-colData(sce)$supervisedNEunion = colData(sce)$posTH | colData(sce)$posSLC6A2 | colData(sce)$posDBH
-table(colData(sce)$supervisedNEunion)
-table(colData(sce)$Sample, colData(sce)$supervisedNEunion)
+colData(sce)$supervisedNEunion3of3 = colData(sce)$posTH | colData(sce)$posSLC6A2 | colData(sce)$posDBH
+table(colData(sce)$supervisedNEunion3of3)
+table(colData(sce)$Sample, colData(sce)$supervisedNEunion3of3)
 # union set (> 1)
-colData(sce)$supervisedNEunionStrict = colData(sce)$posStrictTH | colData(sce)$posStrictSLC6A2 | colData(sce)$posStrictDBH
-table(colData(sce)$supervisedNEunionStrict)
-table(colData(sce)$Sample, colData(sce)$supervisedNEunionStrict)
+colData(sce)$supervisedNEunionStrict3of3 = colData(sce)$posStrictTH | colData(sce)$posStrictSLC6A2 | colData(sce)$posStrictDBH
+table(colData(sce)$supervisedNEunionStrict3of3)
+table(colData(sce)$Sample, colData(sce)$supervisedNEunionStrict3of3)
 
 # "2 out of 3" set
-colData(sce)$supervisedNE2of3 = colData(sce)$posTH & colData(sce)$posDBH
-table(colData(sce)$supervisedNE2of3)
-table(colData(sce)$Sample, colData(sce)$supervisedNE2of3)
+colData(sce)$supervisedNE = colData(sce)$posTH & colData(sce)$posDBH
+table(colData(sce)$supervisedNE)
+table(colData(sce)$Sample, colData(sce)$supervisedNE)
 
 
 # check expression of key markers
@@ -139,11 +139,15 @@ res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNE])
 names(res) <- names(ix)
 res
 
-res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunion])
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNE3of3])
 names(res) <- names(ix)
 res
 
-res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunionStrict])
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunion3of3])
+names(res) <- names(ix)
+res
+
+res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunionStrict3of3])
 names(res) <- names(ix)
 res
 
@@ -184,8 +188,8 @@ table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
 # NE neuron cluster and 5-HT neuron cluster identified from marker genes above
-clus_NE <- 6
-clus_5HT <- 16
+clus_NE <- 3
+clus_5HT <- 17
 
 sum(colLabels(sce) == clus_NE)
 sum(colLabels(sce) == clus_5HT)
@@ -199,14 +203,14 @@ rowSums(tbl)
 
 
 # supervised thresholding
-table(colData(sce)$supervisedNE2of3)
-table(colData(sce)$supervisedNE2of3, colData(sce)$Sample)[2, ]
+table(colData(sce)$supervisedNE)
+table(colData(sce)$supervisedNE, colData(sce)$Sample)[2, ]
 
 
 # comparison between unsupervised clustering and supervised thresholding
 table(
   unsupervised = colLabels(sce) == clus_NE, 
-  supervised = colData(sce)$supervisedNE2of3
+  supervised = colData(sce)$supervisedNE
 )
 
 
@@ -215,7 +219,7 @@ table(
 # unsupervised
 summary(colData(sce)$subsets_Mito_percent[colLabels(sce) == clus_NE])
 # supervised
-summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE2of3])
+summary(colData(sce)$subsets_Mito_percent[colData(sce)$supervisedNE])
 
 
 # for plotting
@@ -228,7 +232,7 @@ sce_clusNE <- sce_plot[, colLabels(sce_plot) == clus_NE]
 sce_clus5HT <- sce_plot[, colLabels(sce_plot) == clus_5HT]
 
 # supervised
-sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE2of3]
+sce_supNE <- sce_plot[, colData(sce_plot)$supervisedNE]
 
 
 genes_NE <- c("TH", "SLC6A2", "DBH")
@@ -246,7 +250,7 @@ colData(sce)$Key <- paste(colData(sce)$Sample, colData(sce)$Barcode, sep = "_")
 
 x <- list(
   `clustering NE` = colData(sce)$Key[colLabels(sce) == clus_NE], 
-  `supervised NE` = colData(sce)$Key[colData(sce)$supervisedNE2of3]
+  `supervised NE` = colData(sce)$Key[colData(sce)$supervisedNE]
 )
 
 ggVennDiagram(x) + 
@@ -390,7 +394,7 @@ ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
 # supervised thresholding
 
 # NE neurons
-plotReducedDim(sce, dimred = "UMAP", colour_by = "supervisedNE2of3") + 
+plotReducedDim(sce, dimred = "UMAP", colour_by = "supervisedNE") + 
   scale_color_manual(values = c("navy", "red"), name = "NE neurons") + 
   ggtitle("Supervised thresholding")
 
