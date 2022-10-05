@@ -1,6 +1,6 @@
 ###################################
 # LC Visium analyses: preprocessing
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###################################
 
 # note: using R 4.2, Bioconductor 3.15, SpatialExperiment 1.6.1

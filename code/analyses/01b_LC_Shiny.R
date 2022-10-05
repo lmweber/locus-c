@@ -1,6 +1,6 @@
 ##############################################
 # LC Visium analyses: SPE object for Shiny app
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ##############################################
 
 # module load conda_R/4.2
@@ -131,6 +131,7 @@ assayNames(spe)
 
 ## Genes of interest
 ## logcounts per spot for some key genes of interest
+colData(spe)$logcounts_DBH <- logcounts(spe)[which(rowData(spe)$gene_name == "DBH"), ]
 colData(spe)$logcounts_TH <- logcounts(spe)[which(rowData(spe)$gene_name == "TH"), ]
 colData(spe)$logcounts_SLC6A2 <- logcounts(spe)[which(rowData(spe)$gene_name == "SLC6A2"), ]
 
