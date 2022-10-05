@@ -345,16 +345,16 @@ colors_markers <- list(marker = c(
 
 # cluster labels
 cluster_pops <- list(
-  excitatory = c(30, 24, 6, 4), 
-  inhibitory = c(19, 18, 23, 22, 10, 27, 9), 
-  neurons_ambiguous = c(14, 26, 7, 1, 2, 15, 12, 20), 
-  NE = 3, 
-  `5HT` = 17, 
-  astrocytes = 11, 
-  endothelial_mural = 21, 
-  macrophages_microglia = 13, 
-  oligodendrocytes = c(16, 5, 25, 8), 
-  OPCs = c(28, 29))
+  excitatory = c(30, 23, 26, 7), 
+  inhibitory = c(24, 25, 14, 4, 8, 20, 17), 
+  neurons_ambiguous = c(18, 19, 3, 22, 13, 1, 2), 
+  NE = 6, 
+  `5HT` = 21, 
+  astrocytes = c(5, 29), 
+  endothelial_mural = 16, 
+  macrophages_microglia = 15, 
+  oligodendrocytes = c(10, 12, 28, 9), 
+  OPCs = c(27, 11))
 # cluster labels order
 cluster_pops_order <- unname(unlist(cluster_pops))
 # swap values and names of list
@@ -450,16 +450,16 @@ dev.off()
 # UMAP of clustering
 
 label_merged <- fct_collapse(colData(sce)$label, 
-  excitatory = as.character(c(30, 24, 6, 4)), 
-  inhibitory = as.character(c(19, 18, 23, 22, 10, 27, 9)), 
-  neurons_ambiguous = as.character(c(14, 26, 7, 1, 2, 15, 12, 20)), 
-  NE = as.character(3), 
-  `5HT` = as.character(17), 
-  astrocytes = as.character(11), 
-  endothelial_mural = as.character(21), 
-  macrophages_microglia = as.character(13), 
-  oligodendrocytes = as.character(c(16, 5, 25, 8)), 
-  OPCs = as.character(c(28, 29)))
+  excitatory = as.character(cluster_pops[[1]]), 
+  inhibitory = as.character(cluster_pops[[2]]), 
+  neurons_ambiguous = as.character(cluster_pops[[3]]), 
+  NE = as.character(cluster_pops[[4]]), 
+  `5HT` = as.character(cluster_pops[[5]]), 
+  astrocytes = as.character(cluster_pops[[6]]), 
+  endothelial_mural = as.character(cluster_pops[[7]]), 
+  macrophages_microglia = as.character(cluster_pops[[8]]), 
+  oligodendrocytes = as.character(cluster_pops[[9]]), 
+  OPCs = as.character(cluster_pops[[10]]))
 
 label_merged <- fct_relevel(label_merged, 
   c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 

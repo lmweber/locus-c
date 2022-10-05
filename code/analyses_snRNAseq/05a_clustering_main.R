@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 # clustering algorithm and parameters from OSCA
 # two-stage clustering algorithm using high-resolution k-means and graph-based clustering
 
-set.seed(125)
+set.seed(121)
 clus <- clusterCells(
   sce, 
   use.dimred = "PCA", 
@@ -188,8 +188,8 @@ table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
 
 # NE neuron cluster and 5-HT neuron cluster identified from marker genes above
-clus_NE <- 3
-clus_5HT <- 17
+clus_NE <- 6
+clus_5HT <- 21
 
 sum(colLabels(sce) == clus_NE)
 sum(colLabels(sce) == clus_5HT)
