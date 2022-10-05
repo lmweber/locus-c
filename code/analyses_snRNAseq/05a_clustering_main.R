@@ -419,6 +419,6 @@ ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 # Save object
 # -----------
 
-fn_out <- here("processed_data", "SCE", "sce_clustering")
+fn_out <- here("processed_data", "SCE", "sce_clustering_main")
 saveRDS(sce, paste0(fn_out, ".rds"))
 
