@@ -28,7 +28,7 @@ dir_plots <- here("plots", "snRNAseq", "06_cluster_identification", "known_marke
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_clustering_secondary")
+fn <- here("processed_data", "SCE", "sce_clustering")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -190,7 +190,7 @@ types_broad = c("neuron", "excitatory", "inhibitory", "inhibitory_subtypes",
 annotation_broad <- data.frame(
   cluster = factor(c(
     rep(types_broad[[1]], 2), 
-    rep(types_broad[[2]], 3), 
+    rep(types_broad[[2]], 2), 
     rep(types_broad[[3]], 2), 
     rep(types_broad[[4]], 6), 
     rep(types_broad[[5]], 4), 
@@ -230,7 +230,7 @@ italicnames <- lapply(
   function(x) bquote(italic(.(x))))
 
 # order clusters
-order_broad <- c(29, 26, 17, 14, 1, 8, 7, 24, 18, 21, 20, 23, 19, 30, 13, 3, 5, 2, 6, 16, 22, 25, 15, 11, 9, 10, 27, 4, 28, 12)
+#order_broad <- c(29, 26, 17, 14, 1, 8, 7, 24, 18, 21, 20, 23, 19, 30, 13, 3, 5, 2, 6, 16, 22, 25, 15, 11, 9, 10, 27, 4, 28, 12)
 #order_broad <- c(27, 2, 29, 28, 17, 19, 21, 11, 5, 16, 3, 4, 30, 6, 7, 8, 15, 18, 22, 26, 9, 25, 1, 24, 13, 10, 14, 20, 12, 23)
 
 set.seed(1)
@@ -345,16 +345,16 @@ colors_markers <- list(marker = c(
 
 # cluster labels
 cluster_pops <- list(
-  excitatory = c(29, 21, 20, 23), 
-  inhibitory = c(26, 17, 14, 1, 8, 7, 24, 18), 
-  neurons_ambiguous = c(19, 30, 13, 3, 5, 2), 
-  NE = 6, 
-  `5HT` = 16, 
-  astrocytes = c(22, 25), 
-  endothelial_mural = 15, 
-  macrophages_microglia = 11, 
-  oligodendrocytes = c(9, 10, 27, 4), 
-  OPCs = c(28, 12))
+  excitatory = c(30, 24, 6, 4), 
+  inhibitory = c(19, 18, 23, 22, 10, 27, 9), 
+  neurons_ambiguous = c(14, 26, 7, 1, 2, 15, 12, 20), 
+  NE = 3, 
+  `5HT` = 17, 
+  astrocytes = 11, 
+  endothelial_mural = 21, 
+  macrophages_microglia = 13, 
+  oligodendrocytes = c(16, 5, 25, 8), 
+  OPCs = c(28, 29))
 # cluster labels order
 cluster_pops_order <- unname(unlist(cluster_pops))
 # swap values and names of list
@@ -450,16 +450,16 @@ dev.off()
 # UMAP of clustering
 
 label_merged <- fct_collapse(colData(sce)$label, 
-  excitatory = c("29", "21", "20", "23"), 
-  inhibitory = c("26", "17", "14", "1", "8", "7", "24", "18"), 
-  neurons_ambiguous = c("19", "30", "13", "3", "5", "2"), 
-  NE = "6", 
-  `5HT` = "16", 
-  astrocytes = c("22", "25"), 
-  endothelial_mural = "15", 
-  macrophages_microglia = "11", 
-  oligodendrocytes = c("9", "10", "27", "4"), 
-  OPCs = c("28", "12"))
+  excitatory = as.character(c(30, 24, 6, 4)), 
+  inhibitory = as.character(c(19, 18, 23, 22, 10, 27, 9)), 
+  neurons_ambiguous = as.character(c(14, 26, 7, 1, 2, 15, 12, 20)), 
+  NE = as.character(3), 
+  `5HT` = as.character(17), 
+  astrocytes = as.character(11), 
+  endothelial_mural = as.character(21), 
+  macrophages_microglia = as.character(13), 
+  oligodendrocytes = as.character(c(16, 5, 25, 8)), 
+  OPCs = as.character(c(28, 29)))
 
 label_merged <- fct_relevel(label_merged, 
   c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
