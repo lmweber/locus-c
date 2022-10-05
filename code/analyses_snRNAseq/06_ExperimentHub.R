@@ -82,6 +82,15 @@ colData(sce_logcounts) <- cbind(
 head(colData(sce_logcounts), 2)
 
 
+# ------------
+# Column names
+# ------------
+
+# use key_id as column names
+
+colnames(sce_logcounts) <- colData(sce_logcounts)$Key
+
+
 # -----------
 # Save object
 # -----------
