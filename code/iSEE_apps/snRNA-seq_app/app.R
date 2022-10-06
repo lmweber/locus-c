@@ -6,7 +6,7 @@ library("paletteer")
 library("scuttle")
 library("SpatialExperiment")
 
-sce <- readRDS("sce_clustering_merged.rds")
+sce <- readRDS("LC_singleNucleus_SCE_EHub.rds")
 
 ## Make unique gene names
 rownames(sce) <-
