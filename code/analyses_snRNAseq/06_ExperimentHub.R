@@ -97,6 +97,6 @@ colnames(sce_logcounts) <- colData(sce_logcounts)$Key
 
 # save SCE object for ExperimentHub
 
-fn_out <- here("processed_data", "SCE", "LC_SingleCellExperiment_EHub")
+fn_out <- here("processed_data", "SCE", "LC_singleNucleus_SCE_EHub")
 saveRDS(sce_logcounts, paste0(fn_out, ".rds"))
 
