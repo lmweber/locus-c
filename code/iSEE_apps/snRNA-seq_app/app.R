@@ -27,7 +27,19 @@ colData(sce) <- cbind(
 sce$Donor <- as.factor(sce$Donor)
 sce$label_merged <- as.factor(sce$label_merged)
 
-#sce <- registerAppOptions(sce, color.maxlevels = length(unique(sce$label_merged)))
+sce <- registerAppOptions(sce, color.maxlevels = length(levels(sce$label_merged)))
+
+pal_clusters <- c(
+  excitatory = "#1F77B4", 
+  inhibitory = "#AEC7E8", 
+  neurons_ambiguous = "gray60", 
+  NE = "#D62728", 
+  `5HT` = "#9467BD", 
+  astrocytes = "#FF7F0E", 
+  endothelial_mural = "#98DF8A", 
+  macrophages_microglia = "#8C564B", 
+  oligodendrocytes = "#9EDAE5", 
+  OPCs = "#17BECF")
 
 iSEE(sce,
      appTitle = "snRNA-seq LC 2022",
@@ -41,10 +53,10 @@ iSEE(sce,
          cols <- as.vector(cols)
          names(cols) <- levels(sce$Donor)
          return(cols)
-       }#,
-        # label_merged = function(n) {
-        #   return(label_merged)
-        # }
+       },
+       label_merged = function(n) {
+         return(pal_clusters)
+       }
      ))
 )
 
