@@ -198,15 +198,18 @@ df_rev <- df %>%
   mutate(gene = fct_rev(gene))
 
 
-pal <- c("darkmagenta", "gray30")
-pal_rev <- rev(pal)
+pal_NE <- c("red", "gray30")
+pal_NE_rev <- rev(pal_NE)
+
+
+dir.create(file.path(dir_plots, "enrichment"), recursive = TRUE)
 
 
 # plot enrichment: horizontal format
 ggplot(df, aes(x = gene, y = mean, color = regions, fill = regions)) + 
   geom_boxplot(alpha = 0.75, outlier.size = 0.5) + 
-  scale_color_manual(values = pal, name = "annotation") + 
-  scale_fill_manual(values = pal, name = "annotation") + 
+  scale_color_manual(values = pal_NE, name = "annotation") + 
+  scale_fill_manual(values = pal_NE, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Grimm et al. (2004) genes") + 
   theme_bw() + 
@@ -214,17 +217,18 @@ ggplot(df, aes(x = gene, y = mean, color = regions, fill = regions)) +
         axis.text.x = element_text(size = 9, angle = 90, vjust = 0.5, 
                                    face = "italic", hjust = 1))
 
-fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_horizontal")
-ggsave(paste0(fn, ".pdf"), width = 6.75, height = 4)
-ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
+fn <- here(dir_plots, "enrichment", 
+           "enrichment_Grimm_annotatedRegions_horizontal")
+ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
+ggsave(paste0(fn, ".png"), width = 7, height = 4)
 
 
 # plot enrichment: vertical format
 ggplot(df_rev, aes(x = mean, y = gene, color = regions, fill = regions)) + 
   geom_boxplot(alpha = 0.75, outlier.size = 0.5) + 
-  scale_color_manual(values = pal_rev, name = "annotation", 
+  scale_color_manual(values = pal_NE_rev, name = "annotation", 
                      guide = guide_legend(reverse = TRUE)) + 
-  scale_fill_manual(values = pal_rev, name = "annotation", 
+  scale_fill_manual(values = pal_NE_rev, name = "annotation", 
                     guide = guide_legend(reverse = TRUE)) + 
   labs(x = "mean logcounts per spot") + 
   ggtitle("Grimm et al. (2004) genes") + 
@@ -233,7 +237,8 @@ ggplot(df_rev, aes(x = mean, y = gene, color = regions, fill = regions)) +
         axis.text.y = element_text(size = 9, face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "enrichment_Grimm_annotatedRegions_vertical")
+fn <- here(dir_plots, "enrichment", 
+           "enrichment_Grimm_annotatedRegions_vertical")
 ggsave(paste0(fn, ".pdf"), width = 4.75, height = 5.75)
 ggsave(paste0(fn, ".png"), width = 4.75, height = 5.75)
 
