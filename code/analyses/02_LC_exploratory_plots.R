@@ -154,7 +154,7 @@ for (g in seq_along(genes_main)) {
 # calculate spot-level QC metric summaries
 # ----------------------------------------
 
-# without any removal of samples
+# for all samples (before removing any samples based on QC)
 
 
 # filter zeros
