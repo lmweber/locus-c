@@ -3,7 +3,7 @@
 # Lukas Weber, Oct 2022
 #########################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
@@ -18,7 +18,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "05_enrichment")
+dir_plots <- here("plots", "Visium", "05_enrichment")
 
 
 # ---------
@@ -127,86 +127,69 @@ df_5HT <- df %>%
   as.data.frame()
 
 
-pal <- c("darkmagenta", "gray30")
+pal_NE <- c("red", "gray30")
+pal_5HT <- c("darkmagenta", "gray30")
 
 
-# plots showing all samples
+# ------------------------
+# plots without sample IDs
+# ------------------------
 
-# marker genes for NE neurons
+# plot marker genes for NE neurons
 set.seed(123)
 ggplot(df_NE) + 
   geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions), 
              position = position_jitterdodge()) + 
-  scale_color_manual(values = pal, name = "annotation") + 
-  scale_fill_manual(values = pal, name = "annotation") + 
+  scale_color_manual(values = pal_NE, name = "annotation") + 
+  scale_fill_manual(values = pal_NE, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Enrichment") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         axis.text.x = element_text(face = "italic"))
 
-fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_allSamples")
+fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers")
 ggsave(paste0(fn, ".pdf"), width = 4.25, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 
 
-# marker genes for 5-HT neurons
+# plot marker genes for 5-HT neurons
 set.seed(123)
 ggplot(df_5HT) + 
   geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions), 
              position = position_jitterdodge()) + 
-  scale_color_manual(values = pal, name = "annotation") + 
-  scale_fill_manual(values = pal, name = "annotation") + 
+  scale_color_manual(values = pal_5HT, name = "annotation") + 
+  scale_fill_manual(values = pal_5HT, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Enrichment") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         axis.text.x = element_text(face = "italic"))
 
-fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers_allSamples")
+fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers")
 ggsave(paste0(fn, ".pdf"), width = 4.25, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 
 
-# plots excluding samples where NE neurons were not captured (Br5459_LC_round2)
-
-df_NE_sub <- df_NE[!(df_NE$sample %in% "Br5459_LC_round2"), ]
-
-# marker genes for NE neurons
-set.seed(123)
-ggplot(df_NE_sub) + 
-  geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
-               alpha = 0.5, outlier.shape = NA) + 
-  geom_point(aes(x = gene, y = mean, color = regions), 
-             position = position_jitterdodge()) + 
-  scale_color_manual(values = pal, name = "annotation") + 
-  scale_fill_manual(values = pal, name = "annotation") + 
-  labs(y = "mean logcounts per spot") + 
-  ggtitle("Enrichment") + 
-  theme_bw() + 
-  theme(plot.title = element_text(face = "bold"), 
-        axis.text.x = element_text(face = "italic"))
-
-fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_excBr5459")
-ggsave(paste0(fn, ".pdf"), width = 4.25, height = 4)
-ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
-
+# ---------------------
+# plots with sample IDs
+# ---------------------
 
 # plots with shapes for sample IDs
 
-# marker genes for NE neurons
-set.seed(1)
+# plot marker genes for NE neurons
+set.seed(123)
 ggplot(df_NE) + 
   geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions, shape = sample), 
              stroke = 0.75, position = position_jitterdodge()) + 
-  scale_color_manual(values = pal, name = "annotation") + 
-  scale_fill_manual(values = pal, name = "annotation") + 
+  scale_color_manual(values = pal_NE, name = "annotation") + 
+  scale_fill_manual(values = pal_NE, name = "annotation") + 
   scale_shape_manual(values = 1:12) + 
   guides(color = guide_legend(order = 1)) + 
   guides(fill = guide_legend(order = 1)) + 
@@ -217,20 +200,20 @@ ggplot(df_NE) +
   theme(plot.title = element_text(face = "bold"), 
         axis.text.x = element_text(face = "italic"))
 
-fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_allSamples_withSampleIDs")
+fn <- here(dir_plots, "enrichment_annotatedRegions_NEmarkers_withSampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4.5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 4.5)
 
 
-# marker genes for 5-HT neurons
-set.seed(100)
+# plot marker genes for 5-HT neurons
+set.seed(123)
 ggplot(df_5HT) + 
   geom_boxplot(aes(x = gene, y = mean, color = regions, fill = regions), 
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions, shape = sample), 
              stroke = 0.75, position = position_jitterdodge()) + 
-  scale_color_manual(values = pal, name = "annotation") + 
-  scale_fill_manual(values = pal, name = "annotation") + 
+  scale_color_manual(values = pal_5HT, name = "annotation") + 
+  scale_fill_manual(values = pal_5HT, name = "annotation") + 
   scale_shape_manual(values = 1:12) + 
   guides(color = guide_legend(order = 1)) + 
   guides(fill = guide_legend(order = 1)) + 
@@ -241,7 +224,7 @@ ggplot(df_5HT) +
   theme(plot.title = element_text(face = "bold"), 
         axis.text.x = element_text(face = "italic"))
 
-fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers_allSamples_withSampleIDs")
+fn <- here(dir_plots, "enrichment_annotatedRegions_5HTmarkers_withSampleIDs")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4.5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 4.5)
 
