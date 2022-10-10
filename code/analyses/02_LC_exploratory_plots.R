@@ -18,6 +18,7 @@ library(tibble)
 library(ggplot2)
 library(ggnewscale)
 library(RColorBrewer)
+library(scater)
 
 
 # directory to save plots
@@ -147,4 +148,71 @@ for (g in seq_along(genes_main)) {
     ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
   }
 }
+
+
+# ----------------------------------------
+# calculate spot-level QC metric summaries
+# ----------------------------------------
+
+# without any removal of samples
+
+
+# filter zeros
+
+# remove genes with zero expression
+ix_zero_genes <- rowSums(counts(spe)) == 0
+table(ix_zero_genes)
+
+spe <- spe[!ix_zero_genes, ]
+dim(spe)
+
+# remove spots with zero expression
+ix_zero_spots <- colSums(counts(spe)) == 0
+table(ix_zero_spots)
+
+spe <- spe[, !ix_zero_spots]
+dim(spe)
+
+# check no zeros or NAs remaining
+table(colData(spe)$in_tissue, useNA = "always")
+table(rowSums(counts(spe)) == 0, useNA = "always")
+table(colSums(counts(spe)) == 0, useNA = "always")
+
+
+# calculate QC metrics
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
+table(is_mito)
+rowData(spe)$gene_name[is_mito]
+
+# calculate QC metrics using scater package
+spe <- addPerCellQCMetrics(spe, subsets = list(mito = is_mito))
+
+head(colData(spe), 2)
+
+
+# calculate QC summaries by sample
+df_qc_summary_by_sample <- 
+  colData(spe) %>% 
+  as.data.frame() %>% 
+  select(c("sample_id", "sum", "detected", "subsets_mito_percent")) %>% 
+  group_by(sample_id) %>% 
+  summarize(median_sum = median(sum), 
+            median_detected = median(detected), 
+            median_mito = median(subsets_mito_percent))
+
+df_qc_summary_by_sample
+
+
+# calculate overall QC summaries
+df_qc_summary_overall <- 
+  colData(spe) %>% 
+  as.data.frame() %>% 
+  select(c("sum", "detected", "subsets_mito_percent")) %>% 
+  summarize(median_sum = median(sum), 
+            median_detected = median(detected), 
+            median_mito = median(subsets_mito_percent))
+
+df_qc_summary_overall
 
