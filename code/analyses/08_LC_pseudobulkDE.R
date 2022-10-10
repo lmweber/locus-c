@@ -7,7 +7,7 @@
 # https://github.com/LieberInstitute/spatialDLPFC
 
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
@@ -29,10 +29,10 @@ library(ComplexHeatmap)
 
 
 # directory to save plots
-dir_plots <- here("plots", "08_pseudobulkDE")
+dir_plots <- here("plots", "Visium", "08_pseudobulkDE")
 
 # directory to save outputs
-dir_outputs <- here("outputs", "08_pseudobulkDE")
+dir_outputs <- here("outputs", "Visium", "08_pseudobulkDE")
 
 
 # ---------
@@ -45,11 +45,6 @@ fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
-
-# remove samples where NE neurons were not captured
-samples_remove <- "Br5459_LC_round2"
-spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
-colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
 
 table(colData(spe)$sample_id)
 
@@ -100,26 +95,18 @@ counts(spe_pseudo)[1:3, ]
 # ---------
 
 # calculate logcounts for pseudobulked data
-# using default library size scale factors
+# using library size scale factors
 
-spe_pseudo <- logNormCounts(spe_pseudo, size.factors = NULL)
+spe_pseudo <- computeLibraryFactors(spe_pseudo)
+spe_pseudo <- logNormCounts(spe_pseudo)
 
 
 # ---------
 # filtering
 # ---------
 
-# additional filtering of low-expressed genes
-# using threshold on total UMI counts summed across all samples
-# e.g. total 80 = 8 samples * 10 UMI counts per sample
-
-n_umis <- 80
-ix_remove <- rowSums(counts(spe_pseudo)) < n_umis
-table(ix_remove)
-
-spe_pseudo <- spe_pseudo[!ix_remove, ]
-
-dim(spe_pseudo)
+# no additional filtering needed
+# low-expressed genes were already filtered out previously
 
 
 # -----------------------
@@ -240,7 +227,7 @@ table(sig)
 df <- data.frame(
   gene = names(fdrs), 
   FDR = fdrs, 
-  logFC = logfc, 
+  log2FC = logfc, 
   sig = sig
 )
 
@@ -248,7 +235,7 @@ pal <- c("black", "red")
 
 
 # volcano plot without labels
-ggplot(df, aes(x = logFC, y = -log10(FDR), color = sig)) + 
+ggplot(df, aes(x = log2FC, y = -log10(FDR), color = sig)) + 
   geom_point(size = 0.1) + 
   geom_point(data = df[df$sig, ], size = 0.5) + 
   scale_color_manual(values = pal, guide = "none") + 
@@ -260,42 +247,42 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = sig)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_volcano")
+fn <- file.path(dir_plots, "pseudobulkDE_volcano_significant")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
-# -------------------------------------------------------
-# volcano plot: highly associated significance thresholds
-# -------------------------------------------------------
+# -------------------------------------------
+# volcano plot: highly significant thresholds
+# -------------------------------------------
 
 # summarize results with volcano plot
 
-# highly associated significance thresholds
+# highly significant thresholds
 
 # identify significant genes (low FDR and high logFC)
 thresh_fdr <- 1e-3
 thresh_logfc <- log2(3)
-highlyassoc <- (fdrs < thresh_fdr) & (abs(logfc) > thresh_logfc)
+highlysig <- (fdrs < thresh_fdr) & (abs(logfc) > thresh_logfc)
 
 # number of significant genes
-table(highlyassoc)
+table(highlysig)
 
 
 df <- data.frame(
   gene = names(fdrs), 
   FDR = fdrs, 
-  logFC = logfc, 
-  highlyassoc = highlyassoc
+  log2FC = logfc, 
+  highlysig = highlysig
 )
 
 pal <- c("black", "red")
 
 
 # volcano plot without labels
-ggplot(df, aes(x = logFC, y = -log10(FDR), color = highlyassoc)) + 
+ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig)) + 
   geom_point(size = 0.1) + 
-  geom_point(data = df[df$highlyassoc, ], size = 0.5) + 
+  geom_point(data = df[df$highlysig, ], size = 0.5) + 
   scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = -log10(1e-3), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = -log2(3), lty = "dashed", color = "royalblue") + 
@@ -305,17 +292,17 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = highlyassoc)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_highlyAssociated_volcano")
+fn <- file.path(dir_plots, "pseudobulkDE_volcano_highlySig")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
 # volcano plot with labels
 set.seed(123)
-ggplot(df, aes(x = logFC, y = -log10(FDR), color = highlyassoc, label = gene)) + 
+ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
-  geom_point(data = df[df$highlyassoc, ], size = 0.5) + 
-  geom_text_repel(data = df[df$highlyassoc, ], 
+  geom_point(data = df[df$highlysig, ], size = 0.5) + 
+  geom_text_repel(data = df[df$highlysig, ], 
                   size = 1.5, nudge_y = 0.1, 
                   force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
                   max.overlaps = 20) + 
@@ -328,7 +315,7 @@ ggplot(df, aes(x = logFC, y = -log10(FDR), color = highlyassoc, label = gene)) +
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "pseudobulkDE_highlyAssociated_volcanoWithLabels")
+fn <- file.path(dir_plots, "pseudobulkDE_volcanoWithLabels_highlySig")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -357,9 +344,9 @@ hmat <- cbind(
 
 
 # select top genes
-# ordered by FDR within set of significant genes (highly associated set)
-stopifnot(length(fdrs) == length(highlyassoc))
-top <- sort(fdrs[highlyassoc])
+# ordered by FDR within set of significant genes (highly significant set)
+stopifnot(length(fdrs) == length(highlysig))
+top <- sort(fdrs[highlysig])
 top_names <- names(top)
 
 # order matrix rows
@@ -473,22 +460,22 @@ df_all <- data.frame(
   pval = p_vals, 
   FDR = fdrs, 
   significant = sig, 
-  highly_associated = highlyassoc
+  highly_significant = highlysig
 )
 
-# subset significant and highly associated genes
-df_sig <- df_all[df_all$highly_associated, ]
-df_highlyassoc <- df_all[df_all$highly_associated, ]
+# subset significant and highly significant genes
+df_sig <- df_all[df_all$highly_significant, ]
+df_highlysig <- df_all[df_all$highly_significant, ]
 
 dim(df_all)
 dim(df_sig)
-dim(df_highlyassoc)
+dim(df_highlysig)
 
 
 # order in most user-friendly way for each set (by gene IDs or FDRs)
 df_all <- df_all[order(df_all$gene_id), ]
 df_sig <- df_sig[order(df_sig$FDR), ]
-df_highlyassoc <- df_highlyassoc[order(df_highlyassoc$FDR), ]
+df_highlysig <- df_highlysig[order(df_highlysig$FDR), ]
 
 
 # save .csv files
@@ -498,6 +485,6 @@ write.csv(df_all, file = fn_all, row.names = FALSE)
 fn_sig <- file.path(dir_outputs, "LC_pseudobulkDE_sigGenes.csv")
 write.csv(df_sig, file = fn_sig, row.names = FALSE)
 
-fn_highlyassoc <- file.path(dir_outputs, "LC_pseudobulkDE_highlyAssociatedGenes.csv")
-write.csv(df_highlyassoc, file = fn_highlyassoc, row.names = FALSE)
+fn_highlysig <- file.path(dir_outputs, "LC_pseudobulkDE_highlySigGenes.csv")
+write.csv(df_highlysig, file = fn_highlysig, row.names = FALSE)
 
