@@ -57,7 +57,9 @@ stopifnot(length(sf_deconv) == length(sf_lib))
 
 # plot comparing size factors
 
-fn <- file.path(dir_plots, "LC_sizeFactors")
+dir.create(file.path(dir_plots, "size_factors"))
+
+fn <- file.path(dir_plots, "size_factors", "LC_sizeFactors")
 
 pdf(paste0(fn, ".pdf"), width = 6, height = 6)
 plot(x = sf_lib, y = sf_deconv, pch = 16, cex = 0.3, col = qclus, log = "xy", 
