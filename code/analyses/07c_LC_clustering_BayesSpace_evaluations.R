@@ -3,7 +3,7 @@
 # Lukas Weber, Oct 2022
 ######################################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07b_clustering_BayesSpace")
+dir_plots <- here("plots", "Visium", "07_spatially_aware_clustering", "clustering_BayesSpace")
 
 
 # ---------
@@ -55,7 +55,7 @@ df$spatial.cluster <- as.factor(df$spatial.cluster)
 
 
 #pal <- unname(palette.colors(6, palette = "Okabe-Ito"))
-pal <- c("dodgerblue", "skyblue1", "red", "navy")
+pal <- c("dodgerblue", "blue3", "skyblue1", "red", "deepskyblue")
 
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, 
                color = spatial.cluster)) + 
@@ -86,7 +86,7 @@ ggsave(paste0(fn, ".png"), width = 7.25, height = 4)
 
 
 # select cluster ID matching most closely to LC regions
-selected <- 3
+selected <- 4
 
 # calculate adjusted Rand index (ARI)
 clus <- as.numeric(colData(spe)$spatial.cluster == selected)
@@ -155,7 +155,7 @@ df <- df_summary %>%
 
 pal <- unname(palette.colors(4, palette = "Classic Tableau"))
 
-set.seed(1)
+set.seed(123)
 ggplot(df, aes(x = metric, y = value, color = metric)) + 
   geom_boxplot(outlier.shape = NA) + 
   geom_jitter(aes(shape = sample_id), width = 0.15, size = 1.25, stroke = 0.75) + 

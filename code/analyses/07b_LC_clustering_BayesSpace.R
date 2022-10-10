@@ -1,9 +1,9 @@
 ##########################################################
-# LC analyses: spatially aware clustering using BayesSpace
+# LC analyses: spatially-aware clustering using BayesSpace
 # Lukas Weber, Oct 2022
 ##########################################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
@@ -17,7 +17,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07b_clustering_BayesSpace")
+dir_plots <- here("plots", "Visium", "07_spatially_aware_clustering", "clustering_BayesSpace")
 
 
 # ---------
@@ -112,7 +112,7 @@ ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
 set.seed(123)
 spe <- spatialCluster(
   spe, 
-  q = 4, 
+  q = 5, 
   use.dimred = "HARM", 
   d = 15, 
   platform = "Visium", 
@@ -131,5 +131,4 @@ table(colData(spe)$spatial.cluster)
 
 fn_out <- here("processed_data", "SPE", "LC_BayesSpace")
 saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
 

@@ -3,7 +3,7 @@
 # Lukas Weber, Oct 2022
 #############################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "07a_batch_correction")
+dir_plots <- here("plots", "Visium", "07_spatially_aware_clustering", "batch_correction_Harmony")
 
 
 # ---------
@@ -33,15 +33,7 @@ spe <- readRDS(fn_spe)
 
 dim(spe)
 
-# remove samples where NE neurons were not captured
-samples_remove <- "Br5459_LC_round2"
-spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
-colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
-
 table(colData(spe)$sample_id)
-
-sample_ids <- levels(colData(spe)$sample_id)
-sample_ids
 
 
 # -------------------------------------------------
@@ -308,5 +300,4 @@ ggsave(paste0(fn, ".png"), width = 7, height = 5)
 
 fn_out <- here("processed_data", "SPE", "LC_batchCorrectedHarmony")
 saveRDS(spe, paste0(fn_out, ".rds"))
-save(spe, file = paste0(fn_out, ".RData"))
 
