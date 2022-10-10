@@ -137,7 +137,9 @@ df_qc_summary_overall
 
 # plot histograms of QC metrics
 
-fn <- file.path(dir_plots, "QC_histograms_allSpots.pdf")
+dir.create(file.path(dir_plots, "QC_metrics"))
+
+fn <- file.path(dir_plots, "QC_metrics", "QC_histograms_allSpots.pdf")
 pdf(fn, width = 6.5, height = 2.5)
 par(mfrow = c(1, 3))
 hist(log10(colData(spe)$sum), xlab = "log10 sum", main = "UMIs per spot")
@@ -147,7 +149,7 @@ par(mfrow = c(1, 1))
 dev.off()
 
 # number of cells per spot (not used)
-fn <- file.path(dir_plots, "QC_cellCount_allSpots.pdf")
+fn <- file.path(dir_plots, "QC_metrics", "QC_cellCount_allSpots.pdf")
 pdf(fn, width = 4, height = 4)
 hist(colData(spe)$cell_count, xlab = "no. cells", main = "No. cells per spot")
 dev.off()
@@ -181,7 +183,7 @@ ggplot(as.data.frame(df_qc_summary_by_sample),
   theme_bw() + 
   theme(axis.title.x = element_blank())
 
-fn <- file.path(dir_plots, "QC_metrics_bySample")
+fn <- file.path(dir_plots, "QC_metrics", "QC_metrics_bySample")
 ggsave(paste0(fn, ".pdf"), width = 7, height = 4)
 ggsave(paste0(fn, ".png"), width = 7, height = 4)
 
@@ -268,7 +270,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "QC_samples_lowUMIs")
+fn <- file.path(dir_plots, "QC_metrics", "QC_samples_lowUMIs")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
@@ -298,7 +300,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "QC_samples_lowDetected")
+fn <- file.path(dir_plots, "QC_metrics", "QC_samples_lowDetected")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
@@ -328,7 +330,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "QC_samples_highMito")
+fn <- file.path(dir_plots, "QC_metrics", "QC_samples_highMito")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
@@ -358,7 +360,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "QC_samples_discard")
+fn <- file.path(dir_plots, "QC_metrics", "QC_samples_discard")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
@@ -367,7 +369,11 @@ ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 # plot annotations
 # ----------------
 
-# plot manual annotations before removing low-quality spots
+# plot manual annotations after removing low-quality samples and 
+# before removing low-quality spots
+
+dir.create(file.path(dir_plots, "annotations"))
+
 
 # plot annotated regions
 ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
@@ -389,7 +395,7 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "annotations_regions")
+fn <- file.path(dir_plots, "annotations", "annotations_regions")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
@@ -419,84 +425,9 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
-fn <- file.path(dir_plots, "annotations_regionsAndSpots")
+fn <- file.path(dir_plots, "annotations", "annotations_regionsAndSpots")
 ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
-
-
-# -----------------------------------
-# plot annotations: individual panels
-# -----------------------------------
-
-# plot manual annotations before removing low-quality spots
-
-dir.create(file.path(dir_plots, "annotations_regions"))
-dir.create(file.path(dir_plots, "annotations_regionsAndSpots"))
-
-
-# plot annotated regions
-for (s in seq_along(sample_ids)) {
-  df_sub <- df[df$sample_id == sample_ids[s], ]
-  
-  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
-    geom_point(aes(color = in_tissue), size = 0.3) + 
-    scale_color_manual(values = "gray80", name = "tissue") + 
-    guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
-    new_scale_color() + 
-    geom_point(data = df_sub[df_sub$annot_region, , drop = FALSE], 
-               aes(color = annot_region), size = 0.3) + 
-    scale_color_manual(values = "red", name = "annotated") + 
-    guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    ggtitle(sample_ids[s]) + 
-    theme_bw() + 
-    theme(plot.title = element_text(face = "bold"), 
-          panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  fn <- file.path(dir_plots, "annotations_regions", 
-                  paste0("annotations_regions_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
-  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
-}
-
-
-# plot annotated regions and spots
-for (s in seq_along(sample_ids)) {
-  df_sub <- df[df$sample_id == sample_ids[s], ]
-  
-  ggplot(df_sub, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres)) + 
-    geom_point(aes(color = in_tissue), size = 0.3) + 
-    scale_color_manual(values = "gray80", name = "tissue") + 
-    guides(color = guide_legend(override.aes = list(size = 2), order = 1)) + 
-    new_scale_color() + 
-    geom_point(data = df_sub[df_sub$annot_region, , drop = FALSE], 
-               aes(color = annot_region), size = 0.3) + 
-    scale_color_manual(values = "red", name = "annotated\nregions") + 
-    guides(color = guide_legend(override.aes = list(size = 2), order = 2)) + 
-    new_scale_color() + 
-    geom_point(data = df_sub[df_sub$annot_spot, , drop = FALSE], 
-               aes(color = annot_spot), size = 0.3) + 
-    scale_color_manual(values = "black", name = "annotated\nspots") + 
-    guides(color = guide_legend(override.aes = list(size = 2), order = 3)) + 
-    coord_fixed() + 
-    scale_y_reverse() + 
-    ggtitle(sample_ids[s]) + 
-    theme_bw() + 
-    theme(plot.title = element_text(face = "bold"), 
-          panel.grid = element_blank(), 
-          axis.title = element_blank(), 
-          axis.text = element_blank(), 
-          axis.ticks = element_blank())
-  
-  fn <- file.path(dir_plots, "annotations_regionsAndSpots", 
-                  paste0("annotations_regionsAndSpots_", sample_ids[s]))
-  ggsave(paste0(fn, ".pdf"), width = 4.5, height = 3)
-  ggsave(paste0(fn, ".png"), width = 4.5, height = 3)
-}
 
 
 # ----------------------------------------
@@ -560,7 +491,7 @@ ggplot() +
         axis.text = element_text(size = 12), 
         panel.grid = element_blank())
 
-fn <- file.path(dir_plots, "heatmap_spotAnnotationVsTHexpression")
+fn <- file.path(dir_plots, "annotations", "heatmap_spotAnnotationVsTHexpression")
 ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
 ggsave(paste0(fn, ".png"), width = 6, height = 4)
 
