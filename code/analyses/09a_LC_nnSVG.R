@@ -19,7 +19,7 @@ library(scran)
 
 
 # directory to save outputs
-dir_outputs <- here("outputs", "09_nnSVG")
+dir_outputs <- here("outputs", "Visium", "09_nnSVG")
 
 
 # ---------
@@ -33,18 +33,13 @@ spe <- readRDS(fn_spe)
 
 dim(spe)
 
-# remove samples where NE neurons were not captured
-samples_remove <- "Br5459_LC_round2"
-spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
-colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
-
 table(colData(spe)$sample_id)
 
 sample_ids <- levels(colData(spe)$sample_id)
 sample_ids
 
 
-# sample-part IDs for parts that contain LC annotated regions in samples above
+# sample-part IDs for parts that contain LC annotated regions
 sample_part_ids <- c(
   "Br6522_LC_1_round1_single", 
   "Br6522_LC_2_round1_single", 
