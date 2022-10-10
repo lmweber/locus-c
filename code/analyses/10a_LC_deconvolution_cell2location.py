@@ -401,7 +401,13 @@ sapply(py$obsm['means_cell_abundance_w_sf'], quantile, seq(0, 1, by = 0.1))
 
 
 # add cell2location results to SPE object
-colData(spe) <- cbind(colData(spe), py$obsm['means_cell_abundance_w_sf'])
+colData(spe) <- cbind(
+  colData(spe), 
+  py$obsm['means_cell_abundance_w_sf'], 
+  py$obsm['stds_cell_abundance_w_sf'], 
+  py$obsm['q05_cell_abundance_w_sf'], 
+  py$obsm['q95_cell_abundance_w_sf']
+)
 
 
 # save SPE object for further plotting
