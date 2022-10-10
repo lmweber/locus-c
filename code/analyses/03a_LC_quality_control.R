@@ -137,7 +137,7 @@ df_qc_summary_overall
 
 # plot histograms of QC metrics
 
-dir.create(file.path(dir_plots, "QC_metrics"))
+dir.create(file.path(dir_plots, "QC_metrics"), recursive = TRUE)
 
 fn <- file.path(dir_plots, "QC_metrics", "QC_histograms_allSpots.pdf")
 pdf(fn, width = 6.5, height = 2.5)
@@ -372,7 +372,7 @@ ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 # plot manual annotations after removing low-quality samples and 
 # before removing low-quality spots
 
-dir.create(file.path(dir_plots, "annotations"))
+dir.create(file.path(dir_plots, "annotations"), recursive = TRUE)
 
 
 # plot annotated regions

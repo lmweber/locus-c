@@ -16,7 +16,7 @@ library(scater)
 library(scran)
 
 # directory to save plots
-dir_plots <- here("plots", "03_quality_control")
+dir_plots <- here("plots", "Visium", "03_quality_control")
 
 
 # ---------
@@ -57,7 +57,7 @@ stopifnot(length(sf_deconv) == length(sf_lib))
 
 # plot comparing size factors
 
-dir.create(file.path(dir_plots, "size_factors"))
+dir.create(file.path(dir_plots, "size_factors"), recursive = TRUE)
 
 fn <- file.path(dir_plots, "size_factors", "LC_sizeFactors")
 

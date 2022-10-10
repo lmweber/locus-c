@@ -223,7 +223,7 @@ df_qc_summary_overall
 
 # plot manual annotations for all samples (before removing any samples based on QC)
 
-dir.create(file.path(dir_plots, "annotations"))
+dir.create(file.path(dir_plots, "annotations"), recursive = TRUE)
 
 
 df <- as.data.frame(cbind(colData(spe), spatialCoords(spe)))
@@ -290,8 +290,8 @@ ggsave(paste0(fn, ".png"), width = 9, height = 4)
 
 # plot manual annotations before removing low-quality spots
 
-dir.create(file.path(dir_plots, "annotations", "annotations_regions"))
-dir.create(file.path(dir_plots, "annotations", "annotations_regionsAndSpots"))
+dir.create(file.path(dir_plots, "annotations", "annotations_regions"), recursive = TRUE)
+dir.create(file.path(dir_plots, "annotations", "annotations_regionsAndSpots"), recursive = TRUE)
 
 
 # plot annotated regions
