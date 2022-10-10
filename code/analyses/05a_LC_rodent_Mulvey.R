@@ -3,7 +3,7 @@
 # Lukas Weber, Oct 2022
 ################################################
 
-# module load conda_R/devel
+# module load conda_R/4.2
 # Rscript filename.R
 
 # file location:
@@ -19,7 +19,7 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "06_rodent_genes")
+dir_plots <- here("plots", "Visium", "05_rodent_genes")
 
 
 # ---------
@@ -28,20 +28,14 @@ dir_plots <- here("plots", "06_rodent_genes")
 
 # load saved SPE object from previous script
 
-fn_spe <- here("processed_data", "SPE", "LC_filtered.rds")
+fn_spe <- here("processed_data", "SPE", "LC_logcounts.rds")
 spe <- readRDS(fn_spe)
 
 dim(spe)
 
-# remove samples where NE neurons were not captured
-samples_remove <- "Br5459_LC_round2"
-spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
-colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
-
 table(colData(spe)$sample_id)
 
 sample_ids <- levels(colData(spe)$sample_id)
-sample_ids
 
 
 # --------------------
@@ -71,10 +65,10 @@ human_genes <- c(
 human_genes <- sort(human_genes)
 length(human_genes)
 
-# 36 out of 45 genes present in filtered SPE object
+# 42 out of 45 genes present in SPE object (before gene filtering)
 sum(human_genes %in% rowData(spe)$gene_name)
 
-# keep genes that are present in filtered SPE object
+# keep genes that are present in SPE object (before gene filtering)
 ix_keep <- which(human_genes %in% rowData(spe)$gene_name)
 human_genes <- human_genes[ix_keep]
 
