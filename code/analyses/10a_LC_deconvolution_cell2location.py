@@ -40,14 +40,7 @@ spe <- readRDS(fn_spe)
 
 dim(spe)
 
-# remove samples where NE neurons were not captured
-samples_remove <- "Br5459_LC_round2"
-spe <- spe[, !(colData(spe)$sample_id %in% samples_remove)]
-colData(spe)$sample_id <- droplevels(colData(spe)$sample_id)
-
-# check sample IDs
 table(colData(spe)$sample_id)
-table(colData(spe)$sample_part_id)
 
 
 # -------------------------
