@@ -26,6 +26,7 @@ library(ggplot2)
 library(ggnewscale)
 library(ggrepel)
 library(ComplexHeatmap)
+library(viridisLite)
 
 
 # directory to save plots
@@ -360,6 +361,7 @@ rownames(hmat) <- nms
 # create heatmap (horizontal format)
 hm <- Heatmap(
   t(hmat), 
+  col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   row_names_side = "left", row_names_gp = gpar(fontsize = 10), 
   column_names_gp = gpar(fontsize = 9, fontface = "italic"), 
@@ -383,6 +385,7 @@ dev.off()
 # create heatmap (vertical format)
 hm <- Heatmap(
   hmat, 
+  col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
