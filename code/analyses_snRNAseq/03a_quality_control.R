@@ -81,30 +81,25 @@ ggsave(paste0(fn, ".pdf"), plot = p, width = 12, height = 3.5)
 ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
 
 
-# -------------------------
-# High-mitochondrial nuclei
-# -------------------------
+# ------------------------------------
+# Investigate mitochondrial proportion
+# ------------------------------------
 
-# investigate nuclei with high mitochondrial proportion of reads
-
-nonzero_TH <- counts(sce)[which(rowData(sce)$gene_name == "TH"), ] > 0
-
-# proportion of nuclei with expression of TH
-mean(nonzero_TH)
-
-# mitochondrial proportion in nuclei with expression of TH
-summary(colData(sce)$subsets_Mito_percent[nonzero_TH])
-quantile(colData(sce)$subsets_Mito_percent[nonzero_TH], seq(0, 1, by = 0.1))
-
-
-# plot proportion of mitochondrial reads in nuclei with expression of DBH and TH
+# investigate mitochondrial proportion in nuclei with expression of DBH and TH
 # (i.e. supervised approximate identification of NE neuron nuclei)
 
 ix_DBH <- which(rowData(sce)$gene_name == "DBH")
 ix_TH <- which(rowData(sce)$gene_name == "TH")
 
 ix_supervised <- counts(sce)[ix_DBH, ] > 0 & counts(sce)[ix_TH, ] > 0
+
+# number of nuclei
 table(ix_supervised)
+
+# mitochondrial proportion in these nuclei
+summary(colData(sce)$subsets_Mito_percent[ix_supervised])
+quantile(colData(sce)$subsets_Mito_percent[ix_supervised], seq(0, 1, by = 0.1))
+
 
 sce_supervised <- sce[, ix_supervised]
 
