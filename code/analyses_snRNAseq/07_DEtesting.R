@@ -195,6 +195,7 @@ dim(hmat)
 # select top n
 hmat <- hmat[1:70, ]
 
+
 # create heatmap
 hm <- Heatmap(
   hmat, 
@@ -331,6 +332,7 @@ dim(hmat)
 
 # select top n
 hmat <- hmat[1:70, ]
+
 
 # create heatmap
 hm <- Heatmap(
