@@ -169,13 +169,13 @@ markers_inhib <- c(
 # ----------------------------------------------
 
 # marker labels
-markers_inhib_labels <- c(
+marker_labels_inhib <- c(
   rep("neuron", 2), 
   rep("inhibitory", 2), 
   rep("inhibitory_subtypes", 12))
 
-markers_inhib_labels <- 
-  factor(markers_inhib_labels, levels = unique(markers_inhib_labels))
+marker_labels_inhib <- 
+  factor(marker_labels_inhib, levels = unique(marker_labels_inhib))
 
 
 # colors
@@ -210,7 +210,7 @@ row_ha <- rowAnnotation(
 
 # column annotation
 col_ha <- columnAnnotation(
-  marker = markers_inhib_labels, 
+  marker = marker_labels_inhib, 
   show_annotation_name = FALSE, 
   show_legend = FALSE, 
   col = colors_markers_inhib)
@@ -227,7 +227,7 @@ hm <- Heatmap(
   cluster_rows = TRUE, 
   cluster_columns = FALSE, 
   row_title = NULL, 
-  column_split = markers_inhib_labels, 
+  column_split = marker_labels_inhib, 
   column_names_gp = gpar(fontface = "italic"), 
   rect_gp = gpar(col = "gray50", lwd = 0.5))
 

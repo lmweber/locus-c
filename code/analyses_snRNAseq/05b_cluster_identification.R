@@ -58,10 +58,9 @@ colors <- unique(c(tableau20, tableau10medium))
 # Marker genes
 # ------------
 
-# marker genes for broad cell populations
-# from Matthew N Tran and Keri Martinowich
+# marker gene lists from Matthew N Tran and Keri Martinowich
 
-markers_broad <- c(
+markers_all <- c(
   # neuron markers
   "SNAP25", "SYT1", 
   # excitatory (glutamatergic) neuron markers
@@ -69,9 +68,9 @@ markers_broad <- c(
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
   # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
-  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", ## "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", "HTR3A" (not present in our data)
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", ## "HTR3A" (not present in data)
   # cholinergic neurons
-  # "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
+  "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
   # NE neuron markers
   "DBH", "TH", "SLC6A2", "SLC18A2", ## "DDC", "GCH1"
   # 5-HT (serotonin) markers
@@ -122,7 +121,8 @@ marker_labels <- c(
   rep("oligodendrocytes", 1), 
   rep("OPCs", 2))
 
-marker_labels <- factor(marker_labels, levels = unique(marker_labels))
+marker_labels <- 
+  factor(marker_labels, levels = unique(marker_labels))
 
 
 # colors: selected from tableau20 and tableau10medium
@@ -249,6 +249,112 @@ hm
 dev.off()
 
 png(paste0(fn, ".png"), width = 8 * 200, height = 6.5 * 200, res = 200)
+hm
+dev.off()
+
+
+# -----------------------------------------------------
+# Marker expression heatmap: inhibitory and cholinergic
+# -----------------------------------------------------
+
+# marker expression heatmap with additional inhibitory and cholinergic markers
+
+# re-using some objects from previous heatmap above
+
+
+# markers for heatmap
+markers_extended <- c(
+  "SNAP25", "SYT1", 
+  "SLC17A6", 
+  "GAD1", "GAD2", 
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", 
+  "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
+  "DBH", "TH", "SLC6A2", "SLC18A2", 
+  "TPH2", "SLC6A4", 
+  "GFAP", "AQP4", 
+  "CLDN5", "FLT1", "RBPMS", 
+  "CD163", "C3", 
+  "MBP", 
+  "PDGFRA", "VCAN"
+)
+
+
+# marker labels
+marker_labels_extended <- c(
+  rep("neuron", 2), 
+  rep("excitatory", 1), 
+  rep("inhibitory", 2), 
+  rep("inhibitory_subtypes", 12), 
+  rep("cholinergic", 6), 
+  rep("NE", 4), 
+  rep("5HT", 2), 
+  rep("astrocytes", 2), 
+  rep("endothelial_mural", 3), 
+  rep("macrophages_microglia", 2), 
+  rep("oligodendrocytes", 1), 
+  rep("OPCs", 2))
+
+marker_labels_extended <- 
+  factor(marker_labels_extended, levels = unique(marker_labels_extended))
+
+
+# colors: selected from tableau20 and tableau10medium
+colors_markers_extended <- list(marker = c(
+  neuron = "black", 
+  excitatory = "#1F77B4", 
+  inhibitory = "#AEC7E8", 
+  inhibitory_subtypes = "deepskyblue1", 
+  cholinergic = "gold", 
+  NE = "#D62728", 
+  `5HT` = "#9467BD", 
+  astrocytes = "#FF7F0E", 
+  endothelial_mural = "#98DF8A", 
+  macrophages_microglia = "#8C564B", 
+  oligodendrocytes = "#9EDAE5", 
+  OPCs = "#17BECF"))
+
+
+# heatmap data
+
+hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_extended, i]))))
+
+
+# column annotation
+col_ha <- columnAnnotation(
+  marker = marker_labels_extended, 
+  show_annotation_name = FALSE, 
+  show_legend = TRUE, 
+  col = colors_markers_extended)
+
+
+hm <- Heatmap(
+  hm_mat, 
+  name = "mean\nlogcounts", 
+  column_title = "LC clusters mean marker expression", 
+  column_title_gp = gpar(fontface = "bold"), 
+  col = brewer.pal(n = 7, "OrRd"), 
+  right_annotation = row_ha, 
+  bottom_annotation = col_ha, 
+  row_order = cluster_pops_order, 
+  cluster_rows = FALSE, 
+  cluster_columns = FALSE, 
+  row_split = cluster_pops_rev, 
+  row_title = NULL, 
+  column_split = marker_labels_extended, 
+  column_names_gp = gpar(fontface = "italic"), 
+  rect_gp = gpar(col = "gray50", lwd = 0.5))
+
+hm
+
+
+# save heatmap
+fn <- file.path(dir_plots, "clustering_heatmap_extended")
+
+pdf(paste0(fn, ".pdf"), width = 11.5, height = 6.5)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 11.5 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 
