@@ -1,6 +1,6 @@
 ##########################################################
 # LC snRNA-seq analyses: Mulvey et al. (2018) rodent genes
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ##########################################################
 
 
@@ -15,7 +15,7 @@ library(RColorBrewer)
 
 
 # directory to save plots
-dir_plots <- here("plots", "snRNAseq", "08_rodent_genes")
+dir_plots <- here("plots", "singleNucleus", "08_rodent_genes")
 
 
 # ---------------
@@ -24,7 +24,7 @@ dir_plots <- here("plots", "snRNAseq", "08_rodent_genes")
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_clustering_merged")
+fn <- here("processed_data", "SCE", "sce_clustering_secondary")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -129,7 +129,7 @@ df <- data.frame(
 # plot boxplots
 # -------------
 
-pal <- c("darkmagenta", "gray60")
+pal <- c("red", "gray30")
 pal_rev <- rev(pal)
 
 # note: not showing outliers
@@ -145,7 +145,7 @@ ggplot(df, aes(x = logcounts, y = gene, color = clusters, fill = clusters)) +
         axis.text.y = element_text(size = 9, face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "boxplots_Mulvey_NEcluster")
+fn <- here(dir_plots, "enrichment_Mulvey_NEcluster")
 ggsave(paste0(fn, ".pdf"), width = 4.75, height = 6.5)
 ggsave(paste0(fn, ".png"), width = 4.75, height = 6.5)
 
