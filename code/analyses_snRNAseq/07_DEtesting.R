@@ -147,6 +147,7 @@ pal <- c("black", "red")
 
 
 # volcano plot
+
 set.seed(123)
 ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
@@ -160,6 +161,32 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
         panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting_volcano_NEvsOtherNeuronal")
+ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+
+
+# volcano plot with labels
+
+ix_labels <- grepl("^MT-", df$gene) | df$gene %in% c("DBH", "TH", "SLC6A2", "SLC18A2")
+table(ix_labels)
+
+set.seed(123)
+ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
+  geom_point(size = 0.1) + 
+  geom_point(data = df[df$highlysig, ], size = 0.5) + 
+  geom_text_repel(data = df[ix_labels, ], 
+                  size = 1.5, nudge_y = 0.1, 
+                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
+                  max.overlaps = 20) + 
+  scale_color_manual(values = pal, guide = "none") + 
+  geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
+  ggtitle("NE neuron cluster vs. other neuronal clusters") + 
+  theme_bw() + 
+  theme(plot.title = element_text(face = "bold"), 
+        panel.grid.minor = element_blank())
+
+fn <- file.path(dir_plots, "DEtesting_volcano_NEvsOtherNeuronal_withLabels")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -285,6 +312,7 @@ pal <- c("black", "red")
 
 
 # volcano plot
+
 set.seed(123)
 ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
@@ -298,6 +326,32 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
         panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting_5HTvsOtherNeuronal")
+ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+
+
+# volcano plot with labels
+
+ix_labels <- df$gene %in% c("TPH2", "SLC6A4")
+table(ix_labels)
+
+set.seed(123)
+ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
+  geom_point(size = 0.1) + 
+  geom_point(data = df[df$highlysig, ], size = 0.5) + 
+  geom_text_repel(data = df[ix_labels, ], 
+                  size = 1.5, nudge_y = 0.1, 
+                  force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
+                  max.overlaps = 20) + 
+  scale_color_manual(values = pal, guide = "none") + 
+  geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
+  geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
+  ggtitle("5-HT neuron cluster vs. other neuronal clusters") + 
+  theme_bw() + 
+  theme(plot.title = element_text(face = "bold"), 
+        panel.grid.minor = element_blank())
+
+fn <- file.path(dir_plots, "DEtesting_5HTvsOtherNeuronal_withLabels")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
