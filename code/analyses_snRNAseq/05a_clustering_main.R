@@ -10,10 +10,13 @@ library(scater)
 library(scran)
 library(bluster)
 library(ggplot2)
+library(viridisLite)
 library(ggVennDiagram)
+library(dplyr)
+library(tidyr)
 
 
-dir_plots <- here("plots", "snRNAseq", "05a_clustering_main")
+dir_plots <- here("plots", "singleNucleus", "05a_clustering_main")
 
 
 # ---------------
@@ -56,17 +59,12 @@ table(colLabels(sce), colData(sce)$Sample)
 
 # expression of key markers for NE, 5-HT, and cholinergic neuron populations
 ix <- c(
+  DBH = which(rowData(sce)$gene_name == "DBH"), 
   TH = which(rowData(sce)$gene_name == "TH"), 
   SLC6A2 = which(rowData(sce)$gene_name == "SLC6A2"), 
-  DBH = which(rowData(sce)$gene_name == "DBH"), 
-  SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
   TPH2 = which(rowData(sce)$gene_name == "TPH2"), 
-  SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")#, 
-  #CHAT = which(rowData(sce)$gene_name == "CHAT"), 
-  #ACHE = which(rowData(sce)$gene_name == "ACHE"), 
-  #BCHE = which(rowData(sce)$gene_name == "BCHE"), 
-  #SLC18A3 = which(rowData(sce)$gene_name == "SLC18A3"), 
-  #PRIMA1 = which(rowData(sce)$gene_name == "PRIMA1")
+  SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
+  SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")
 )
 
 n_clus <- length(table(colLabels(sce)))
@@ -90,48 +88,32 @@ cbind(
 # Supervised thresholding
 # -----------------------
 
-# identify NE neuron nuclei based on positive expression of TH, SLC6A2, DBH
+# identify NE neuron nuclei based on positive expression of DBH and TH
 
+# check DBH, TH, and SLC6A2
+
+ix_DBH <- which(rowData(sce)$gene_name == "DBH")
 ix_TH <- which(rowData(sce)$gene_name == "TH")
 ix_SLC6A2 <- which(rowData(sce)$gene_name == "SLC6A2")
-ix_DBH <- which(rowData(sce)$gene_name == "DBH")
 
 # number of nuclei
 rbind(
+  DBHpos = table(counts(sce)[ix_DBH, ] > 0), 
   THpos = table(counts(sce)[ix_TH, ] > 0), 
   SLC6A2pos = table(counts(sce)[ix_SLC6A2, ] > 0), 
-  DBHpos = table(counts(sce)[ix_DBH, ] > 0), 
-  all3pos = table(counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0 & counts(sce)[ix_DBH, ] > 0)
+  DBHposTHpos = table(counts(sce)[ix_DBH, ] > 0 & counts(sce)[ix_TH, ] > 0), 
+  DBHposTHposSLC6A2pos = table(counts(sce)[ix_DBH, ] > 0 & counts(sce)[ix_TH, ] > 0 & counts(sce)[ix_SLC6A2, ] > 0)
 )
 
-# identify nuclei
-colData(sce)$posTH <- counts(sce)[ix_TH, ] > 0
-colData(sce)$posSLC6A2 <- counts(sce)[ix_SLC6A2, ] > 0
-colData(sce)$posDBH <- counts(sce)[ix_DBH, ] > 0
 
-# identify nuclei: more strict thresholds
-colData(sce)$posStrictTH <- counts(sce)[ix_TH, ] > 1
-colData(sce)$posStrictSLC6A2 <- counts(sce)[ix_SLC6A2, ] > 1
-colData(sce)$posStrictDBH <- counts(sce)[ix_DBH, ] > 1
+# select nuclei based on DBH and TH
 
+supervised_NE <- counts(sce)[ix_DBH, ] > 0 & counts(sce)[ix_TH, ] > 0
+table(supervised_NE)
 
-# intersection set
-colData(sce)$supervisedNE3of3 = colData(sce)$posTH & colData(sce)$posSLC6A2 & colData(sce)$posDBH
-table(colData(sce)$supervisedNE3of3)
-table(colData(sce)$Sample, colData(sce)$supervisedNE3of3)
-# union set (> 0)
-colData(sce)$supervisedNEunion3of3 = colData(sce)$posTH | colData(sce)$posSLC6A2 | colData(sce)$posDBH
-table(colData(sce)$supervisedNEunion3of3)
-table(colData(sce)$Sample, colData(sce)$supervisedNEunion3of3)
-# union set (> 1)
-colData(sce)$supervisedNEunionStrict3of3 = colData(sce)$posStrictTH | colData(sce)$posStrictSLC6A2 | colData(sce)$posStrictDBH
-table(colData(sce)$supervisedNEunionStrict3of3)
-table(colData(sce)$Sample, colData(sce)$supervisedNEunionStrict3of3)
+stopifnot(length(supervised_NE) == ncol(sce))
 
-# "2 out of 3" set
-colData(sce)$supervised_NE = colData(sce)$posTH & colData(sce)$posDBH
-table(colData(sce)$supervised_NE)
-table(colData(sce)$Sample, colData(sce)$supervised_NE)
+colData(sce)$supervised_NE <- supervised_NE
 
 
 # check expression of key markers
@@ -139,42 +121,28 @@ res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervised_NE])
 names(res) <- names(ix)
 res
 
-res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNE3of3])
-names(res) <- names(ix)
-res
 
-res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunion3of3])
-names(res) <- names(ix)
-res
+# identify cholinergic inhibitory neurons based on marker genes
 
-res <- rowMeans(logcounts(sce)[ix, colData(sce)$supervisedNEunionStrict3of3])
-names(res) <- names(ix)
-res
+ix_SLC5A7 <- which(rowData(sce)$gene_name == "SLC5A7")
+ix_CHAT <- which(rowData(sce)$gene_name == "CHAT")
+ix_ACHE <- which(rowData(sce)$gene_name == "ACHE")
+ix_BCHE <- which(rowData(sce)$gene_name == "BCHE")
+ix_SLC18A3 <- which(rowData(sce)$gene_name == "SLC18A3")
+ix_PRIMA1 <- which(rowData(sce)$gene_name == "PRIMA1")
 
+table(counts(sce)[ix_SLC5A7, ] > 0)
 
-# identify cholinergic interneurons based on positive expression of marker genes
+table(counts(sce)[ix_SLC5A7, ] > 0 & 
+        counts(sce)[ix_CHAT, ] > 0 & 
+        counts(sce)[ix_ACHE, ] > 0)
 
-ix_SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7")
-ix_CHAT = which(rowData(sce)$gene_name == "CHAT")
-ix_ACHE = which(rowData(sce)$gene_name == "ACHE")
-ix_BCHE = which(rowData(sce)$gene_name == "BCHE")
-ix_SLC18A3 = which(rowData(sce)$gene_name == "SLC18A3")
-ix_PRIMA1 = which(rowData(sce)$gene_name == "PRIMA1")
-
-table(
-  counts(sce)[ix_SLC5A7, ] > 0 & 
-  counts(sce)[ix_CHAT, ] > 0 & 
-  counts(sce)[ix_ACHE, ] > 0
-)
-
-table(
-  counts(sce)[ix_SLC5A7, ] > 0 & 
-  counts(sce)[ix_CHAT, ] > 0 & 
-  counts(sce)[ix_ACHE, ] > 0 & 
-  counts(sce)[ix_BCHE, ] > 0 & 
-  counts(sce)[ix_SLC18A3, ] > 0 & 
-  counts(sce)[ix_PRIMA1, ] > 0
-)
+table(counts(sce)[ix_SLC5A7, ] > 0 & 
+        counts(sce)[ix_CHAT, ] > 0 & 
+        counts(sce)[ix_ACHE, ] > 0 & 
+        counts(sce)[ix_BCHE, ] > 0 & 
+        counts(sce)[ix_SLC18A3, ] > 0 & 
+        counts(sce)[ix_PRIMA1, ] > 0)
 
 
 # -----------------
@@ -186,6 +154,7 @@ table(
 # unsupervised clustering
 table(colLabels(sce))
 table(colLabels(sce), colData(sce)$Sample)
+
 
 # NE neuron cluster and 5-HT neuron cluster identified from marker genes above
 clus_NE <- 6
@@ -235,13 +204,13 @@ sce_clus5HT <- sce_plot[, colLabels(sce_plot) == clus_5HT]
 sce_supNE <- sce_plot[, colData(sce_plot)$supervised_NE]
 
 
-genes_NE <- c("TH", "SLC6A2", "DBH")
+genes_NE <- c("DBH", "TH", "SLC6A2")
 genes_5HT <- c("TPH2", "SLC6A4")
 
 
-# --------------------------------
-# Venn diagrams comparing overlaps
-# --------------------------------
+# --------------------------------------------------
+# Venn diagram comparing unsupervised and supervised
+# --------------------------------------------------
 
 colData(sce)$Key <- paste(colData(sce)$Sample, colData(sce)$Barcode, sep = "_")
 
@@ -259,47 +228,47 @@ ggVennDiagram(x) +
   theme_void() + 
   theme(plot.background = element_rect(fill = "white", color = "white"))
 
-fn <- file.path(dir_plots, "overlap_NEneurons_clusteringVsSupervised")
+fn <- file.path(dir_plots, "vennDiagram_clusteringVsSupervised_NE")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 3.5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 3.5)
 
 
-# NE neurons: supervised thresholding on each of TH, SLC6A2, DBH
+# ------------------------------------
+# plot QC metrics in NE neuron cluster
+# ------------------------------------
 
-x <- list(
-  `TH+` = colData(sce)$Key[colData(sce)$posTH], 
-  `SLC6A2+` = colData(sce)$Key[colData(sce)$posSLC6A2], 
-  `DBH+` = colData(sce)$Key[colData(sce)$posDBH]
+# plot QC metrics
+p <- gridExtra::grid.arrange(
+  plotColData(sce_clusNE, x = "Sample", y = "sum", colour_by = "subsets_Mito_percent") + 
+    scale_y_log10() + ggtitle("Total count") + scale_color_viridis_c(name = "mito"), 
+  plotColData(sce_clusNE, x = "Sample", y = "detected", colour_by = "subsets_Mito_percent") + 
+    scale_y_log10() + ggtitle("Detected genes") + scale_color_viridis_c(name = "mito"), 
+  plotColData(sce_clusNE, x = "Sample", y = "subsets_Mito_percent", colour_by = "subsets_Mito_percent") + 
+    ggtitle("Mito percent") + scale_color_viridis_c(name = "mito"), 
+  ncol = 3
 )
 
-ggVennDiagram(x) + 
-  scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
-  scale_color_manual(values = c("black", "black", "black")) + 
-  theme_void() + 
-  theme(plot.background = element_rect(fill = "white", color = "white"))
+p
 
-fn <- file.path(dir_plots, "overlap_NEneurons_byMarker")
-ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
-ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
+fn <- file.path(dir_plots, "QC_metrics_NEcluster")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 3.5)
 
 
-# NE neurons: supervised thresholding on each of TH, SLC6A2, DBH: more strict thresholds
+# plot histogram of mitochondrial proportion
 
-x <- list(
-  `TH++` = colData(sce)$Key[colData(sce)$posStrictTH], 
-  `SLC6A2++` = colData(sce)$Key[colData(sce)$posStrictSLC6A2], 
-  `DBH++` = colData(sce)$Key[colData(sce)$posStrictDBH]
-)
+df <- as.data.frame(colData(sce_clusNE)) %>% 
+  select(c("Barcode", "subsets_Mito_percent"))
 
-ggVennDiagram(x) + 
-  scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
-  scale_color_manual(values = c("black", "black", "black")) + 
-  theme_void() + 
-  theme(plot.background = element_rect(fill = "white", color = "white"))
+ggplot(df, aes(x = subsets_Mito_percent)) + 
+  geom_histogram(bins = 20, fill = "navy") + 
+  labs(x = "mitochondrial percentage") + 
+  ggtitle("NE neuron cluster nuclei") + 
+  theme_bw()
 
-fn <- file.path(dir_plots, "overlap_NEneurons_byMarker_strict")
-ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
-ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
+fn <- here(dir_plots, paste0("histogram_mito_NEcluster"))
+ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
 # -------------------------------
@@ -310,48 +279,57 @@ ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
 # plot expression of NE neuron marker genes
 p <- gridExtra::grid.arrange(
-  plotExpression(sce_clusNE, genes_NE, colour_by = "sum") + ggtitle("NE neuron cluster"), 
-  plotExpression(sce_clusNE, genes_NE, colour_by = "detected") + ggtitle("NE neuron cluster"), 
-  plotExpression(sce_clusNE, genes_NE, colour_by = "subsets_Mito_percent") + ggtitle("NE neuron cluster"), 
+  plotExpression(sce_clusNE, genes_NE, colour_by = "sum") + 
+    ggtitle("NE neuron cluster"), 
+  plotExpression(sce_clusNE, genes_NE, colour_by = "detected") + 
+    ggtitle("NE neuron cluster"), 
+  plotExpression(sce_clusNE, genes_NE, colour_by = "subsets_Mito_percent") + 
+    ggtitle("NE neuron cluster") + scale_color_viridis_c(name = "mito"), 
   ncol = 3
 )
 p
-fn <- file.path(dir_plots, "clusteringNEneurons_expression")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 4)
-ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
+fn <- file.path(dir_plots, "markerExpression_NEcluster")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 9, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 9, height = 3.5)
 
 
 # plot expression of 5-HT neuron marker genes
 p <- gridExtra::grid.arrange(
-  plotExpression(sce_clus5HT, genes_5HT, colour_by = "sum") + ggtitle("5-HT neuron cluster"), 
-  plotExpression(sce_clus5HT, genes_5HT, colour_by = "detected") + ggtitle("5-HT neuron cluster"), 
-  plotExpression(sce_clus5HT, genes_5HT, colour_by = "subsets_Mito_percent") + ggtitle("5-HT neuron cluster"), 
+  plotExpression(sce_clus5HT, genes_5HT, colour_by = "sum") + 
+    ggtitle("5-HT neuron cluster"), 
+  plotExpression(sce_clus5HT, genes_5HT, colour_by = "detected") + 
+    ggtitle("5-HT neuron cluster"), 
+  plotExpression(sce_clus5HT, genes_5HT, colour_by = "subsets_Mito_percent") + 
+    ggtitle("5-HT neuron cluster") + scale_color_viridis_c(name = "mito"), 
   ncol = 3
 )
 p
-fn <- file.path(dir_plots, "clustering5HTneurons_expression")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 4)
-ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
+fn <- file.path(dir_plots, "markerExpression_5HTcluster")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 8, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 8, height = 3.5)
 
 
 # supervised thresholding
 
 # plot expression of NE neuron marker genes
 p <- gridExtra::grid.arrange(
-  plotExpression(sce_supNE, genes_NE, colour_by = "sum") + ggtitle("NE neurons (supervised)"), 
-  plotExpression(sce_supNE, genes_NE, colour_by = "detected") + ggtitle("NE neurons (supervised)"), 
-  plotExpression(sce_supNE, genes_NE, colour_by = "subsets_Mito_percent") + ggtitle("NE neurons (supervised)"), 
+  plotExpression(sce_supNE, genes_NE, colour_by = "sum") + 
+    ggtitle("Supervised NE"), 
+  plotExpression(sce_supNE, genes_NE, colour_by = "detected") + 
+    ggtitle("Supervised NE"), 
+  plotExpression(sce_supNE, genes_NE, colour_by = "subsets_Mito_percent") + 
+    ggtitle("Supervised NE") + scale_color_viridis_c(name = "mito"), 
   ncol = 3
 )
 p
-fn <- file.path(dir_plots, "supervisedNEneurons_expression")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 10, height = 4)
-ggsave(paste0(fn, ".png"), plot = p, width = 10, height = 4)
+fn <- file.path(dir_plots, "markerExpression_supervisedNE")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 9, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 9, height = 3.5)
 
 
-# -------------------------
-# plot UMAP representations
-# -------------------------
+# ----------
+# plot UMAPs
+# ----------
 
 # identify populations of interest
 colData(sce)$unsupervised_NE <- colLabels(sce) == clus_NE
@@ -362,26 +340,27 @@ colData(sce)$unsupervised_5HT <- colLabels(sce) == clus_5HT
 
 # NE neurons
 plotReducedDim(sce, dimred = "UMAP", colour_by = "unsupervised_NE") + 
-  scale_color_manual(values = c("navy", "red"), name = "NE neurons") + 
+  scale_color_manual(values = c("navy", "red"), name = "NE cluster") + 
   ggtitle("Unsupervised clustering")
 
-fn <- file.path(dir_plots, "UMAP_clusteringNEneurons")
+fn <- file.path(dir_plots, "UMAP_NEcluster")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
 
 # 5-HT neurons
 plotReducedDim(sce, dimred = "UMAP", colour_by = "unsupervised_5HT") + 
-  scale_color_manual(values = c("navy", "red"), name = "5-HT neurons") + 
+  scale_color_manual(values = c("navy", "red"), name = "5-HT cluster") + 
   ggtitle("Unsupervised clustering")
 
-fn <- file.path(dir_plots, "UMAP_clustering5HTneurons")
+fn <- file.path(dir_plots, "UMAP_5HTcluster")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
 
 # all clusters
 pal <- unname(palette.colors(36, "Polychrome 36"))
+
 plotReducedDim(sce, dimred = "UMAP", colour_by = "label") + 
   scale_color_manual(values = pal, name = "cluster") + 
   ggtitle("Unsupervised clustering")
@@ -395,10 +374,10 @@ ggsave(paste0(fn, ".png"), width = 6, height = 4.75)
 
 # NE neurons
 plotReducedDim(sce, dimred = "UMAP", colour_by = "supervised_NE") + 
-  scale_color_manual(values = c("navy", "red"), name = "NE neurons") + 
+  scale_color_manual(values = c("navy", "red"), name = "supervised NE") + 
   ggtitle("Supervised thresholding")
 
-fn <- file.path(dir_plots, "UMAP_supervisedNEneurons")
+fn <- file.path(dir_plots, "UMAP_supervisedNE")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5)
 
