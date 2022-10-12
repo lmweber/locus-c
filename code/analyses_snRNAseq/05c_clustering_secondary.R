@@ -13,7 +13,7 @@ library(ggplot2)
 library(ggVennDiagram)
 
 
-dir_plots <- here("plots", "singleNucleus", "05b_clustering_inhibitory")
+dir_plots <- here("plots", "singleNucleus", "05c_clustering_inhibitory")
 
 
 # ---------------
@@ -37,7 +37,7 @@ table(colData(sce)$Sample)
 sce_full <- sce
 
 # select inhibitory neuron clusters
-# (identified based on marker expression from heatmap in next script)
+# (identified based on marker expression heatmap in previous script)
 clus_select <- c(24, 25, 14, 4, 8, 20, 17)
 
 ix_select <- colLabels(sce) %in% clus_select
