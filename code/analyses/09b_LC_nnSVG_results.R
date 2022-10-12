@@ -18,10 +18,10 @@ library(ggplot2)
 
 
 # directory to save plots
-dir_plots <- here("plots", "09_nnSVG")
+dir_plots <- here("plots", "Visium", "09_nnSVG")
 
 # directory to save outputs
-dir_outputs <- here("outputs", "09_nnSVG")
+dir_outputs <- here("outputs", "Visium", "09_nnSVG")
 
 
 # ---------
@@ -158,7 +158,7 @@ rownames(df) <- NULL
 
 
 # save .csv file
-fn <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks.csv")
+fn <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks_all.csv")
 write.csv(df, file = fn, row.names = FALSE)
 
 
@@ -191,7 +191,7 @@ ggplot(df_plot) +
   theme(axis.text.y = element_text(face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "topSVGs_nnSVG_ranks")
+fn <- here(dir_plots, "topSVGs_nnSVG_ranks_all")
 ggsave(paste0(fn, ".pdf"), width = 8, height = 7)
 ggsave(paste0(fn, ".png"), width = 8, height = 7)
 
@@ -226,7 +226,7 @@ ggplot(df_plot, aes(x = n_nonNA, y = gene, fill = all_Br8079)) +
         axis.text.y = element_text(face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "topSVGs_nnSVG_numberWithinTop")
+fn <- here(dir_plots, "topSVGs_nnSVG_numberWithinTop_all")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 7)
 ggsave(paste0(fn, ".png"), width = 5, height = 7)
 
