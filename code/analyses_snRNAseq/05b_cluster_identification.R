@@ -1,0 +1,401 @@
+########################################################################
+# LC snRNA-seq analyses: cluster identification using known marker genes
+# Lukas Weber, Oct 2022
+# including code from Matthew N Tran
+########################################################################
+
+
+library(here)
+library(SingleCellExperiment)
+library(scater)
+library(scran)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(ggplot2)
+library(RColorBrewer)
+library(ComplexHeatmap)
+
+
+dir_plots <- here("plots", "singleNucleus", "05b_cluster_identification")
+
+
+# ---------------
+# Load SCE object
+# ---------------
+
+# load SCE object from previous script
+
+fn <- here("processed_data", "SCE", "sce_clustering_main")
+sce <- readRDS(paste0(fn, ".rds"))
+
+dim(sce)
+
+table(colData(sce)$Sample)
+
+# number of nuclei per cluster and sample
+table(colLabels(sce))
+table(colLabels(sce), colData(sce)$Sample)
+
+
+# --------------
+# Color palettes
+# --------------
+
+# color palettes from scater package
+tableau20 = c("#1F77B4", "#AEC7E8", "#FF7F0E", "#FFBB78", "#2CA02C", 
+              "#98DF8A", "#D62728", "#FF9896", "#9467BD", "#C5B0D5", 
+              "#8C564B", "#C49C94", "#E377C2", "#F7B6D2", "#7F7F7F", 
+              "#C7C7C7", "#BCBD22", "#DBDB8D", "#17BECF", "#9EDAE5")
+
+tableau10medium = c("#729ECE", "#FF9E4A", "#67BF5C", "#ED665D", "#AD8BC9", 
+                    "#A8786E", "#ED97CA", "#A2A2A2", "#CDCC5D", "#6DCCDA")
+
+colors <- unique(c(tableau20, tableau10medium))
+
+
+# ------------
+# Marker genes
+# ------------
+
+# marker genes for broad cell populations
+# from Matthew N Tran and Keri Martinowich
+
+markers_broad <- c(
+  # neuron markers
+  "SNAP25", "SYT1", 
+  # excitatory (glutamatergic) neuron markers
+  "SLC17A6", "SLC17A8", ## "SLC17A7"; alternative names: "VGLUT1", "VGLUT2", "VGLUT3"
+  # inhibitory (GABAergic) neuron markers
+  "GAD1", "GAD2", 
+  # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", ## "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", "HTR3A" (not present in our data)
+  # NE neuron markers
+  "DBH", "TH", "SLC6A2", "SLC18A2", ## "DDC", "GCH1"
+  # 5-HT (serotonin) markers
+  "TPH2", "SLC6A4", ## "TPH1"
+  # astrocytes
+  "GFAP", "AQP4", 
+  # endothelial / mural (RBPMS)
+  "CLDN5", "FLT1", "RBPMS", 
+  # macrophages / microglia
+  "CD163", "C3", 
+  # oligodendrocytes
+  "MBP", 
+  # OPCs
+  "PDGFRA", "VCAN"
+)
+
+
+# ---------------------------------------
+# Heatmap of marker expression by cluster
+# ---------------------------------------
+
+# using 'splitit' function from rafalib package
+# code from Matthew N Tran
+splitit <- function(x) split(seq(along = x), x)
+
+cell_idx <- splitit(sce$label)
+dat <- as.matrix(logcounts(sce))
+rownames(dat) <- rowData(sce)$gene_name
+
+
+hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_broad, i]))))
+
+
+# markers for heatmap
+markers <- c(
+  "SNAP25", "SYT1", 
+  "SLC17A6", 
+  "GAD1", "GAD2", 
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", 
+  "DBH", "TH", "SLC6A2", "SLC18A2", 
+  "TPH2", "SLC6A4", 
+  "GFAP", "AQP4", 
+  "CLDN5", "FLT1", "RBPMS", 
+  "CD163", "C3", 
+  "MBP", 
+  "PDGFRA", "VCAN"
+)
+
+hm_mat <- hm_mat[, markers]
+
+
+# marker labels
+marker_labels <- c(
+  rep("neuron", 2), 
+  rep("excitatory", 1), 
+  rep("inhibitory", 8), 
+  rep("NE", 4), 
+  rep("5HT", 2), 
+  rep("astrocytes", 2), 
+  rep("endothelial_mural", 3), 
+  rep("macrophages_microglia", 2), 
+  rep("oligodendrocytes", 1), 
+  rep("OPCs", 2))
+
+marker_labels <- factor(marker_labels, levels = unique(marker_labels))
+
+
+# colors: selected from tableau20 and tableau10medium
+colors_markers <- list(marker = c(
+  neuron = "black", 
+  excitatory = "#1F77B4", 
+  inhibitory = "#AEC7E8", 
+  NE = "#D62728", 
+  `5HT` = "#9467BD", 
+  astrocytes = "#FF7F0E", 
+  endothelial_mural = "#98DF8A", 
+  macrophages_microglia = "#8C564B", 
+  oligodendrocytes = "#9EDAE5", 
+  OPCs = "#17BECF"))
+
+
+# cluster labels
+cluster_pops <- list(
+  excitatory = c(30, 23, 26, 7), 
+  inhibitory = c(24, 25, 14, 4, 8, 20, 17), 
+  neurons_ambiguous = c(18, 19, 3, 22, 13, 1, 2), 
+  NE = 6, 
+  `5HT` = 21, 
+  astrocytes = c(5, 29), 
+  endothelial_mural = 16, 
+  macrophages_microglia = 15, 
+  oligodendrocytes = c(10, 12, 28, 9), 
+  OPCs = c(27, 11))
+# cluster labels order
+cluster_pops_order <- unname(unlist(cluster_pops))
+# swap values and names of list
+cluster_pops_rev <- rep(names(cluster_pops), times = sapply(cluster_pops, length))
+names(cluster_pops_rev) <- unname(unlist(cluster_pops))
+cluster_pops_rev <- cluster_pops_rev[as.character(sort(cluster_pops_order))]
+
+cluster_pops_rev <- factor(cluster_pops_rev, levels = names(cluster_pops))
+
+
+# second set of cluster labels
+neuron_pops <- ifelse(
+  cluster_pops_rev %in% c("excitatory", "inhibitory", "NE", "5HT", "neurons_ambiguous"), 
+  "neuronal", "non-neuronal") %>% 
+  factor(., levels = c("neuronal", "non-neuronal"))
+
+
+# colors: selected from tableau20 and tableau10medium
+colors_clusters <- list(population = c(
+  excitatory = "#1F77B4", 
+  inhibitory = "#AEC7E8", 
+  neurons_ambiguous = "gray60", 
+  NE = "#D62728", 
+  `5HT` = "#9467BD", 
+  astrocytes = "#FF7F0E", 
+  endothelial_mural = "#98DF8A", 
+  macrophages_microglia = "#8C564B", 
+  oligodendrocytes = "#9EDAE5", 
+  OPCs = "#17BECF"))
+
+colors_neurons <- list(class = c(
+  neuronal = "black", 
+  `non-neuronal` = "gray90"
+))
+
+
+# number of nuclei per cluster
+n <- table(colLabels(sce))
+
+
+# row annotation
+row_ha <- rowAnnotation(
+  n = anno_barplot(as.numeric(n), gp = gpar(fill = "navy"), border = FALSE), 
+  class = neuron_pops, 
+  population = cluster_pops_rev, 
+  show_annotation_name = FALSE, 
+  col = c(colors_clusters, colors_neurons))
+
+# column annotation
+col_ha <- columnAnnotation(
+  marker = marker_labels, 
+  show_annotation_name = FALSE, 
+  show_legend = FALSE, 
+  col = colors_markers)
+
+
+hm <- Heatmap(
+  hm_mat, 
+  name = "mean\nlogcounts", 
+  column_title = "LC clusters mean marker expression", 
+  column_title_gp = gpar(fontface = "bold"), 
+  col = brewer.pal(n = 7, "OrRd"), 
+  right_annotation = row_ha, 
+  bottom_annotation = col_ha, 
+  row_order = cluster_pops_order, 
+  cluster_rows = FALSE, 
+  cluster_columns = FALSE, 
+  row_split = cluster_pops_rev, 
+  row_title = NULL, 
+  column_split = marker_labels, 
+  column_names_gp = gpar(fontface = "italic"), 
+  rect_gp = gpar(col = "gray50", lwd = 0.5))
+
+hm
+
+
+# save heatmap
+fn <- file.path(dir_plots, "clustering_heatmap")
+
+pdf(paste0(fn, ".pdf"), width = 8, height = 6.5)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 8 * 200, height = 6.5 * 200, res = 200)
+hm
+dev.off()
+
+
+# ---------
+# Plot UMAP
+# ---------
+
+# UMAP of clustering
+
+label_merged <- fct_collapse(colData(sce)$label, 
+  excitatory = as.character(cluster_pops[[1]]), 
+  inhibitory = as.character(cluster_pops[[2]]), 
+  neurons_ambiguous = as.character(cluster_pops[[3]]), 
+  NE = as.character(cluster_pops[[4]]), 
+  `5HT` = as.character(cluster_pops[[5]]), 
+  astrocytes = as.character(cluster_pops[[6]]), 
+  endothelial_mural = as.character(cluster_pops[[7]]), 
+  macrophages_microglia = as.character(cluster_pops[[8]]), 
+  oligodendrocytes = as.character(cluster_pops[[9]]), 
+  OPCs = as.character(cluster_pops[[10]]))
+
+label_merged <- fct_relevel(label_merged, 
+  c("excitatory", "inhibitory", "neurons_ambiguous", "NE", "5HT", "astrocytes", 
+    "endothelial_mural", "macrophages_microglia", "oligodendrocytes", "OPCs"))
+
+colData(sce)$label_merged <- label_merged
+
+
+plotReducedDim(sce, dimred = "UMAP", colour_by = "label_merged") + 
+  scale_color_manual(values = colors_clusters[[1]], name = "clusters (merged)") + 
+  theme_classic() + 
+  ggtitle("LC clustering")
+
+fn <- file.path(dir_plots, "clustering_UMAP_merged")
+ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4.75)
+ggsave(paste0(fn, ".png"), width = 6.5, height = 4.75)
+
+
+# ---------------------
+# Plot number of nuclei
+# ---------------------
+
+# plot number of nuclei per cluster
+
+tbl <- table(colLabels(sce))
+
+df <- data.frame(
+  cluster = factor(names(tbl), levels = cluster_pops_order), 
+  n_nuclei = as.numeric(tbl), 
+  population = unname(cluster_pops_rev))
+
+ggplot(df, aes(x = cluster, y = n_nuclei, fill = population)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = colors_clusters$population, name = "population") + 
+  labs(y = "number of nuclei") + 
+  ggtitle("Number of nuclei per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("numberNuclei_perCluster"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# plot number of nuclei per cluster: per sample
+
+tbl <- table(colLabels(sce), colData(sce)$Sample)
+df <- data.frame(
+  cluster = factor(rownames(tbl), levels = cluster_pops_order), 
+  population = unname(cluster_pops_rev), 
+  as.data.frame(cbind(as.matrix(tbl)))
+)
+df <- df %>% 
+  pivot_longer(cols = -c(cluster, population), names_to = "sample", values_to = "n_nuclei") %>% 
+  mutate(sample = factor(sample, levels = c("Br6522_LC", "Br2701_LC", "Br8079_LC")))
+
+ggplot(df, aes(x = cluster, y = n_nuclei, fill = population)) + 
+  facet_wrap(~sample, nrow = 3, scales = "free_x") + 
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = colors_clusters$population, name = "population") + 
+  ylab("number of nuclei") + 
+  ggtitle("Number of nuclei per cluster: per sample") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("numberNuclei_perCluster_perSample"))
+ggsave(paste0(fn, ".pdf"), width = 6, height = 9)
+ggsave(paste0(fn, ".png"), width = 6, height = 9)
+
+
+# ----------------------
+# QC metrics per cluster
+# ----------------------
+
+df <- as.data.frame(colData(sce)) %>% 
+  select(sum, detected, subsets_Mito_percent, Sample, label, label_merged) %>% 
+  mutate(label = factor(label, levels = cluster_pops_order))
+
+
+# sum UMI counts per cluster
+
+ggplot(df, aes(x = label, y = sum, color = label_merged)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = colors_clusters$population, name = "population") + 
+  labs(x = "cluster", 
+       y = "sum UMI counts") + 
+  ggtitle("Sum UMI counts per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("QCmetrics_perCluster_sumUMI"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# detected genes per cluster
+
+ggplot(df, aes(x = label, y = detected, color = label_merged)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = colors_clusters$population, name = "population") + 
+  labs(x = "detected genes", 
+       y = "sum UMI counts") + 
+  ggtitle("Detected genes per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("QCmetrics_perCluster_detectedGenes"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# mitochondrial proportion per cluster
+
+ggplot(df, aes(x = label, y = subsets_Mito_percent, color = label_merged)) + 
+  geom_boxplot(outlier.size = 0.5) + 
+  scale_color_manual(values = colors_clusters$population, name = "population") + 
+  labs(x = "mitochondrial percentage", 
+       y = "sum UMI counts") + 
+  ggtitle("Mitochondrial percentage per cluster") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("QCmetrics_perCluster_mitochondrial"))
+ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
+ggsave(paste0(fn, ".png"), width = 8, height = 4)
+
+
+# -----------
+# Save object
+# -----------
+
+# save object with merged cluster labels
+
+fn_out <- here("processed_data", "SCE", "sce_clustering_merged")
+saveRDS(sce, paste0(fn_out, ".rds"))
+
