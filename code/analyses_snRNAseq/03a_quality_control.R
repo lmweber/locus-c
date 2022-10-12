@@ -69,7 +69,7 @@ p <- gridExtra::grid.arrange(
     scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Detected genes"), 
   plotColData(sce, x = "Sample", y = "subsets_Mito_percent") + 
     ggtitle("Mito percent"), 
-  ncol=3
+  ncol = 3
 )
 
 p
@@ -87,9 +87,12 @@ ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
 
 nonzero_TH <- counts(sce)[which(rowData(sce)$gene_name == "TH"), ] > 0
 
+# proportion of nuclei with nonzero expression of TH
 mean(nonzero_TH)
 
+# mitochondrial proportion in nuclei with nonzero expression of TH
 summary(colData(sce)$subsets_Mito_percent[nonzero_TH])
+quantile(colData(sce)$subsets_Mito_percent[nonzero_TH], seq(0, 1, by = 0.1))
 
 
 # -----------
