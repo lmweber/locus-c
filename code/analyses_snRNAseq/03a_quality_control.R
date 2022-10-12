@@ -9,6 +9,8 @@ library(SingleCellExperiment)
 library(scater)
 library(scran)
 library(ggplot2)
+library(dplyr)
+library(tidyr)
 
 
 dir_plots <- here("plots", "singleNucleus", "03_quality_control")
@@ -87,12 +89,58 @@ ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
 
 nonzero_TH <- counts(sce)[which(rowData(sce)$gene_name == "TH"), ] > 0
 
-# proportion of nuclei with nonzero expression of TH
+# proportion of nuclei with expression of TH
 mean(nonzero_TH)
 
-# mitochondrial proportion in nuclei with nonzero expression of TH
+# mitochondrial proportion in nuclei with expression of TH
 summary(colData(sce)$subsets_Mito_percent[nonzero_TH])
 quantile(colData(sce)$subsets_Mito_percent[nonzero_TH], seq(0, 1, by = 0.1))
+
+
+# plot proportion of mitochondrial reads in nuclei with expression of DBH and TH
+# (i.e. supervised approximate identification of NE neuron nuclei)
+
+ix_DBH <- which(rowData(sce)$gene_name == "DBH")
+ix_TH <- which(rowData(sce)$gene_name == "TH")
+
+ix_supervised <- counts(sce)[ix_DBH, ] > 0 & counts(sce)[ix_TH, ] > 0
+table(ix_supervised)
+
+sce_supervised <- sce[, ix_supervised]
+
+
+# plot QC metrics
+p <- gridExtra::grid.arrange(
+  plotColData(sce_supervised, x = "Sample", y = "sum", colour_by = "subsets_Mito_percent") + 
+    scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Total count"), 
+  plotColData(sce_supervised, x = "Sample", y = "detected", colour_by = "subsets_Mito_percent") + 
+    scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Detected genes"), 
+  plotColData(sce_supervised, x = "Sample", y = "subsets_Mito_percent", colour_by = "subsets_Mito_percent") + 
+    ggtitle("Mito percent"), 
+  ncol = 3
+)
+
+p
+
+fn <- file.path(dir_plots, "QC_metrics_NEsupervised")
+ggsave(paste0(fn, ".pdf"), plot = p, width = 12, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
+
+
+# plot histogram of mitochondrial proportion
+
+df <- as.data.frame(colData(sce_supervised)) %>% 
+  select(c("Barcode", "subsets_Mito_percent"))
+
+ggplot(df, aes(x = subsets_Mito_percent)) + 
+  geom_histogram(bins = 20, fill = "navy") + 
+  labs(x = "mitochondrial percentage") + 
+  ggtitle("Supervised NE neuron nuclei") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("histogram_mito_NEsupervised"))
+ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 
 # -----------
