@@ -1,6 +1,6 @@
 ###################################
 # LC snRNA-seq analyses: DE testing
-# Lukas Weber, Sep 2022
+# Lukas Weber, Oct 2022
 ###################################
 
 
@@ -16,10 +16,11 @@ library(ggplot2)
 library(ggnewscale)
 library(ggrepel)
 library(ComplexHeatmap)
+library(viridisLite)
 
 
-dir_plots <- here("plots", "snRNAseq", "07_DEtesting")
-dir_outputs <- here("outputs", "snRNAseq", "07_DEtesting")
+dir_plots <- here("plots", "singleNucleus", "07_DEtesting")
+dir_outputs <- here("outputs", "singleNucleus", "07_DEtesting")
 
 
 # ---------------
@@ -28,7 +29,7 @@ dir_outputs <- here("outputs", "snRNAseq", "07_DEtesting")
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_clustering_merged")
+fn <- here("processed_data", "SCE", "sce_clustering_secondary")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -53,10 +54,10 @@ rowData(sce)$sum_gene <- rowSums(counts(sce))
 
 # select neuronal clusters (excluding ambiguous) to test against
 clus_neurons <- c(
-  29, 21, 20, 23,  ## excitatory
-  26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
-  6,  ## NE
-  16  ## 5-HT
+  30, 23, 26, 7, ## excitatory
+  24, 25, 14, 4, 8, 20, 17, ## inhibitory
+  6, ## NE
+  21  ## 5-HT
 )
 ix_neurons <- colData(sce)$label %in% clus_neurons
 table(ix_neurons)
@@ -87,25 +88,27 @@ marker_info
 marker_info[["6"]]
 
 # 5-HT neuron cluster
-marker_info[["16"]]
+marker_info[["21"]]
 
 
 # check some known genes
 
-ix_known <- which(marker_info[["6"]]$gene_name %in% c("TH", "SLC6A2", "DBH"))
+ix_known <- which(marker_info[["6"]]$gene_name %in% c("DBH", "TH", "SLC6A2"))
 marker_info[["6"]][ix_known, ]
 
-ix_known <- which(marker_info[["16"]]$gene_name %in% c("TPH2", "SLC6A4"))
-marker_info[["16"]][ix_known, ]
+ix_known <- which(marker_info[["21"]]$gene_name %in% c("TPH2", "SLC6A4"))
+marker_info[["21"]][ix_known, ]
 
 
 # significant DE genes
 
-table(marker_info[["6"]]$FDR < 1)
 table(marker_info[["6"]]$FDR < 1e-100)
+table(marker_info[["6"]]$FDR < 0.05)
+table(marker_info[["6"]]$FDR < 1)
 
-table(marker_info[["16"]]$FDR < 1)
-table(marker_info[["16"]]$FDR < 1e-100)
+table(marker_info[["21"]]$FDR < 1e-100)
+table(marker_info[["21"]]$FDR < 0.05)
+table(marker_info[["21"]]$FDR < 1)
 
 
 # -------------------------
@@ -148,19 +151,15 @@ set.seed(123)
 ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
   geom_point(data = df[df$highlysig, ], size = 0.5) + 
-  #geom_text_repel(data = df[df$highlysig, ], 
-  #                size = 1.5, nudge_y = 0.1, 
-  #                force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
-  #                max.overlaps = 20) + 
   scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
-  ggtitle("NE neuron cluster vs. all neuronal clusters") + 
+  ggtitle("NE neuron cluster vs. other neuronal clusters") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting_NEneuronsVsOtherNeuronal")
+fn <- file.path(dir_plots, "DEtesting_volcano_NEvsOtherNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -194,11 +193,12 @@ hmat <- hmat[!ix_mito, ]
 dim(hmat)
 
 # select top n
-hmat <- hmat[1:100, ]
+hmat <- hmat[1:70, ]
 
 # create heatmap
 hm <- Heatmap(
   hmat, 
+  col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
@@ -212,11 +212,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsOtherNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 12)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 8.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 12 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 8.5 * 200, res = 200)
 hm
 dev.off()
 
@@ -227,13 +227,12 @@ dev.off()
 
 # save spreadsheet
 
-cols <- c("gene_id", "gene_name", "sum_gene", "p.value", "FDR", "summary.logFC")
-#cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
+cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
 df <- marker_info[["6"]][, cols]
-colnames(df)[c(4, 6)] <- c("p_value", "logFC")
+colnames(df) <- gsub("\\.", "_", cols)
 
 # select significant
-sig <- with(df, FDR < 0.05 & logFC > 1)
+sig <- with(df, FDR < 0.05 & summary_logFC > 1)
 table(sig)
 df <- df[sig, ]
 
@@ -255,10 +254,10 @@ write.csv(df, file = fn, row.names = FALSE)
 
 # 5-HT neurons
 
-fdr <- marker_info[["16"]]$FDR
-logfc <- marker_info[["16"]]$summary.logFC
+fdr <- marker_info[["21"]]$FDR
+logfc <- marker_info[["21"]]$summary.logFC
 
-names(fdr) <- names(logfc) <- marker_info[["16"]]$gene_name
+names(fdr) <- names(logfc) <- marker_info[["21"]]$gene_name
 
 
 # select significant genes
@@ -289,19 +288,15 @@ set.seed(123)
 ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) + 
   geom_point(size = 0.1) + 
   geom_point(data = df[df$highlysig, ], size = 0.5) + 
-  #geom_text_repel(data = df[df$highlysig, ], 
-  #                size = 1.5, nudge_y = 0.1, 
-  #                force = 0.1, force_pull = 0.1, min.segment.length = 0.1, 
-  #                max.overlaps = 20) + 
   scale_color_manual(values = pal, guide = "none") + 
   geom_hline(yintercept = -log10(thresh_fdr), lty = "dashed", color = "royalblue") + 
   geom_vline(xintercept = thresh_logfc, lty = "dashed", color = "royalblue") + 
-  ggtitle("5-HT neuron cluster vs. all neuronal clusters") + 
+  ggtitle("5-HT neuron cluster vs. other neuronal clusters") + 
   theme_bw() + 
   theme(plot.title = element_text(face = "bold"), 
         panel.grid.minor = element_blank())
 
-fn <- file.path(dir_plots, "DEtesting_5HTneuronsVsOtherNeuronal")
+fn <- file.path(dir_plots, "DEtesting_5HTvsOtherNeuronal")
 ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
 ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
@@ -312,7 +307,7 @@ ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
 
 # 5-HT neurons
 
-hmat <- marker_info[["16"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
+hmat <- marker_info[["21"]][, c("gene_name", "self.average", "other.average", "FDR", "summary.logFC")]
 
 # select significant
 sig <- with(hmat, FDR < 0.05 & summary.logFC > 1)
@@ -335,11 +330,12 @@ hmat <- hmat[!ix_mito, ]
 dim(hmat)
 
 # select top n
-hmat <- hmat[1:100, ]
+hmat <- hmat[1:70, ]
 
 # create heatmap
 hm <- Heatmap(
   hmat, 
+  col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
   row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
@@ -353,11 +349,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsOtherNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 12)
+pdf(paste0(fn, ".pdf"), width = 3.75, height = 8.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 12 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.75 * 200, height = 8.5 * 200, res = 200)
 hm
 dev.off()
 
@@ -368,13 +364,12 @@ dev.off()
 
 # save spreadsheet
 
-cols <- c("gene_id", "gene_name", "sum_gene", "p.value", "FDR", "summary.logFC")
-#cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
-df <- marker_info[["16"]][, cols]
-colnames(df)[c(4, 6)] <- c("p_value", "logFC")
+cols <- c("gene_id", "gene_name", "sum_gene", "self.average", "other.average", "p.value", "FDR", "summary.logFC")
+df <- marker_info[["21"]][, cols]
+colnames(df) <- gsub("\\.", "_", cols)
 
 # select significant
-sig <- with(df, FDR < 0.05 & logFC > 1)
+sig <- with(df, FDR < 0.05 & summary_logFC > 1)
 table(sig)
 df <- df[sig, ]
 
