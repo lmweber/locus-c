@@ -10,7 +10,8 @@ library(scater)
 library(scran)
 library(bluster)
 library(ggplot2)
-library(ggVennDiagram)
+library(ComplexHeatmap)
+library(RColorBrewer)
 
 
 dir_plots <- here("plots", "singleNucleus", "05c_clustering_inhibitory")
@@ -22,7 +23,7 @@ dir_plots <- here("plots", "singleNucleus", "05c_clustering_inhibitory")
 
 # load SCE object from previous script
 
-fn <- here("processed_data", "SCE", "sce_clustering_main")
+fn <- here("processed_data", "SCE", "sce_clustering_merged")
 sce <- readRDS(paste0(fn, ".rds"))
 
 dim(sce)
@@ -37,7 +38,7 @@ table(colData(sce)$Sample)
 sce_full <- sce
 
 # select inhibitory neuron clusters
-# (identified based on marker expression heatmap in previous script)
+# (identified based on marker expression heatmap from previous script)
 clus_select <- c(24, 25, 14, 4, 8, 20, 17)
 
 ix_select <- colLabels(sce) %in% clus_select
@@ -145,6 +146,104 @@ cbind(
   table(colLabels(sce), colData(sce)$Sample), 
   res_mat
 )
+
+
+# ------------
+# Marker genes
+# ------------
+
+# marker genes for inhibitory neuron subpopulations
+
+markers_inhib <- c(
+  # neuron markers
+  "SNAP25", "SYT1", 
+  # inhibitory (GABAergic) neuron markers
+  "GAD1", "GAD2", 
+  # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK" ## "HTR3A" (not present in data)
+)
+
+
+# ----------------------------------------------
+# Marker expression heatmap: inhibitory subtypes
+# ----------------------------------------------
+
+# marker labels
+markers_inhib_labels <- c(
+  rep("neuron", 2), 
+  rep("inhibitory", 2), 
+  rep("inhibitory_subtypes", 12))
+
+markers_inhib_labels <- 
+  factor(markers_inhib_labels, levels = unique(markers_inhib_labels))
+
+
+# colors
+colors_markers_inhib <- list(marker = c(
+  neuron = "black", 
+  inhibitory = "#AEC7E8", 
+  inhibitory_subtypes = "#AEC7E8"))
+
+
+# number of nuclei per cluster
+n <- table(colLabels(sce))
+
+
+# heatmap data
+
+# using 'splitit' function from rafalib package
+# code from Matthew N Tran
+splitit <- function(x) split(seq(along = x), x)
+
+cell_idx <- splitit(sce$label)
+dat <- as.matrix(logcounts(sce))
+rownames(dat) <- rowData(sce)$gene_name
+
+
+hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_inhib, i]))))
+
+
+# row annotation
+row_ha <- rowAnnotation(
+  n = anno_barplot(as.numeric(n), gp = gpar(fill = "navy"), border = FALSE),
+  show_annotation_name = FALSE)
+
+# column annotation
+col_ha <- columnAnnotation(
+  marker = markers_inhib_labels, 
+  show_annotation_name = FALSE, 
+  show_legend = FALSE, 
+  col = colors_markers_inhib)
+
+
+hm <- Heatmap(
+  hm_mat, 
+  name = "mean\nlogcounts", 
+  column_title = "LC secondary clustering mean marker expression", 
+  column_title_gp = gpar(fontface = "bold"), 
+  col = brewer.pal(n = 7, "OrRd"), 
+  right_annotation = row_ha, 
+  bottom_annotation = col_ha, 
+  cluster_rows = TRUE, 
+  cluster_columns = FALSE, 
+  row_title = NULL, 
+  column_split = markers_inhib_labels, 
+  column_names_gp = gpar(fontface = "italic"), 
+  rect_gp = gpar(col = "gray50", lwd = 0.5))
+
+hm
+
+
+# save heatmap
+fn <- file.path(dir_plots, "clustering_inhibitory_subtypes")
+
+pdf(paste0(fn, ".pdf"), width = 5.5, height = 4)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 5.5 * 200, height = 4 * 200, res = 200)
+hm
+dev.off()
 
 
 # --------------------

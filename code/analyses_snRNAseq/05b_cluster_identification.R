@@ -70,6 +70,8 @@ markers_broad <- c(
   "GAD1", "GAD2", 
   # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", ## "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", "HTR3A" (not present in our data)
+  # cholinergic neurons
+  # "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
   # NE neuron markers
   "DBH", "TH", "SLC6A2", "SLC18A2", ## "DDC", "GCH1"
   # 5-HT (serotonin) markers
@@ -87,21 +89,9 @@ markers_broad <- c(
 )
 
 
-# ---------------------------------------
-# Heatmap of marker expression by cluster
-# ---------------------------------------
-
-# using 'splitit' function from rafalib package
-# code from Matthew N Tran
-splitit <- function(x) split(seq(along = x), x)
-
-cell_idx <- splitit(sce$label)
-dat <- as.matrix(logcounts(sce))
-rownames(dat) <- rowData(sce)$gene_name
-
-
-hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_broad, i]))))
-
+# ------------------------------------
+# Marker expression heatmap by cluster
+# ------------------------------------
 
 # markers for heatmap
 markers <- c(
@@ -117,8 +107,6 @@ markers <- c(
   "MBP", 
   "PDGFRA", "VCAN"
 )
-
-hm_mat <- hm_mat[, markers]
 
 
 # marker labels
@@ -201,6 +189,20 @@ colors_neurons <- list(class = c(
 
 # number of nuclei per cluster
 n <- table(colLabels(sce))
+
+
+# heatmap data
+
+# using 'splitit' function from rafalib package
+# code from Matthew N Tran
+splitit <- function(x) split(seq(along = x), x)
+
+cell_idx <- splitit(sce$label)
+dat <- as.matrix(logcounts(sce))
+rownames(dat) <- rowData(sce)$gene_name
+
+
+hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers, i]))))
 
 
 # row annotation
