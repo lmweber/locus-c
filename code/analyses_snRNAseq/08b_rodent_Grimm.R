@@ -83,9 +83,9 @@ clus_NE <- c(
   6  ## NE
 )
 clus_neuronalExcNE <- c(
-  29, 21, 20, 23,  ## excitatory
-  26, 17, 14, 1, 8, 7, 24, 18,  ## inhibitory
-  16  ## 5-HT
+  30, 23, 26, 7, ## excitatory
+  24, 25, 14, 4, 8, 20, 17, ## inhibitory
+  21  ## 5-HT
 )
 
 ix_NE <- colData(sce)$label %in% clus_NE
