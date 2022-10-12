@@ -23,10 +23,10 @@ dim(sce_logcounts)
 
 
 # SCE object containing cluster labels
-fn <- here("processed_data", "SCE", "sce_clustering_merged")
-sce_clustering_merged <- readRDS(paste0(fn, ".rds"))
+fn <- here("processed_data", "SCE", "sce_clustering_secondary")
+sce_clustering_secondary <- readRDS(paste0(fn, ".rds"))
 
-dim(sce_clustering_merged)
+dim(sce_clustering_secondary)
 
 
 # ------------
@@ -56,10 +56,10 @@ table(colSums(counts(sce_logcounts)) == 0, useNA = "always")
 
 # select columns of colData and store cluster labels in SCE object without gene filtering
 
-stopifnot(ncol(sce_logcounts) == ncol(sce_clustering_merged))
-stopifnot(all(colnames(sce_logcounts) == colnames(sce_clustering_merged)))
-stopifnot(all(colData(sce_logcounts)$Sample == colData(sce_clustering_merged)$Sample))
-stopifnot(all(colData(sce_logcounts)$Barcode == colData(sce_clustering_merged)$Barcode))
+stopifnot(ncol(sce_logcounts) == ncol(sce_clustering_secondary))
+stopifnot(all(colnames(sce_logcounts) == colnames(sce_clustering_secondary)))
+stopifnot(all(colData(sce_logcounts)$Sample == colData(sce_clustering_secondary)$Sample))
+stopifnot(all(colData(sce_logcounts)$Barcode == colData(sce_clustering_secondary)$Barcode))
 
 
 # select and re-order columns in colData to keep
@@ -67,15 +67,15 @@ stopifnot(all(colData(sce_logcounts)$Barcode == colData(sce_clustering_merged)$B
 cols_keep_logcounts <- c(1:2, 8:12, 14:15)
 colnames(colData(sce_logcounts))[cols_keep_logcounts]
 
-cols_keep_clustering_merged <- c(27, 16, 31, 30, 28, 29, 26)
-colnames(colData(sce_clustering_merged))[cols_keep_clustering_merged]
+cols_keep_clustering_secondary <- c(18, 16, 21, 22, 19, 20, 17)
+colnames(colData(sce_clustering_secondary))[cols_keep_clustering_secondary]
 
 
 # store combined colData
 
 colData(sce_logcounts) <- cbind(
   colData(sce_logcounts)[, cols_keep_logcounts], 
-  colData(sce_clustering_merged)[, cols_keep_clustering_merged])
+  colData(sce_clustering_secondary)[, cols_keep_clustering_secondary])
 
 
 # check
