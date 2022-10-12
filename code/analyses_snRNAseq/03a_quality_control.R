@@ -11,7 +11,7 @@ library(scran)
 library(ggplot2)
 
 
-dir_plots <- here("plots", "snRNAseq", "03_quality_control")
+dir_plots <- here("plots", "singleNucleus", "03_quality_control")
 
 
 # ---------------
