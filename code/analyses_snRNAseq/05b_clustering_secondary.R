@@ -13,7 +13,7 @@ library(ggplot2)
 library(ggVennDiagram)
 
 
-dir_plots <- here("plots", "snRNAseq", "05b_clustering_inhibitory")
+dir_plots <- here("plots", "singleNucleus", "05b_clustering_inhibitory")
 
 
 # ---------------
@@ -36,7 +36,8 @@ table(colData(sce)$Sample)
 
 sce_full <- sce
 
-# select inhibitory neuron clusters (from marker expression in heatmap)
+# select inhibitory neuron clusters
+# (identified based on marker expression from heatmap in next script)
 clus_select <- c(24, 25, 14, 4, 8, 20, 17)
 
 ix_select <- colLabels(sce) %in% clus_select
@@ -116,11 +117,11 @@ table(colLabels(sce), colData(sce)$Sample)
 
 # expression of key markers for NE, 5-HT, and cholinergic neuron populations
 ix <- c(
+  DBH = which(rowData(sce)$gene_name == "DBH"), 
   TH = which(rowData(sce)$gene_name == "TH"), 
   SLC6A2 = which(rowData(sce)$gene_name == "SLC6A2"), 
-  DBH = which(rowData(sce)$gene_name == "DBH"), 
-  SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
   TPH2 = which(rowData(sce)$gene_name == "TPH2"), 
+  SLC6A4 = which(rowData(sce)$gene_name == "SLC6A4"), 
   SLC5A7 = which(rowData(sce)$gene_name == "SLC5A7"), 
   CHAT = which(rowData(sce)$gene_name == "CHAT"), 
   ACHE = which(rowData(sce)$gene_name == "ACHE"), 
