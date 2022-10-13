@@ -93,7 +93,12 @@ dim(res_ranks)
 
 # calculate average ranks
 # note missing values due to filtering for sample-parts
-avg_ranks <- sort(rowMeans(res_ranks, na.rm = TRUE))
+avg_ranks <- rowMeans(res_ranks, na.rm = TRUE)
+
+
+# calculate number of sample-parts where each gene is within top 100 ranked SVGs
+# for that sample-part
+n_withinTop100 <- apply(res_ranks, 1, function(r) sum(r <= 100, na.rm = TRUE))
 
 
 # summary table
@@ -102,20 +107,39 @@ df_summary <- data.frame(
   gene_name = rowData(spe)[names(avg_ranks), "gene_name"], 
   gene_type = rowData(spe)[names(avg_ranks), "gene_type"], 
   avg_rank = unname(avg_ranks), 
+  rank = rank(avg_ranks), 
+  n_withinTop100 = unname(n_withinTop100), 
   row.names = names(avg_ranks)
 )
 
-n <- 50
-head(df_summary, n)
-
+# sort by average rank
+df_summary <- df_summary[order(df_summary$rank), ]
+head(df_summary)
 
 # top n genes
-top_n_genes <- df_summary$gene_name[1:n]
+top50genes <- df_summary$gene_name[1:50]
+top100genes <- df_summary$gene_name[1:100]
+
+
+# summary table of "replicated" SVGs (i.e. genes that are highly ranked in at
+# least x sample-parts)
+df_summaryReplicated <- df_summary[df_summary$n_withinTop100 >= 10, ]
+
+# re-calculate rank within this set
+df_summaryReplicated$rank <- rank(df_summaryReplicated$avg_rank)
+
+dim(df_summaryReplicated)
+head(df_summaryReplicated)
+
+# top "replicated" SVGs
+topSVGsReplicated <- df_summaryReplicated$gene_name
 
 
 # ------------
 # plot top SVG
 # ------------
+
+head(df_summary, 1)
 
 ix_gene <- which(rowData(spe)$gene_name == "CAPS")
 
@@ -140,10 +164,14 @@ ggplot(df, aes(x = pxl_col_in_fullres, y = pxl_row_in_fullres, color = gene)) +
         axis.text = element_blank(), 
         axis.ticks = element_blank())
 
+fn <- file.path(dir_plots, "topSVG_CAPS_expression")
+ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 7.5, height = 4)
 
-# ----------------
-# save spreadsheet
-# ----------------
+
+# -----------------
+# save spreadsheets
+# -----------------
 
 # save spreadsheet containing list of top SVGs
 
@@ -152,81 +180,117 @@ res_ranks_ord <- res_ranks[rownames(df_summary), ]
 stopifnot(all(rownames(df_summary) == rownames(res_ranks_ord)))
 stopifnot(nrow(df_summary) == nrow(res_ranks_ord))
 
-df <- cbind(df_summary, res_ranks_ord)
-
-rownames(df) <- NULL
+df_all <- cbind(df_summary, res_ranks_ord)
+rownames(df_all) <- NULL
 
 
 # save .csv file
-fn <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks_all.csv")
-write.csv(df, file = fn, row.names = FALSE)
+fn_all <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks.csv")
+write.csv(df_all, file = fn_all, row.names = FALSE)
 
 
-# -------------
-# summary plots
-# -------------
+# save spreadsheet containing list of top "replicated" SVGs
 
-# plot ranks per sample-part per gene
+res_ranksReplicated_ord <- res_ranks[rownames(df_summaryReplicated), ]
 
-df_plot <- df[1:n, ] %>% 
+stopifnot(all(rownames(df_summaryReplicated) == rownames(res_ranksReplicated_ord)))
+stopifnot(nrow(df_summaryReplicated) == nrow(res_ranksReplicated_ord))
+
+df_replicated <- cbind(df_summaryReplicated, res_ranksReplicated_ord)
+rownames(df_replicated) <- NULL
+
+
+# save .csv file
+fn_replicated <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks_replicated.csv")
+write.csv(df_replicated, file = fn_replicated, row.names = FALSE)
+
+
+# -----------------------
+# plot summaries of ranks
+# -----------------------
+
+# plot ranks per sample-part for all top SVGs from nnSVG
+
+df_plot <- df_all %>% 
+  filter(rank <= 50) %>% 
   select(-c("gene_id", "gene_type")) %>% 
-  pivot_longer(., cols = -c("gene_name", "avg_rank"), values_to = "rank", names_to = "sample_part") %>% 
+  pivot_longer(., cols = -c("gene_name", "avg_rank", "rank", "n_withinTop100"), 
+               values_to = "rank_sample_part", names_to = "sample_part") %>% 
   mutate(sample_part = factor(sample_part, levels = sample_part_ids)) %>% 
   rename(gene = gene_name) %>% 
-  mutate(gene = factor(gene, levels = top_n_genes))
+  mutate(gene = factor(gene, levels = top100genes))
 
-
-pal <- unname(c(palette.colors(8, "Okabe-Ito")[2:8], 
-                palette.colors(36, "Polychrome 36")[c(3:4, 6:36)]))[1:13]
 
 ggplot(df_plot) + 
-  geom_boxplot(aes(x = rank, y = gene, group = gene), 
-               alpha = 0, outlier.shape = NA) + 
-  geom_point(aes(x = rank, y = gene, group = gene, color = sample_part), 
-             shape = 1, stroke = 0.75) + 
+  geom_boxplot(aes(x = rank_sample_part, y = gene, group = gene), 
+               color = "navy") + 
   scale_y_discrete(limits = rev) + 
-  scale_color_manual(values = pal) + 
+  labs(x = "rank") + 
   ggtitle("Top SVGs (nnSVG)") + 
   theme_bw() + 
   theme(axis.text.y = element_text(face = "italic"), 
         axis.title.y = element_blank())
 
 fn <- here(dir_plots, "topSVGs_nnSVG_ranks_all")
-ggsave(paste0(fn, ".pdf"), width = 8, height = 7)
-ggsave(paste0(fn, ".png"), width = 8, height = 7)
+ggsave(paste0(fn, ".pdf"), width = 6, height = 7)
+ggsave(paste0(fn, ".png"), width = 6, height = 7)
 
 
-# plot number of sample-parts within top 50 SVGs per gene
+# plot ranks per sample-part for "replicated" top SVGs from nnSVG
 
-length(sample_part_ids)
-dim(df)
-
-ranks_per_sample_part <- as.matrix(df[1:n, 5:17])
-ranks_per_sample_part_notBr8079 <- as.matrix(df[1:n, c(5:12, 15:17)])
-
-n_nonNA <- unname(apply(ranks_per_sample_part, 1, function(r) length(sample_part_ids) - sum(is.na(r))))
-all_Br8079 <- apply(ranks_per_sample_part_notBr8079, 1, function(r) all(is.na(r)))
-
-df_plot <- df[1:n, ] %>% 
-  mutate(n_nonNA = n_nonNA) %>% 
-  mutate(all_Br8079 = all_Br8079) %>% 
-  select(c("gene_name", "n_nonNA")) %>% 
+df_plot <- df_replicated %>% 
+  select(-c("gene_id", "gene_type")) %>% 
+  pivot_longer(., cols = -c("gene_name", "avg_rank", "rank", "n_withinTop100"), 
+               values_to = "rank_sample_part", names_to = "sample_part") %>% 
+  mutate(sample_part = factor(sample_part, levels = sample_part_ids)) %>% 
   rename(gene = gene_name) %>% 
-  mutate(gene = factor(gene, levels = top_n_genes))
+  mutate(gene = factor(gene, levels = top100genes))
 
-ggplot(df_plot, aes(x = n_nonNA, y = gene, fill = all_Br8079)) + 
+
+ggplot(df_plot) + 
+  geom_boxplot(aes(x = rank_sample_part, y = gene, group = gene), 
+               color = "navy") + 
+  scale_y_discrete(limits = rev) + 
+  labs(x = "rank") + 
+  ggtitle("Top SVGs (nnSVG): replicated") + 
+  theme_bw() + 
+  theme(axis.text.y = element_text(face = "italic"), 
+        axis.title.y = element_blank())
+
+fn <- here(dir_plots, "topSVGs_nnSVG_ranks_replicated")
+ggsave(paste0(fn, ".pdf"), width = 6, height = 6)
+ggsave(paste0(fn, ".png"), width = 6, height = 6)
+
+
+# plot showing number of sample-parts where each top SVG is within top n SVGs
+# for that sample-part
+
+ranks_per_sample_part_Br8079 <- as.matrix(df_all[, 15:16])
+ranks_per_sample_part_excBr8079 <- as.matrix(df_all[, c(7:14, 17:19)])
+all_Br8079 <- apply(ranks_per_sample_part_Br8079, 1, function(r) !all(is.na(r))) & 
+              apply(ranks_per_sample_part_excBr8079, 1, function(r) all(is.na(r)))
+
+df_plot <- df_all %>% 
+  mutate(all_Br8079 = all_Br8079) %>% 
+  filter(rank <= 50) %>% 
+  select(c("gene_name", "n_withinTop100", "all_Br8079")) %>% 
+  rename(gene = gene_name) %>% 
+  mutate(gene = factor(gene, levels = top100genes))
+
+
+ggplot(df_plot, aes(x = n_withinTop100, y = gene, fill = all_Br8079)) + 
   geom_bar(stat = "identity") + 
   scale_fill_manual(values = c("navy", "maroon"), name = "Br8079 only") + 
   scale_x_continuous(breaks = 0:13) + 
   scale_y_discrete(limits = rev) + 
-  xlab("number of sample-parts within top 50 SVGs") + 
+  xlab("number of sample-parts within top 100 SVGs") + 
   ggtitle("Top SVGs (nnSVG)") + 
   theme_bw() + 
   theme(panel.grid = element_blank(), 
         axis.text.y = element_text(face = "italic"), 
         axis.title.y = element_blank())
 
-fn <- here(dir_plots, "topSVGs_nnSVG_numberWithinTop_all")
+fn <- here(dir_plots, "topSVGs_nnSVG_numberWithinTop100")
 ggsave(paste0(fn, ".pdf"), width = 5, height = 7)
 ggsave(paste0(fn, ".png"), width = 5, height = 7)
 
