@@ -221,7 +221,7 @@ dim(hmat)
 # select top n
 hmat <- hmat[1:70, ]
 
-# rows to highlight
+# genes to highlight
 ix_known <- which(rownames(hmat) %in% c("DBH", "TH", "SLC6A2", "SLC18A2"))
 fontfaces <- rep("italic", nrow(hmat))
 fontfaces[ix_known] <- "bold.italic"
@@ -252,11 +252,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsOtherNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3, height = 8.5)
+pdf(paste0(fn, ".pdf"), width = 3.1, height = 8.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3 * 200, height = 8.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.1 * 200, height = 8.5 * 200, res = 200)
 hm
 dev.off()
 
@@ -398,7 +398,7 @@ dim(hmat)
 # select top n
 hmat <- hmat[1:70, ]
 
-# rows to highlight
+# genes to highlight
 ix_known <- which(rownames(hmat) %in% c("TPH2", "SLC6A4"))
 fontfaces <- rep("italic", nrow(hmat))
 fontfaces[ix_known] <- "bold.italic"
@@ -429,11 +429,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsOtherNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3, height = 8.5)
+pdf(paste0(fn, ".pdf"), width = 3.1, height = 8.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3 * 200, height = 8.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.1 * 200, height = 8.5 * 200, res = 200)
 hm
 dev.off()
 

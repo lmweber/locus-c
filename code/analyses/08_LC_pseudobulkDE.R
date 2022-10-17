@@ -353,42 +353,30 @@ top_names <- names(top)
 # order matrix rows
 hmat <- hmat[top_names, ]
 
-# format FDRs in row names
-nms <- paste0(names(top), " (", format(signif(top, 2)), ")")
-rownames(hmat) <- nms
+# gene names in row names
+rownames(hmat) <- names(top)
 
+# genes to highlight
+ix_known <- which(rownames(hmat) %in% c("DBH", "TH", "SLC6A2", "SLC18A2"))
+fontfaces <- rep("italic", nrow(hmat))
+fontfaces[ix_known] <- "bold.italic"
+fontcolors <- rep("black", nrow(hmat))
+fontcolors[ix_known] <- "red"
 
-# create heatmap (horizontal format)
-hm <- Heatmap(
-  t(hmat), 
-  col = viridis(100), 
-  cluster_rows = FALSE, cluster_columns = FALSE, 
-  row_names_side = "left", row_names_gp = gpar(fontsize = 10), 
-  column_names_gp = gpar(fontsize = 9, fontface = "italic"), 
-  name = "mean\nlogcounts"
+row_annot <- rowAnnotation(
+  rows = anno_text(rownames(hmat), 
+                   gp = gpar(fontface = fontfaces, col = fontcolors, fontsize = 9))
 )
 
-hm
 
-# save heatmap (horizontal format)
-fn <- file.path(dir_plots, "pseudobulkDE_heatmap_horizontal")
-
-pdf(paste0(fn, ".pdf"), width = 6.75, height = 3.25)
-hm
-dev.off()
-
-png(paste0(fn, ".png"), width = 6.75 * 200, height = 3.25 * 200, res = 200)
-hm
-dev.off()
-
-
-# create heatmap (vertical format)
+# create heatmap
 hm <- Heatmap(
   hmat, 
   col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
-  row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  right_annotation = row_annot, show_row_names = FALSE, 
+  #row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   column_title = "LC vs. non-LC regions", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "mean\nlogcounts"
@@ -396,14 +384,14 @@ hm <- Heatmap(
 
 hm
 
-# save heatmap (vertical format)
-fn <- file.path(dir_plots, "pseudobulkDE_heatmap_vertical")
+# save heatmap
+fn <- file.path(dir_plots, "pseudobulkDE_heatmap")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 6.5)
+pdf(paste0(fn, ".pdf"), width = 3.1, height = 6.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 6.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3.1 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 
