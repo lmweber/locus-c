@@ -206,9 +206,8 @@ hmat <- hmat[sig, ]
 # order by FDR and select top n for plot
 hmat <- hmat[order(hmat$FDR), ]
 
-# format gene names and FDRs in row names
-nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
-rownames(hmat) <- nms
+# gene names in row names
+rownames(hmat) <- hmat$gene_name
 
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
 colnames(hmat) <- c("NE", "other")
@@ -222,6 +221,18 @@ dim(hmat)
 # select top n
 hmat <- hmat[1:70, ]
 
+# rows to highlight
+ix_known <- which(rownames(hmat) %in% c("DBH", "TH", "SLC6A2", "SLC18A2"))
+fontfaces <- rep("italic", nrow(hmat))
+fontfaces[ix_known] <- "bold.italic"
+fontcolors <- rep("black", nrow(hmat))
+fontcolors[ix_known] <- "red"
+
+row_annot <- rowAnnotation(
+  rows = anno_text(rownames(hmat), 
+                   gp = gpar(fontface = fontfaces, col = fontcolors, fontsize = 9))
+)
+
 
 # create heatmap
 hm <- Heatmap(
@@ -229,7 +240,8 @@ hm <- Heatmap(
   col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
-  row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  right_annotation = row_annot, show_row_names = FALSE, 
+  #row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   column_title = "NE vs. other\nneuronal clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "mean\nlogcounts"
@@ -240,11 +252,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_NEvsOtherNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 8.5)
+pdf(paste0(fn, ".pdf"), width = 3, height = 8.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 8.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3 * 200, height = 8.5 * 200, res = 200)
 hm
 dev.off()
 
@@ -371,9 +383,8 @@ hmat <- hmat[sig, ]
 # order by FDR and select top n for plot
 hmat <- hmat[order(hmat$FDR), ]
 
-# format gene names and FDRs in row names
-nms <- with(hmat, paste0(gene_name, " (", format(signif(FDR, 2)), ")"))
-rownames(hmat) <- nms
+# gene names in row names
+rownames(hmat) <- hmat$gene_name
 
 hmat <- as.matrix(hmat[, c("self.average", "other.average")])
 colnames(hmat) <- c("5-HT", "other")
@@ -387,6 +398,18 @@ dim(hmat)
 # select top n
 hmat <- hmat[1:70, ]
 
+# rows to highlight
+ix_known <- which(rownames(hmat) %in% c("TPH2", "SLC6A4"))
+fontfaces <- rep("italic", nrow(hmat))
+fontfaces[ix_known] <- "bold.italic"
+fontcolors <- rep("black", nrow(hmat))
+fontcolors[ix_known] <- "red"
+
+row_annot <- rowAnnotation(
+  rows = anno_text(rownames(hmat), 
+                   gp = gpar(fontface = fontfaces, col = fontcolors, fontsize = 9))
+)
+
 
 # create heatmap
 hm <- Heatmap(
@@ -394,7 +417,8 @@ hm <- Heatmap(
   col = viridis(100), 
   cluster_rows = FALSE, cluster_columns = FALSE, 
   column_names_rot = 0, column_names_gp = gpar(fontsize = 10), column_names_centered = TRUE, 
-  row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
+  right_annotation = row_annot, show_row_names = FALSE, 
+  #row_names_gp = gpar(fontsize = 9, fontface = "italic"), 
   column_title = "5-HT vs. other\nneuronal clusters", 
   column_title_gp = gpar(fontsize = 10, fontface = "bold"), 
   name = "mean\nlogcounts"
@@ -405,11 +429,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "DEtesting_heatmap_5HTvsOtherNeuronal")
 
-pdf(paste0(fn, ".pdf"), width = 3.75, height = 8.5)
+pdf(paste0(fn, ".pdf"), width = 3, height = 8.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 3.75 * 200, height = 8.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 3 * 200, height = 8.5 * 200, res = 200)
 hm
 dev.off()
 
