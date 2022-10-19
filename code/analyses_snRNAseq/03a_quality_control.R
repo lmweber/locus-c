@@ -63,22 +63,27 @@ mean(colData(sce)$subsets_Mito_percent > 10)
 mean(colData(sce)$subsets_Mito_percent > 20)
 
 
+# for easier plot legends
+sce_plot <- sce
+colData(sce_plot)$mito <- colData(sce)$subsets_Mito_percent
+
+
 # plot QC metrics
 p <- gridExtra::grid.arrange(
-  plotColData(sce, x = "Sample", y = "sum", colour_by = "subsets_Mito_percent") + 
-    scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Total count"), 
-  plotColData(sce, x = "Sample", y = "detected", colour_by = "subsets_Mito_percent") + 
-    scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Detected genes"), 
-  plotColData(sce, x = "Sample", y = "subsets_Mito_percent") + 
-    ggtitle("Mito percent"), 
+  plotColData(sce_plot, x = "Sample", y = "sum", colour_by = "mito") + 
+    scale_y_log10() + ggtitle("Total count"), 
+  plotColData(sce_plot, x = "Sample", y = "detected", colour_by = "mito") + 
+    scale_y_log10() + ggtitle("Detected genes"), 
+  plotColData(sce_plot, x = "Sample", y = "mito", colour_by = "mito") + 
+    ggtitle("Mitochondrial percent"), 
   ncol = 3
 )
 
 p
 
 fn <- file.path(dir_plots, "QC_metrics")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 12, height = 3.5)
-ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
+ggsave(paste0(fn, ".pdf"), plot = p, width = 11, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 11, height = 3.5)
 
 
 # ------------------------------------
@@ -108,22 +113,35 @@ mean(colData(sce)$subsets_Mito_percent[ix_supervised] > 20)
 sce_supervised <- sce[, ix_supervised]
 
 
+# for easier plot legends
+colData(sce_supervised)$mito <- colData(sce_supervised)$subsets_Mito_percent
+
+
 # plot QC metrics
 p <- gridExtra::grid.arrange(
-  plotColData(sce_supervised, x = "Sample", y = "sum", colour_by = "subsets_Mito_percent") + 
-    scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Total count"), 
-  plotColData(sce_supervised, x = "Sample", y = "detected", colour_by = "subsets_Mito_percent") + 
-    scale_y_log10() + guides(color = guide_legend(title = "mito")) + ggtitle("Detected genes"), 
-  plotColData(sce_supervised, x = "Sample", y = "subsets_Mito_percent", colour_by = "subsets_Mito_percent") + 
-    ggtitle("Mito percent"), 
+  plotColData(sce_supervised, x = "Sample", y = "sum", colour_by = "mito") + 
+    scale_y_log10() + ggtitle("Total count"), 
+  plotColData(sce_supervised, x = "Sample", y = "detected", colour_by = "mito") + 
+    scale_y_log10() + ggtitle("Detected genes"), 
+  plotColData(sce_supervised, x = "Sample", y = "mito", colour_by = "mito") + 
+    ggtitle("Mitochondrial percent"), 
   ncol = 3
 )
 
 p
 
 fn <- file.path(dir_plots, "QC_metrics_NEsupervised")
-ggsave(paste0(fn, ".pdf"), plot = p, width = 12, height = 3.5)
-ggsave(paste0(fn, ".png"), plot = p, width = 12, height = 3.5)
+ggsave(paste0(fn, ".pdf"), plot = p, width = 11, height = 3.5)
+ggsave(paste0(fn, ".png"), plot = p, width = 11, height = 3.5)
+
+
+# plot QC metrics: mitochondrial only
+plotColData(sce_supervised, x = "Sample", y = "mito", colour_by = "mito") + 
+  ggtitle("Mitochondrial percent")
+
+fn <- file.path(dir_plots, "QC_metrics_mito_NEsupervised")
+ggsave(paste0(fn, ".pdf"), width = 4, height = 3.5)
+ggsave(paste0(fn, ".png"), width = 4, height = 3.5)
 
 
 # plot histogram of mitochondrial proportion
