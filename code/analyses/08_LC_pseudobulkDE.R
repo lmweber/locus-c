@@ -449,14 +449,17 @@ df_all <- data.frame(
   mean_logcounts_nonLC = mean_non, 
   logFC = logfc, 
   pval = p_vals, 
-  FDR = fdrs, 
-  significant = sig, 
-  highly_significant = highlysig
+  FDR = fdrs
 )
 
+stopifnot(nrow(df_all) == length(sig))
+stopifnot(all(df_all$gene_name == names(sig)))
+stopifnot(nrow(df_all) == length(highlysig))
+stopifnot(all(df_all$gene_name == names(highlysig)))
+
 # subset significant and highly significant genes
-df_sig <- df_all[df_all$significant, ]
-df_highlysig <- df_all[df_all$highly_significant, ]
+df_sig <- df_all[sig, ]
+df_highlysig <- df_all[highlysig, ]
 
 dim(df_all)
 dim(df_sig)
