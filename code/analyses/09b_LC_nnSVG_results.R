@@ -225,7 +225,7 @@ ggplot(df_plot) +
   geom_boxplot(aes(x = rank_sample_part, y = gene, group = gene), 
                color = "navy") + 
   scale_y_discrete(limits = rev) + 
-  labs(x = "rank") + 
+  labs(x = "rank (per tissue area)") + 
   ggtitle("Top SVGs (nnSVG)") + 
   theme_bw() + 
   theme(axis.text.y = element_text(face = "italic"), 
@@ -251,8 +251,8 @@ ggplot(df_plot) +
   geom_boxplot(aes(x = rank_sample_part, y = gene, group = gene), 
                color = "navy") + 
   scale_y_discrete(limits = rev) + 
-  labs(x = "rank") + 
-  ggtitle("Top SVGs (nnSVG): replicated") + 
+  labs(x = "rank (per tissue area)") + 
+  ggtitle("Top SVGs (nnSVG): replicated across tissue areas") + 
   theme_bw() + 
   theme(axis.text.y = element_text(face = "italic"), 
         axis.title.y = element_blank())
@@ -283,7 +283,7 @@ ggplot(df_plot, aes(x = n_withinTop100, y = gene, fill = all_Br8079)) +
   scale_fill_manual(values = c("navy", "maroon"), name = "Br8079 only") + 
   scale_x_continuous(breaks = 0:13) + 
   scale_y_discrete(limits = rev) + 
-  xlab("number of sample-parts within top 100 SVGs") + 
+  xlab("number of times within top 100 SVGs (13 tissue areas)") + 
   ggtitle("Top SVGs (nnSVG)") + 
   theme_bw() + 
   theme(panel.grid = element_blank(), 
