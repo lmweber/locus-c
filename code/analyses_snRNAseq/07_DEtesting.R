@@ -161,8 +161,8 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
         panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting_volcano_NEvsOtherNeuronal")
-ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 4)
 
 
 # volcano plot with labels
@@ -187,8 +187,8 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
         panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting_volcano_NEvsOtherNeuronal_withLabels")
-ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 4)
 
 
 # -------------------
@@ -338,8 +338,8 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
         panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting_5HTvsOtherNeuronal")
-ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 4)
 
 
 # volcano plot with labels
@@ -364,8 +364,8 @@ ggplot(df, aes(x = log2FC, y = -log10(FDR), color = highlysig, label = gene)) +
         panel.grid.minor = element_blank())
 
 fn <- file.path(dir_plots, "DEtesting_5HTvsOtherNeuronal_withLabels")
-ggsave(paste0(fn, ".pdf"), width = 4.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 4.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 4.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 4.75, height = 4)
 
 
 # ---------------------
