@@ -100,6 +100,10 @@ table(ix_supervised)
 summary(colData(sce)$subsets_Mito_percent[ix_supervised])
 quantile(colData(sce)$subsets_Mito_percent[ix_supervised], seq(0, 1, by = 0.1))
 
+# number of nuclei with high proportion of mitochondrial reads
+table(colData(sce)$subsets_Mito_percent[ix_supervised] > 20)
+mean(colData(sce)$subsets_Mito_percent[ix_supervised] > 20)
+
 
 sce_supervised <- sce[, ix_supervised]
 
