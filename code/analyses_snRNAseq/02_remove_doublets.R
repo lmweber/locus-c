@@ -36,6 +36,7 @@ table(colData(sce)$Sample)
 # identify and remove doublets using scDblFinder
 
 # note: no random seed required
+# run on JHPCE cluster
 
 sce <- scDblFinder(sce, samples = "Sample")
 
