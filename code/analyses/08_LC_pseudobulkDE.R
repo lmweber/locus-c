@@ -455,7 +455,7 @@ df_all <- data.frame(
 )
 
 # subset significant and highly significant genes
-df_sig <- df_all[df_all$highly_significant, ]
+df_sig <- df_all[df_all$significant, ]
 df_highlysig <- df_all[df_all$highly_significant, ]
 
 dim(df_all)
