@@ -49,6 +49,8 @@ genes_main <- c("DBH", "TH", "SLC6A2", "TPH2", "SLC6A4", "SLC5A7")
 
 genes_additional <- c("SST", "VIP", "PVALB", "MOBP", "MBP", "GAD1", "GAD2")
 
+genes_cholinergic <- c("CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1")
+
 genes_nicotinic_acetylcholine <- c(
   "CHRNA1", "CHRNA2", "CHRNA3", "CHRNA4", "CHRNA5", "CHRNA6", "CHRNA7", 
   "CHRNA9", "CHRNA10", "CHRNB1", "CHRNB2", "CHRNB3", "CHRNB4")
@@ -59,6 +61,7 @@ genes_serotonin <- c("HTR1A", "HTR2A")
 genes_all <- c(
   genes_main, 
   genes_additional, 
+  genes_cholinergic, 
   genes_nicotinic_acetylcholine, 
   genes_serotonin)
 
@@ -70,7 +73,8 @@ genes_all <- c(
 df <- as.data.frame(cbind(colData(spe), spatialCoords(spe)))
 
 sapply(file.path(dir_plots, "genes", "multiple_panels", 
-                 c("main", "additional", "nicotinic_acetylcholine", "serotonin")), 
+                 c("main", "additional", "cholinergic", 
+                   "nicotinic_acetylcholine", "serotonin")), 
        dir.create, recursive = TRUE)
 
 
@@ -98,6 +102,7 @@ for (g in seq_along(genes_all)) {
   # save in subdirectories
   if (genes_all[g] %in% genes_main) subdir <- "main"
   if (genes_all[g] %in% genes_additional) subdir <- "additional"
+  if (genes_all[g] %in% genes_cholinergic) subdir <- "cholinergic"
   if (genes_all[g] %in% genes_nicotinic_acetylcholine) subdir <- "nicotinic_acetylcholine"
   if (genes_all[g] %in% genes_serotonin) subdir <- "serotonin"
   
