@@ -171,8 +171,7 @@ markers_inhib <- c(
 # marker labels
 marker_labels_inhib <- c(
   rep("neuron", 2), 
-  rep("inhibitory", 2), 
-  rep("inhibitory_subtypes", 12))
+  rep("inhibitory", 14))
 
 marker_labels_inhib <- 
   factor(marker_labels_inhib, levels = unique(marker_labels_inhib))
@@ -181,8 +180,7 @@ marker_labels_inhib <-
 # colors
 colors_markers_inhib <- list(marker = c(
   neuron = "black", 
-  inhibitory = "#AEC7E8", 
-  inhibitory_subtypes = "#AEC7E8"))
+  inhibitory = "#AEC7E8"))
 
 
 # number of nuclei per cluster
