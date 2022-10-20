@@ -127,8 +127,7 @@ df_5HT <- df %>%
   as.data.frame()
 
 
-pal_NE <- c("red", "gray30")
-pal_5HT <- c("darkmagenta", "gray30")
+pal <- c("red", "gray30")
 
 
 # ------------------------
@@ -142,8 +141,8 @@ ggplot(df_NE) +
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions), 
              position = position_jitterdodge()) + 
-  scale_color_manual(values = pal_NE, name = "annotation") + 
-  scale_fill_manual(values = pal_NE, name = "annotation") + 
+  scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Enrichment") + 
   theme_bw() + 
@@ -162,8 +161,8 @@ ggplot(df_5HT) +
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions), 
              position = position_jitterdodge()) + 
-  scale_color_manual(values = pal_5HT, name = "annotation") + 
-  scale_fill_manual(values = pal_5HT, name = "annotation") + 
+  scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
   labs(y = "mean logcounts per spot") + 
   ggtitle("Enrichment") + 
   theme_bw() + 
@@ -188,8 +187,8 @@ ggplot(df_NE) +
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions, shape = sample), 
              stroke = 0.75, position = position_jitterdodge()) + 
-  scale_color_manual(values = pal_NE, name = "annotation") + 
-  scale_fill_manual(values = pal_NE, name = "annotation") + 
+  scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
   scale_shape_manual(values = 1:12) + 
   guides(color = guide_legend(order = 1)) + 
   guides(fill = guide_legend(order = 1)) + 
@@ -212,8 +211,8 @@ ggplot(df_5HT) +
                alpha = 0.5, outlier.shape = NA) + 
   geom_point(aes(x = gene, y = mean, color = regions, shape = sample), 
              stroke = 0.75, position = position_jitterdodge()) + 
-  scale_color_manual(values = pal_5HT, name = "annotation") + 
-  scale_fill_manual(values = pal_5HT, name = "annotation") + 
+  scale_color_manual(values = pal, name = "annotation") + 
+  scale_fill_manual(values = pal, name = "annotation") + 
   scale_shape_manual(values = 1:12) + 
   guides(color = guide_legend(order = 1)) + 
   guides(fill = guide_legend(order = 1)) + 
