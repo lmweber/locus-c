@@ -71,6 +71,8 @@ markers_all <- c(
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", ## "HTR3A" (not present in data)
   # cholinergic neurons
   "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
+  # additional miscellaneous markers for comparison with Luskin et al. (2022) (from Keri Martinowich 2022-10-20)
+  "CALCA", "CALCR", "CARTPT", "GAL", "PENK", "PNOC", "SLC6A5", 
   # NE neuron markers
   "DBH", "TH", "SLC6A2", "SLC18A2", ## "DDC", "GCH1"
   # 5-HT (serotonin) markers
@@ -268,6 +270,7 @@ markers_extended <- c(
   "SLC17A6", 
   "GAD1", "GAD2", 
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", 
+  "CALCA", "CALCR", "CARTPT", "GAL", "PENK", "PNOC", "SLC6A5", 
   "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
   "DBH", "TH", "SLC6A2", "SLC18A2", 
   "TPH2", "SLC6A4", 
@@ -285,6 +288,7 @@ marker_labels_extended <- c(
   rep("excitatory", 1), 
   rep("inhibitory", 2), 
   rep("inhibitory_subtypes", 12), 
+  rep("miscellaneous", 7), 
   rep("cholinergic", 6), 
   rep("NE", 4), 
   rep("5HT", 2), 
@@ -304,6 +308,7 @@ colors_markers_extended <- list(marker = c(
   excitatory = "#1F77B4", 
   inhibitory = "#AEC7E8", 
   inhibitory_subtypes = "lightskyblue", 
+  miscellaneous = "darkslateblue", 
   cholinergic = "gold", 
   NE = "#D62728", 
   `5HT` = "#9467BD", 
@@ -350,11 +355,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "clustering_heatmap_extended")
 
-pdf(paste0(fn, ".pdf"), width = 11.5, height = 6.5)
+pdf(paste0(fn, ".pdf"), width = 12.5, height = 6.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 11.5 * 200, height = 6.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 12.5 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 
