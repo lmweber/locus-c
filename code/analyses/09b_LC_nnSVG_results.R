@@ -106,14 +106,14 @@ df_summary <- data.frame(
   gene_id = names(avg_ranks), 
   gene_name = rowData(spe)[names(avg_ranks), "gene_name"], 
   gene_type = rowData(spe)[names(avg_ranks), "gene_type"], 
-  avg_rank = unname(avg_ranks), 
-  rank = rank(avg_ranks), 
+  overall_rank = rank(avg_ranks), 
+  average_rank = unname(avg_ranks), 
   n_withinTop100 = unname(n_withinTop100), 
   row.names = names(avg_ranks)
 )
 
 # sort by average rank
-df_summary <- df_summary[order(df_summary$rank), ]
+df_summary <- df_summary[order(df_summary$average_rank), ]
 head(df_summary)
 
 # top n genes
@@ -126,13 +126,26 @@ top100genes <- df_summary$gene_name[1:100]
 df_summaryReplicated <- df_summary[df_summary$n_withinTop100 >= 10, ]
 
 # re-calculate rank within this set
-df_summaryReplicated$rank <- rank(df_summaryReplicated$avg_rank)
+df_summaryReplicated$overall_rank <- rank(df_summaryReplicated$average_rank)
 
 dim(df_summaryReplicated)
 head(df_summaryReplicated)
 
 # top "replicated" SVGs
 topSVGsReplicated <- df_summaryReplicated$gene_name
+
+
+# combined table for supplementary table
+df_summaryCombined <- df_summary
+
+df_summaryCombined[rownames(df_summaryReplicated), "replicated_overall_rank"] <- 
+  df_summaryReplicated$overall_rank
+
+# re-order columns
+df_summaryCombined <- df_summaryCombined[, c(1:3, 7, 4:6)]
+
+dim(df_summaryCombined)
+head(df_summaryCombined)
 
 
 # ------------
@@ -183,7 +196,6 @@ stopifnot(nrow(df_summary) == nrow(res_ranks_ord))
 df_all <- cbind(df_summary, res_ranks_ord)
 rownames(df_all) <- NULL
 
-
 # save .csv file
 fn_all <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks.csv")
 write.csv(df_all, file = fn_all, row.names = FALSE)
@@ -199,10 +211,24 @@ stopifnot(nrow(df_summaryReplicated) == nrow(res_ranksReplicated_ord))
 df_replicated <- cbind(df_summaryReplicated, res_ranksReplicated_ord)
 rownames(df_replicated) <- NULL
 
-
 # save .csv file
 fn_replicated <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks_replicated.csv")
 write.csv(df_replicated, file = fn_replicated, row.names = FALSE)
+
+
+# save combined spreadsheet for supplementary table
+
+res_ranksCombined_ord <- res_ranks[rownames(df_summaryCombined), ]
+
+stopifnot(all(rownames(df_summaryCombined) == rownames(res_ranksCombined_ord)))
+stopifnot(nrow(df_summaryCombined) == nrow(res_ranksCombined_ord))
+
+df_combined <- cbind(df_summaryCombined, res_ranksCombined_ord)
+rownames(df_combined) <- NULL
+
+# save .csv file
+fn_combined <- file.path(dir_outputs, "topSVGs_nnSVG_avgRanks_combined.csv")
+write.csv(df_combined, file = fn_combined, row.names = FALSE)
 
 
 # -----------------------
