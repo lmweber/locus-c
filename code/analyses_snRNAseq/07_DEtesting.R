@@ -272,9 +272,8 @@ df <- marker_info[["6"]][, cols]
 colnames(df) <- gsub("\\.", "_", cols)
 
 # select significant
-sig <- with(df, FDR < 0.05 & summary_logFC > 1)
-table(sig)
-df <- df[sig, ]
+df$significant <- with(df, FDR < 0.05 & summary_logFC > 1)
+table(df$significant)
 
 # order by FDR
 df <- df[order(df$FDR), ]
@@ -449,9 +448,8 @@ df <- marker_info[["21"]][, cols]
 colnames(df) <- gsub("\\.", "_", cols)
 
 # select significant
-sig <- with(df, FDR < 0.05 & summary_logFC > 1)
-table(sig)
-df <- df[sig, ]
+df$significant <- with(df, FDR < 0.05 & summary_logFC > 1)
+table(df$significant)
 
 # order by FDR
 df <- df[order(df$FDR), ]
