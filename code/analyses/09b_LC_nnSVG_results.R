@@ -238,9 +238,9 @@ write.csv(df_combined, file = fn_combined, row.names = FALSE)
 # plot ranks per sample-part for all top SVGs from nnSVG
 
 df_plot <- df_all %>% 
-  filter(rank <= 50) %>% 
+  filter(overall_rank <= 50) %>% 
   select(-c("gene_id", "gene_type")) %>% 
-  pivot_longer(., cols = -c("gene_name", "avg_rank", "rank", "n_withinTop100"), 
+  pivot_longer(., cols = -c("gene_name", "overall_rank", "average_rank", "n_withinTop100"), 
                values_to = "rank_sample_part", names_to = "sample_part") %>% 
   mutate(sample_part = factor(sample_part, levels = sample_part_ids)) %>% 
   rename(gene = gene_name) %>% 
@@ -266,7 +266,7 @@ ggsave(paste0(fn, ".png"), width = 6, height = 7)
 
 df_plot <- df_replicated %>% 
   select(-c("gene_id", "gene_type")) %>% 
-  pivot_longer(., cols = -c("gene_name", "avg_rank", "rank", "n_withinTop100"), 
+  pivot_longer(., cols = -c("gene_name", "overall_rank", "average_rank", "n_withinTop100"), 
                values_to = "rank_sample_part", names_to = "sample_part") %>% 
   mutate(sample_part = factor(sample_part, levels = sample_part_ids)) %>% 
   rename(gene = gene_name) %>% 
@@ -298,7 +298,7 @@ all_Br8079 <- apply(ranks_per_sample_part_Br8079, 1, function(r) !all(is.na(r)))
 
 df_plot <- df_all %>% 
   mutate(all_Br8079 = all_Br8079) %>% 
-  filter(rank <= 50) %>% 
+  filter(overall_rank <= 50) %>% 
   select(c("gene_name", "n_withinTop100", "all_Br8079")) %>% 
   rename(gene = gene_name) %>% 
   mutate(gene = factor(gene, levels = top100genes))
