@@ -478,8 +478,8 @@ ggsave(paste0(fn, ".png"), width = 8, height = 4)
 ggplot(df, aes(x = label, y = detected, color = label_merged)) + 
   geom_boxplot(outlier.size = 0.5) + 
   scale_color_manual(values = colors_clusters$population, name = "population") + 
-  labs(x = "detected genes", 
-       y = "sum UMI counts") + 
+  labs(x = "cluster", 
+       y = "detected genes") + 
   ggtitle("Detected genes per cluster") + 
   theme_bw()
 
@@ -493,8 +493,8 @@ ggsave(paste0(fn, ".png"), width = 8, height = 4)
 ggplot(df, aes(x = label, y = subsets_Mito_percent, color = label_merged)) + 
   geom_boxplot(outlier.size = 0.5) + 
   scale_color_manual(values = colors_clusters$population, name = "population") + 
-  labs(x = "mitochondrial percentage", 
-       y = "sum UMI counts") + 
+  labs(x = "cluster", 
+       y = "mitochondrial percentage") + 
   ggtitle("Mitochondrial percentage per cluster") + 
   theme_bw()
 
