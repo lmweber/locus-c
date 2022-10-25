@@ -453,8 +453,8 @@ df_all <- data.frame(
   gene_type = rowData(spe_pseudo)$gene_type, 
   mean_logcounts_LC = mean_LC, 
   mean_logcounts_nonLC = mean_non, 
-  logFC = logfc, 
-  pval = p_vals, 
+  log2FC = logfc, 
+  p_value = p_vals, 
   FDR = fdrs, 
   significant = sig, 
   highly_significant = highlysig
@@ -477,7 +477,7 @@ df_highlysig <- df_highlysig[order(df_highlysig$FDR), ]
 
 
 # save .csv files
-fn_all <- file.path(dir_outputs, "LC_pseudobulkDE_results.csv")
+fn_all <- file.path(dir_outputs, "LC_pseudobulkDE_all.csv")
 write.csv(df_all, file = fn_all, row.names = FALSE)
 
 fn_sig <- file.path(dir_outputs, "LC_pseudobulkDE_sigGenes.csv")
