@@ -437,6 +437,12 @@ ggsave(paste0(fn, ".png"), width = 4.25, height = 4)
 stopifnot(length(fdrs_gene_ids) == nrow(rowData(spe_pseudo)))
 stopifnot(all(fdrs_gene_ids == rowData(spe_pseudo)$gene_id))
 
+stopifnot(length(fdrs_gene_ids) == length(sig))
+stopifnot(all(rowData(spe_pseudo)$gene_name == names(sig)))
+stopifnot(length(fdrs_gene_ids) == length(highlysig))
+stopifnot(all(rowData(spe_pseudo)$gene_name == names(highlysig)))
+
+
 # all genes
 df_all <- data.frame(
   gene_id = fdrs_gene_ids, 
@@ -449,13 +455,11 @@ df_all <- data.frame(
   mean_logcounts_nonLC = mean_non, 
   logFC = logfc, 
   pval = p_vals, 
-  FDR = fdrs
+  FDR = fdrs, 
+  significant = sig, 
+  highly_significant = highlysig
 )
 
-stopifnot(nrow(df_all) == length(sig))
-stopifnot(all(df_all$gene_name == names(sig)))
-stopifnot(nrow(df_all) == length(highlysig))
-stopifnot(all(df_all$gene_name == names(highlysig)))
 
 # subset significant and highly significant genes
 df_sig <- df_all[sig, ]
@@ -466,14 +470,14 @@ dim(df_sig)
 dim(df_highlysig)
 
 
-# order in most user-friendly way for each set (by gene IDs or FDRs)
-df_all <- df_all[order(df_all$gene_id), ]
+# order by FDRs
+df_all <- df_all[order(df_all$FDR), ]
 df_sig <- df_sig[order(df_sig$FDR), ]
 df_highlysig <- df_highlysig[order(df_highlysig$FDR), ]
 
 
 # save .csv files
-fn_all <- file.path(dir_outputs, "LC_pseudobulkDE_all.csv")
+fn_all <- file.path(dir_outputs, "LC_pseudobulkDE_results.csv")
 write.csv(df_all, file = fn_all, row.names = FALSE)
 
 fn_sig <- file.path(dir_outputs, "LC_pseudobulkDE_sigGenes.csv")
