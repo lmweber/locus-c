@@ -27,6 +27,10 @@ load("LC_Shiny.RData", verbose = TRUE)
 docs_path <- "www"
 
 
+## spatialLIBD expects sample IDs as character vector
+colData(spe)$sample_id <- as.character(colData(spe)$sample_id)
+
+
 ## Deploy the app
 spatialLIBD::run_app(
   spe = spe, 
