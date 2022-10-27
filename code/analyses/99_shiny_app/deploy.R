@@ -28,7 +28,7 @@ rsconnect::deployApp(
     "LC_Shiny.RData", 
     "www"
   ), 
-  appName = 'Locus_coeruleus', 
+  appName = 'locus-c_Visium', 
   account = 'libd', 
   server = 'shinyapps.io'
 )
