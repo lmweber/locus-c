@@ -21,6 +21,9 @@ This repository contains code scripts to reproduce analyses and figures, as foll
 - [code/analyses/](code/analyses/): scripts for analysis workflow for Visium SRT data
 - [code/analyses_snRNAseq/](code/analyses_snRNAseq/): scripts for analysis workflow for snRNA-seq data
 
+
+Preprocessing scripts:
+
 - [code/spaceranger/](code/spaceranger/): scripts to run Space Ranger for pre-processing Visium SRT data
 - [code/cellranger/](code/cellranger/): scripts to run Cell Ranger for pre-processing Visium SRT data
 
