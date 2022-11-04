@@ -24,3 +24,12 @@ This repository contains code scripts to reproduce analyses and figures, as foll
 - [code/spaceranger/](code/spaceranger/): scripts to run Space Ranger for pre-processing Visium SRT data
 - [code/cellranger/](code/cellranger/): scripts to run Cell Ranger for pre-processing Visium SRT data
 
+
+## Additional information
+
+Path to project directory containing files on our compute cluster: `/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/`
+
+Sample information: [sample_info/](sample_info/)
+
+Web summaries from Space Ranger and Cell Ranger: [web_summaries/](web_summaries/)
+
