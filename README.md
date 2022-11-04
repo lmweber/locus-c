@@ -1,84 +1,26 @@
-# Code repository for human locus coeruleus (LC) project analyses
+# Code repository for human locus coeruleus (LC) analyses
 
-This repository contains code to reproduce analyses and figures in our project on characterizing the gene expression landscape of the human locus coeruleus using single-nucleus RNA-sequencing (snRNA-seq) and spatially-resolved transcriptomics (SRT).
+This repository contains code scripts to reproduce analyses and figures in our manuscript:
+
+- Weber and Divecha et al. (2022), *The gene expression landscape of the human locus coeruleus revealed by single-nucleus and spatially-resolved transcriptomics.* [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.28.514241v1).
+
+
+## Overview
+
+We applied spatially-resolved transcriptomics (10x Genomics Visium) and single-nucleus RNA-sequencing to generate transcriptome-wide, spatially-resolved gene expression data from the locus coeruleus (LC) in neurotypical adult human brain donors.
+
+The dataset is freely accessible in both interactive web-based and downloadable formats.
+
+Our manuscript describes the data, our analyses, and provides links to access the data.
 
 
 ## Contents
 
-Code scripts are in the [code/] directory in the following subdirectories:
+This repository contains code scripts to reproduce analyses and figures, as follows:
 
-- `spaceranger`: run Space Ranger to align sequencing reads (FASTQ files) for SRT data
-- `cellranger`: run Cell Ranger to align sequencing reads (FASTQ files) for snRNA-seq data
-- `analyses`: R scripts for analyses of SRT data
-- `analyses_sn_alt`: R scripts for analyses of snRNA-seq data
+- [code/analyses/](code/analyses/): scripts for analysis workflow for Visium SRT data
+- [code/analyses_snRNAseq/](code/analyses_snRNAseq/): scripts for analysis workflow for snRNA-seq data
 
-
-# Internal info
-
-## Location of files
-
-Files are located on JHPCE at:
-
-- `/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/`
-
-Previously files were also at:
-
-- `/dcs04/hicks/data/lweber/locus-c/`
-- `/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/`
-
-
-## FASTQ files
-
-FASTQ files are in the following subdirectories:
-
-- Round 1: `fastq/NextSeq_2020-09-25` and `fastq/MiSeq_2020-08-12`
-- Round 2: `fastq/Linda_2021-05-21`
-- Round 3: `fastq/KMay_2021-07-09`
-
-Backup of FASTQ files is also at:
-
-- `/dcs04/lieber/lcolladotor/rawDataTDSC_LIBD001/raw-data/`
-
-
-## Image files
-
-Image files are in the following directories:
-
-- Round 1: `/images/round1/`
-- Round 2: `/images/round2/`
-- Round 3: `/images/round3/`
-
-Full set of image files for round 3 is also located at:
-
-- Round 3: `/dcs04/lieber/marmaypag/visiumImages_LIBD001/raw-data/2021-06-15_V10B01-003/`
-
-
-## Alignment files
-
-Image alignment files from manual alignment in Loupe are in the following directories:
-
-- Round 1: `/alignment/round1/`
-- Round 2: `/alignment/round2/`
-- Round 3: `/alignment/round3/`
-
-
-## Other input files
-
-- `inputs/`: other external input files
-
-
-## Code scripts
-
-- `code/spaceranger/`: scripts to run Space Ranger
-- `code/other/`: various other shell scripts
-- `code/analyses/`: main R analysis scripts
-- `code/exploratory/`: RMarkdown scripts used for initial exploratory analyses
-
-
-## Output files
-
-- `processed_data/spaceranger/`: Space Ranger output files
-- `processed_data/VistoSeg/`: VistoSeg output files
-- `processed_data/SPE/`: SpatialExperiment object containing data from all 3 rounds
-- `outputs/plots/`: saved plot files
+- [code/spaceranger/](code/spaceranger/): scripts to run Space Ranger for pre-processing Visium SRT data
+- [code/cellranger/](code/cellranger/): scripts to run Cell Ranger for pre-processing Visium SRT data
 
