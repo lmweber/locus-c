@@ -16,7 +16,7 @@ Our manuscript describes the data, our analyses, and provides links to access th
 
 ## Contents
 
-This repository contains code scripts to reproduce analyses and figures, as follows:
+Scripts to reproduce analyses and figures:
 
 - [code/analyses/](code/analyses/): scripts for analysis workflow for Visium SRT data
 - [code/analyses_snRNAseq/](code/analyses_snRNAseq/): scripts for analysis workflow for snRNA-seq data
@@ -30,7 +30,7 @@ Preprocessing scripts:
 
 ## Additional information
 
-Path to project directory containing files on our compute cluster: `/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/`
+Path to project directory on our compute cluster: `/dcs04/lieber/lcolladotor/pilotLC_LIBD001/locus-c/`
 
 Sample information: [sample_info/](sample_info/)
 
