@@ -1,6 +1,6 @@
 ################################
 # LC analyses: exploratory plots
-# Lukas Weber, Oct 2022
+# Lukas Weber, Jan 2023
 ################################
 
 # module load conda_R/4.2
@@ -57,13 +57,16 @@ genes_nicotinic_acetylcholine <- c(
 
 genes_serotonin <- c("HTR1A", "HTR2A")
 
+genes_dopaminergic <- c("SLC6A3")
+
 
 genes_all <- c(
   genes_main, 
   genes_additional, 
   genes_cholinergic, 
   genes_nicotinic_acetylcholine, 
-  genes_serotonin)
+  genes_serotonin, 
+  genes_dopaminergic)
 
 
 # ---------------------------------------
@@ -74,7 +77,8 @@ df <- as.data.frame(cbind(colData(spe), spatialCoords(spe)))
 
 sapply(file.path(dir_plots, "genes", "multiple_panels", 
                  c("main", "additional", "cholinergic", 
-                   "nicotinic_acetylcholine", "serotonin")), 
+                   "nicotinic_acetylcholine", "serotonin", 
+                   "dopaminergic")), 
        dir.create, recursive = TRUE)
 
 
@@ -105,6 +109,7 @@ for (g in seq_along(genes_all)) {
   if (genes_all[g] %in% genes_cholinergic) subdir <- "cholinergic"
   if (genes_all[g] %in% genes_nicotinic_acetylcholine) subdir <- "nicotinic_acetylcholine"
   if (genes_all[g] %in% genes_serotonin) subdir <- "serotonin"
+  if (genes_all[g] %in% genes_dopaminergic) subdir <- "dopaminergic"
   
   fn <- file.path(dir_plots, "genes", "multiple_panels", subdir, 
                   paste0("counts_", genes_all[g]))
