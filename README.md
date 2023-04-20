@@ -2,7 +2,7 @@
 
 This repository contains code scripts to reproduce analyses and figures in our manuscript:
 
-- Weber and Divecha et al. (2022), *The gene expression landscape of the human locus coeruleus revealed by single-nucleus and spatially-resolved transcriptomics.* [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.28.514241v1).
+- Weber and Divecha et al. (2023), *The gene expression landscape of the human locus coeruleus revealed by single-nucleus and spatially-resolved transcriptomics.* [eLife Reviewed Preprint](https://elifesciences.org/reviewed-preprints/84628v1).
 
 
 ## Overview
