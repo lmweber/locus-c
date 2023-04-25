@@ -1,0 +1,35 @@
+---
+title: "Sumary of results: LC Visium project"
+author: "Lukas Weber"
+date: "19 Nov 2020"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Introduction
+
+Summary of sets of results so far:
+
+- Compared UMI counts from MiSeq runs for DLPFC, LC_1, LC_2 samples to confirm that the large regions of very low UMI counts / detected genes in the LC samples are similar to the known white matter region in the DLPFC sample. This confirms that the large regions of low counts in the LC samples are likely to be white matter / axon tracts / fiber bundles.
+
+- Checked expression of known marker genes TH and SLC6A2 in LC_1 and LC_2 samples (using combined counts from NextSeq and MiSeq runs). These marker genes are highly expressed in the small regions of high counts, providing evidence that these regions are indeed LC neurons / norepinephrine (NE) cells.
+
+
+Some next steps:
+
+- Check expression of additional 45 known mouse marker genes (converted to human).
+
+- Segment out the region of high counts (possibly using some local smoothing to capture a spatially contiguous region), for further analysis in this region.
+
+- Downstream analyses in the region of high counts / LC neurons, e.g. clustering, gene expression gradients (note: requires QC, normalization, transformation first).
+

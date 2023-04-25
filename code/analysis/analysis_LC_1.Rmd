@@ -1,0 +1,382 @@
+---
+title: "LC analyses: features per sample"
+author: "Lukas Weber"
+date: "11/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Introduction
+
+Analyses for LC project: features per sample.
+
+```{r}
+# to run on cluster
+# module load conda_R/4.0
+# R
+```
+
+
+## Load data
+
+Using "filtered" feature-barcode matrix from Space Ranger, which contains only spots under tissue.
+
+More details: https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/matrices
+
+```{r, message=FALSE}
+library(Matrix)
+```
+
+```{r}
+# select sample
+sample_name <- "LC_1"
+
+# path to Space Ranger output files
+dir_outputs <- "~/data/MiSeq_Pilot/outputs/NextSeq"
+#dir_outputs <- "../outputs/NextSeq"
+
+# modified code from Space Ranger documentation
+matrix_dir <- file.path(dir_outputs, sample_name, "outs", "filtered_feature_bc_matrix")
+barcode_path <- file.path(matrix_dir, "barcodes.tsv.gz")
+features_path <- file.path(matrix_dir, "features.tsv.gz")
+matrix_path <- file.path(matrix_dir, "matrix.mtx.gz")
+
+mat <- readMM(file = matrix_path)
+
+feature_names <- read.delim(features_path, header = FALSE, stringsAsFactors = FALSE)
+barcode_names <- read.delim(barcode_path, header = FALSE, stringsAsFactors = FALSE)
+colnames(mat) <- barcode_names$V1
+rownames(mat) <- feature_names$V1
+
+colnames(feature_names) <- c("gene_id", "gene_name", "feature_type")
+colnames(barcode_names) <- "barcode_id"
+
+head(feature_names)
+head(barcode_names)
+```
+
+
+## Create VisiumExperiment
+
+Alternatively, load data and directly create VisiumExperiment.
+
+Note: required "unfiltered" feature-barcode matrix files from Space Ranger.
+
+More details: see `SpatialExperiment` vignettes at https://bioconductor.org/packages/SpatialExperiment
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(Matrix)
+library(rjson)
+```
+
+```{r}
+# load data
+
+# note: requires unfiltered barcodes list
+raw_matrix_dir <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
+
+# barcodes
+barcodesFile <- file.path(raw_matrix_dir, "barcodes.tsv.gz")
+barcodes <- read.csv(barcodesFile, sep = "\t", header = FALSE, 
+                     col.names = c("barcode_id"))
+# features
+featuresFile <- file.path(raw_matrix_dir, "features.tsv.gz")
+features <- read.csv(featuresFile, sep = "\t", header = FALSE, 
+                     col.names = c("gene_id", "gene_name", "feature_type"))
+# counts
+countsFile <- file.path(raw_matrix_dir, "matrix.mtx.gz")
+counts <- readMM(file = countsFile)
+
+# spatial coordinates
+spatial_dir <- file.path(dir_outputs, sample_name, "outs", "spatial")
+posFile <- file.path(spatial_dir, "tissue_positions_list.csv")
+tissPos <- read.csv(posFile, header = FALSE, 
+                    col.names=c("barcode_id", "in_tissue", "array_row", "array_col", 
+                                "pxl_col_in_fullres", "pxl_row_in_fullres"))
+
+# check dimensions
+dim(barcodes)
+dim(features)
+dim(counts)
+dim(tissPos)
+
+# image paths
+imageFilePath <- file.path(spatial_dir, c("tissue_hires_image.png", "tissue_lores_image.png"))
+
+# spatial scale factors
+scaleFile <- file.path(spatial_dir, "scalefactors_json.json")
+scalefactors <- fromJSON(file = scaleFile)
+```
+
+```{r}
+# create VisiumExperiment
+
+# note: need to re-order rows of tissPos
+ord <- match(barcodes$barcode_id, tissPos$barcode_id)
+head(barcodes)
+head(tissPos[ord, ])
+
+ve <- VisiumExperiment(
+  rowData = features, 
+  colData = barcodes, 
+  assays = c(counts = counts), 
+  spatialCoords = tissPos[ord, ], 
+  scaleFactors = scalefactors
+)
+
+ve
+```
+
+
+## Plot data
+
+```{r, message=FALSE}
+# keep only spots overlapping with tissue
+ve <- ve[, spatialCoords(ve)$in_tissue == 1]
+dim(ve)
+
+colData(ve)
+spatialCoords(ve)
+```
+
+```{r plot_data, message=FALSE, fig.width=3.75, fig.height=3.75}
+library(spatzli)
+library(ggplot2)
+
+# plot spatial coordinates (spots)
+plotSpots(ve, cluster_id = NULL)
+
+ggsave("../plots/spots_LC_1.png", width = 3.75, height = 3.75)
+```
+
+
+## Quality control
+
+```{r, message=FALSE}
+# use SCE for now
+library(SingleCellExperiment)
+spe <- SingleCellExperiment(
+  rowData = features, 
+  colData = cbind(barcodes, tissPos[ord, ]), 
+  assays = c(counts = counts)
+)
+
+# keep only spots overlapping with tissue
+colData(spe)
+spe <- spe[, colData(spe)$in_tissue == 1]
+dim(spe)
+
+# check order
+colData(spe)
+spatialCoords(ve)
+```
+
+```{r QC_calculate, message=FALSE}
+library(scater)
+
+# identify mitochondrial genes
+is_mito <- grepl("(^MT-)|(^mt-)", rowData(spe)$gene_name)
+table(is_mito)
+rowData(spe)$gene_name[is_mito]
+
+# calculate per-spot QC metrics
+df <- perCellQCMetrics(spe, subsets = list(mito = is_mito))
+head(df, 3)
+
+# store per-spot QC metrics in object
+spe <- addPerCellQC(spe, subsets = list(mito = is_mito))
+```
+
+```{r QC_thresholds, fig.width=7.5, fig.height=3}
+# histograms of QC metrics
+par(mfrow = c(1, 3))
+hist(colData(spe)$sum, xlab = "sum", main = "Detected UMIs per spot")
+hist(colData(spe)$detected, xlab = "detected", main = "Detected genes per spot")
+hist(colData(spe)$subsets_mito_percent, xlab = "percent mitochondrial", main = "Percent mitochondrial UMIs")
+par(mfrow = c(1, 1))
+
+# select QC thresholds
+qc_lib_size <- colData(spe)$sum < 50  ## 5000
+qc_detected <- colData(spe)$detected < 25  ## 1000
+qc_mito <- colData(spe)$subsets_mito_percent > 30  ## 30
+
+# number of discarded spots for each QC metric
+apply(cbind(qc_lib_size, qc_detected, qc_mito), 2, sum)
+
+# combined set of discarded spots
+discard <- qc_lib_size | qc_detected | qc_mito
+table(discard)
+
+# store in object
+colData(spe)$discard <- discard
+```
+
+```{r QC_check, message=FALSE, fig.width=3.75, fig.height=3.75}
+# check spatial pattern of discarded spots
+df <- cbind(as.data.frame(colData(spe)), as.data.frame(spatialCoords(ve)[, -1]))
+
+p <- ggplot(as.data.frame(colData(spe)), aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = discard)) + 
+  geom_point(size = 0.5) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  scale_color_manual(values = c("gray85", "red")) + 
+  ggtitle("QC: discarded spots") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+
+p
+
+ggsave("../plots/QC_discarded_LC_1.png", width = 3.75, height = 3.75)
+```
+
+```{r QC_filter}
+# filter low-quality spots
+spe <- spe[, !colData(spe)$discard]
+dim(spe)
+```
+
+
+## Normalization
+
+```{r normalization, message=FALSE, fig.height=4}
+library(scran)
+
+# quick clustering for pool-based size factors
+set.seed(123)
+qclus <- quickCluster(spe)
+table(qclus)
+
+# calculate size factors and store in object
+spe <- computeSumFactors(spe, cluster = qclus)
+
+summary(sizeFactors(spe))
+par(mfrow = c(1, 1))
+hist(log10(sizeFactors(spe)), xlab = "log10 (size factors)", main = "Size factors")
+
+# calculate logcounts (log-transformed normalized counts) and store in object
+spe <- logNormCounts(spe)
+
+assayNames(spe)
+```
+
+
+## Feature selection
+
+```{r feature_selection_mito}
+# remove mitochondrial genes
+dim(spe)
+spe <- spe[!is_mito, ]
+dim(spe)
+```
+
+```{r feature_selection_mito}
+# remove low-count genes
+is_low <- rowSums(counts(spe)) < 10
+table(is_low)
+
+dim(spe)
+spe <- spe[!is_low, ]
+dim(spe)
+```
+
+```{r feature_selection_HVGs, message=FALSE, fig.height=5}
+# fit mean-variance relationship
+dec <- modelGeneVar(spe)
+
+# visualize mean-variance relationship
+fit <- metadata(dec)
+plot(fit$mean, fit$var, 
+     xlab = "mean of log-expression", ylab = "variance of log-expression")
+curve(fit$trend(x), col = "dodgerblue", add = TRUE, lwd = 2)
+
+# select top HVGs
+top_hvgs <- getTopHVGs(dec, prop = 0.1)
+length(top_hvgs)
+```
+
+```{r outliers}
+# identify outlier genes
+# rev(sort(fit$mean))[1:3]
+# outlier_ids <- names(rev(sort(fit$mean))[1:3])
+
+# rowData(spe)[outlier_ids, ]
+```
+
+
+## Dimensionality reduction
+
+```{r dimensionality_reduction_PCA}
+# calculate PCA
+set.seed(123)
+spe <- runPCA(spe, subset_row = top_hvgs)
+
+reducedDimNames(spe)
+dim(reducedDim(spe, "PCA"))
+```
+
+```{r dimensionality_reduction_UMAP}
+# calculate UMAP on top 50 PCs
+set.seed(123)
+spe <- runUMAP(spe, dimred = "PCA")
+
+reducedDimNames(spe)
+dim(reducedDim(spe, "UMAP"))
+
+# update column names for plotting
+colnames(reducedDim(spe, "UMAP")) <- paste0("UMAP", 1:2)
+```
+
+
+## Clustering
+
+```{r clustering_calculate}
+# graph-based clustering
+set.seed(123)
+k <- 20
+g <- buildSNNGraph(spe, k = k, use.dimred = "PCA")
+g_walk <- igraph::cluster_walktrap(g)
+clus <- g_walk$membership
+table(clus)
+
+# store cluster labels in object (column "label")
+colLabels(spe) <- factor(clus)
+```
+
+
+```{r clustering_plots, fig.height=4.5, fig.width=5.5}
+# define custom color palette
+colors <- unname(palette.colors(palette = "Okabe-Ito"))
+
+# plot clusters in x-y coordinates
+df <- as.data.frame(colData(spe))
+p <- ggplot(df, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = label)) + 
+  geom_point(size = 0.5) + 
+  scale_color_manual(values = colors) + 
+  coord_fixed() + 
+  scale_y_reverse() + 
+  ggtitle("Spatial coordinates (spots)") + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank())
+p
+
+ggsave("../plots/clustering_LC_1.png", width = 3.75, height = 3.75)
+```
+
+
+```{r}
+# plot clusters in UMAP space
+# plotDimRed()
+```
+
+

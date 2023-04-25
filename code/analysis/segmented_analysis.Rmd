@@ -1,0 +1,397 @@
+---
+title: "LC analyses: segmented analyses"
+author: "Lukas Weber"
+date: "18 Nov 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Introduction
+
+Analyses for LC project.
+
+Here we investigate the number of features per spot for each sample.
+
+
+## Load data
+
+Notes:
+
+- "raw" feature-barcode matrix from Space Ranger contains all spots
+- "filtered" feature-barcode matrix from Space Ranger contains only spots under tissue
+
+More details: https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/matrices
+
+Here we use the "raw" feature-barcode matrix to directly create a `VisiumExperiment`.
+
+More details: see `SpatialExperiment` vignettes at https://bioconductor.org/packages/SpatialExperiment
+
+```{r, message=FALSE}
+library(SpatialExperiment)
+library(Matrix)
+library(rjson)
+```
+
+```{r}
+sample_names <- c("LC_1", "LC_2")
+ve_list <- vector("list", length = length(sample_names))
+names(ve_list) <- sample_names
+
+for (i in seq_along(sample_names)) {
+  
+  # ---------
+  # load data
+  # ---------
+  
+  # select sample
+  sample_name <- sample_names[i]
+  
+  # path to Space Ranger output files
+  #dir_outputs <- "~/data/locus-c/outputs/NextSeqMiSeq"
+  dir_outputs <- "/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/locus-c/outputs/NextSeqMiSeq"
+  
+  # note: requires raw barcodes list
+  dir_matrix <- file.path(dir_outputs, sample_name, "outs", "raw_feature_bc_matrix")
+  
+  # barcodes
+  file_barcodes <- file.path(dir_matrix, "barcodes.tsv.gz")
+  df_barcodes <- read.csv(file_barcodes, sep = "\t", header = FALSE, 
+                          col.names = c("barcode_id"))
+  # features
+  file_features <- file.path(dir_matrix, "features.tsv.gz")
+  df_features <- read.csv(file_features, sep = "\t", header = FALSE, 
+                          col.names = c("gene_id", "gene_name", "feature_type"))
+  # counts
+  file_counts <- file.path(dir_matrix, "matrix.mtx.gz")
+  counts <- readMM(file = file_counts)
+  
+  # spatial coordinates
+  dir_spatial <- file.path(dir_outputs, sample_name, "outs", "spatial")
+  file_tisspos <- file.path(dir_spatial, "tissue_positions_list.csv")
+  df_tisspos <- read.csv(file_tisspos, header = FALSE, 
+                         col.names=c("barcode_id", "in_tissue", "array_row", "array_col", 
+                                     "pxl_col_in_fullres", "pxl_row_in_fullres"))
+  
+  # check dimensions
+  dim(df_barcodes)
+  dim(df_features)
+  dim(counts)
+  dim(df_tisspos)
+  
+  # image paths
+  imageFilePath <- file.path(dir_spatial, c("tissue_hires_image.png", "tissue_lores_image.png"))
+  
+  # spatial scale factors
+  file_scale <- file.path(dir_spatial, "scalefactors_json.json")
+  scalefactors <- fromJSON(file = file_scale)
+  
+  
+  # -----------------------
+  # create VisiumExperiment
+  # -----------------------
+  
+  # note: need to re-order rows of df_tisspos to match barcodes
+  ord <- match(df_barcodes$barcode_id, df_tisspos$barcode_id)
+  df_tisspos_ord <- df_tisspos[ord, ]
+  
+  head(df_barcodes)
+  head(df_tisspos_ord)
+  stopifnot(all(df_barcodes$barcode_id == df_tisspos_ord$barcode_id))
+  
+  ve <- VisiumExperiment(
+    rowData = df_features, 
+    colData = df_barcodes, 
+    assays = c(counts = counts), 
+    spatialCoords = df_tisspos_ord, 
+    scaleFactors = scalefactors
+  )
+  
+  ve
+  
+  # keep only spots overlapping with tissue
+  stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+  dim(ve)
+  
+  ve <- ve[, spatialCoords(ve)$in_tissue == 1]
+  
+  dim(ve)
+  
+  # store object
+  ve_list[[i]] <- ve
+}
+
+print(ve_list)
+```
+
+
+## Number of features per spot
+
+Using combined reads from NextSeq and MiSeq samples (97-99% of total reads are from NextSeq).
+
+Spot-level summaries from `web_summary.html` for each sample:
+
+LC_1:
+
+- Number of Spots Under Tissue: 2,979
+- Fraction Reads in Spots Under Tissue: 91.2%
+- Mean Reads per Spot: 111,630
+- Median Genes per Spot: 235
+- Total Genes Detected: 19,352
+- Median UMI Counts per Spot: 330
+
+- Total reads from NextSeq: 327,107,961 (98.4% of total)
+- Total reads from MiSeq: 5,437,332 (1.6% of total)
+- Total reads: 332,545,293
+
+LC_2:
+
+- Number of Spots Under Tissue: 3,056
+- Fraction Reads in Spots Under Tissue: 82.4%
+- Mean Reads per Spot: 86,002
+- Median Genes per Spot: 83
+- Total Genes Detected: 17,223
+- Median UMI Counts per Spot: 118
+
+- Total reads from NextSeq: 255,840,579 (97.3% of total)
+- Total reads from MiSeq: 6,982,110 (2.7% of total)
+- Total reads: 262,822,689
+
+Note these are extremely low numbers of genes and UMIs per spot, given the high numbers of reads per spot. Analyses below investigate this.
+
+
+```{r, message=FALSE}
+library(here)
+library(ggplot2)
+```
+
+```{r, message=FALSE}
+# investigate genes
+
+for (i in seq_along(sample_names)) {
+  
+  # select sample
+  ve <- ve_list[[i]]
+  
+  sum_counts_by_gene <- rowSums(counts(ve))
+  rowData(ve)$sum_counts_by_gene <- sum_counts_by_gene
+  
+  print(length(sum_counts_by_gene))
+  print(sum(sum_counts_by_gene > 100))
+  print(sum(sum_counts_by_gene > 1000))
+  print(sum(sum_counts_by_gene > 10000))
+  
+  print(as.data.frame(rowData(ve)[rowData(ve)$sum_counts_by_gene > 10000, ]))  ## top genes are mitochondrial
+  
+  # calculate proportion reads from mitochondrial genes
+  
+  # identify mitochondrial genes
+  is_mito <- grepl("(^MT-)|(^mt-)", rowData(ve)$gene_name)
+  print(table(is_mito))
+  print(rowData(ve)$gene_name[is_mito])
+  
+  print(sum(counts(ve)[is_mito, ]) / sum(counts(ve)))  ## quite a lot, but not completely dominating
+}
+```
+
+
+```{r, fig.width=4.75, fig.height=3.5, message=FALSE}
+# investigate spots
+
+thresh_counts <- 10000
+
+for (i in seq_along(sample_names)) {
+  
+  # select sample
+  ve <- ve_list[[i]]
+  
+  dir_plot <- here("plots", "features_per_spot")
+  if (!dir.exists(dir_plot)) dir.create(dir_plot, recursive = TRUE)
+  
+  
+  # UMI counts
+  sum_counts_by_spot <- colSums(counts(ve))
+  colData(ve)$sum_counts_by_spot <- sum_counts_by_spot
+  
+  fn <- file.path(dir_plot, paste0("histogram_UMI_counts_", sample_names[i], ".png"))
+  png(fn)
+  hist(sum_counts_by_spot, breaks = 20, 
+       main = paste0("Counts per spot: ", sample_names[i]))
+  dev.off()
+  
+  print(length(sum_counts_by_spot))
+  print(sum(sum_counts_by_spot > 100))
+  print(sum(sum_counts_by_spot > 1000))
+  print(sum(sum_counts_by_spot > 10000))
+  
+  colData(ve)$is_large_counts <- sum_counts_by_spot > thresh_counts
+  
+  # number of genes
+  sum_genes_by_spot <- colSums(as.matrix(counts(ve)) > 0)
+  
+  colData(ve)$sum_genes_by_spot <- sum_genes_by_spot
+  
+  fn <- file.path(dir_plot, paste0("histogram_n_genes_", sample_names[i], ".png"))
+  png(fn)
+  hist(sum_genes_by_spot, breaks = 20, 
+       main = paste0("Number of genes per spot: ", sample_names[i]))
+  dev.off()
+  
+  # store
+  ve_list[[i]] <- ve
+  
+  
+  # plot spots with large UMI counts
+  
+  stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+  
+  df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
+  head(df_plot)
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_large_counts)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray85", "red")) + 
+    ggtitle(paste0("Spots with UMI counts > ", thresh_counts, ": ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_large_UMI_counts_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  
+  # plot UMI counts per spot as gradient
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = sum_counts_by_spot)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_gradient(low = "gray95", high = "navy") + 
+    ggtitle(paste0("UMI counts by spot: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_UMI_counts_by_spot_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  
+  # plot number of genes detected per spot
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = sum_genes_by_spot)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_gradient(low = "gray95", high = "darkgreen") + 
+    ggtitle(paste0("No. genes by spot: ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_n_genes_by_spot_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+}
+```
+
+
+## Segmented analysis
+
+Segmented analysis on regions with high or low numbers of features.
+
+Making the assumption that regions with high numbers of features are the LC region we are interested in, since LC neurons are assumed to have much high numbers of expressed features than the white matter background.
+
+```{r, fig.width=4.75, fig.height=3.5, message=FALSE}
+# segmented analysis
+
+thresh_genes <- 1000
+thresh_genes_2 <- 2000
+
+for (i in seq_along(sample_names)) {
+  
+  # select sample
+  ve <- ve_list[[i]]
+  
+  # select region with number of features
+  ve_sub <- ve[, colData(ve)$sum_genes_by_spot > thresh_genes]
+  
+  print(dim(ve))
+  print(dim(ve_sub))
+  print(ncol(ve_sub) / ncol(ve))  ## e.g. LC_1: 540 out of 2979 spots
+  
+  
+  # plot spots with large numbers of genes
+  
+  colData(ve)$is_large_n_genes <- colData(ve)$sum_genes_by_spot > thresh_genes
+  colData(ve)$is_large_n_genes_2 <- colData(ve)$sum_genes_by_spot > thresh_genes_2
+  
+  ve_list[[i]] <- ve
+  
+  stopifnot(all(colData(ve)$barcode_id == spatialCoords(ve)$barcode_id))
+  
+  df_plot <- as.data.frame(cbind(colData(ve), spatialCoords(ve)[, -1]))  ## drop duplicated barcode_id column
+  head(df_plot)
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_large_n_genes)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray85", "orange")) + 
+    ggtitle(paste0("Spots with no. genes > ", thresh_genes, ": ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_large_UMI_counts_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+  
+  ## higher threshold
+  
+  p <- ggplot(df_plot, aes(x = pxl_row_in_fullres, y = pxl_col_in_fullres, color = is_large_n_genes_2)) + 
+    geom_point(size = 0.5) + 
+    coord_fixed() + 
+    scale_y_reverse() + 
+    scale_color_manual(values = c("gray85", "orange")) + 
+    ggtitle(paste0("Spots with no. genes > ", thresh_genes_2, ": ", sample_names[i])) + 
+    theme_bw() + 
+    theme(panel.grid = element_blank(), 
+          axis.title = element_blank(), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank())
+  
+  print(p)
+  
+  fn <- file.path(dir_plot, paste0("xyplot_large_UMI_counts_2_", sample_names[i], ".png"))
+  ggsave(fn, width = 4.75, height = 3.5)
+}
+```
+
+
+## Next steps
+
+1. use marker genes to better segment the high/low regions; consider whether need a medium region
+
+2. cluster each of the high/low regions
+
+3. investigate expression of marker genes (and other genes) within each of the high/low regions --> biological results
+
