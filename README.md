@@ -1,4 +1,4 @@
-# Code repository for human locus coeruleus (LC) analyses
+# Code repository for locus coeruleus (LC) data analyses
 
 This repository contains code scripts to reproduce analyses and figures in our manuscript:
 
@@ -7,25 +7,25 @@ This repository contains code scripts to reproduce analyses and figures in our m
 
 ## Overview
 
-We applied spatially-resolved transcriptomics (10x Genomics Visium) and single-nucleus RNA-sequencing to generate transcriptome-scale, spatially-resolved gene expression data from the locus coeruleus (LC) in neurotypical adult human brain donors.
+We used a combination of spatially-resolved transcriptomics (10x Genomics Visium platform) and single-nucleus RNA-sequencing to characterize the molecular landscape of the LC region and the transcriptomic profile of LC neurons in the human brain.
 
 The dataset is freely accessible in both interactive web-based and downloadable formats.
 
-Our manuscript describes the data, our analyses, and provides links to access the data.
+Our manuscript describes the data, analyses, and provides links to access the data.
 
 
 ## Contents
 
-Scripts to reproduce analyses and figures:
+Scripts to reproduce analyses and figures in manuscript:
 
-- [code/analyses/Visium/](code/analyses/Visium/): scripts for analysis workflow for Visium SRT data
+- [code/analyses/Visium/](code/analyses/Visium/): scripts for analysis workflow for Visium data
 - [code/analyses/snRNAseq/](code/analyses/snRNAseq/): scripts for analysis workflow for snRNA-seq data
 
 
 Preprocessing scripts:
 
-- [code/preprocessing/spaceranger/](code/preprocessing/spaceranger/): scripts to run Space Ranger for pre-processing Visium SRT data
-- [code/preprocessing/cellranger/](code/preprocessing/cellranger/): scripts to run Cell Ranger for pre-processing Visium SRT data
+- [code/preprocessing/spaceranger/](code/preprocessing/spaceranger/): scripts to run Space Ranger for pre-processing Visium data
+- [code/preprocessing/cellranger/](code/preprocessing/cellranger/): scripts to run Cell Ranger for pre-processing Visium data
 
 
 ## Additional information
