@@ -427,7 +427,36 @@ ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
 ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
 
-# plot number of nuclei per cluster: per sample
+# plot number of nuclei per cluster (without ambiguous nuclei)
+
+tbl <- table(colLabels(sce))
+
+df <- data.frame(
+  cluster = factor(names(tbl), levels = cluster_pops_order), 
+  n_nuclei = as.numeric(tbl), 
+  population = unname(cluster_pops_rev))
+
+df <- df[!(df$population == "neurons_ambiguous"), ]
+df$population <- droplevels(df$population)
+colors_noAmbiguous <- colors_clusters$population[!(names(colors_clusters$population) == "neurons_ambiguous")]
+
+df$prop_nuclei <- df$n_nuclei / sum(df$n_nuclei)
+
+ggplot(df, aes(x = cluster, y = n_nuclei, fill = population, 
+               label = paste0(format(round(prop_nuclei * 100, 1), nsmall = 1), "%"))) + 
+  geom_bar(stat = "identity") + 
+  geom_text(vjust = -0.25, size = 2, fontface = "bold") + 
+  scale_fill_manual(values = colors_noAmbiguous, name = "population") + 
+  labs(y = "number of nuclei") + 
+  ggtitle("Number of nuclei per cluster (excluding ambiguous)") + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("numberNuclei_perCluster_noAmbiguous"))
+ggsave(paste0(fn, ".pdf"), width = 6.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 6.75, height = 4)
+
+
+# plot number of nuclei per cluster (with ambiguous nuclei): per sample
 
 tbl <- table(colLabels(sce), colData(sce)$Sample)
 df <- data.frame(
