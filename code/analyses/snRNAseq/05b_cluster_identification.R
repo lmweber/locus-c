@@ -535,6 +535,24 @@ ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
 ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
 
+# additional details for NE neuron cluster
+
+df_sub <- df %>% 
+  filter(label_merged %in% c("excitatory", "inhibitory", "NE", "5HT")) %>% 
+  mutate(label_NE = ifelse(label_merged == "NE", "NE", "other_neurons")) %>% 
+  mutate(label_NE = factor(label_NE, levels = c("NE", "other_neurons"), 
+                           labels = c("NE neurons", "other neurons")))
+
+ggplot(df_sub, aes(x = label_NE, y = sum, fill = label_NE)) + 
+  geom_violin() + 
+  scale_y_log10() + 
+  scale_fill_manual(values = c("#D62728", "royalblue"), name = "population") + 
+  labs(y = "sum UMIs") + 
+  ggtitle("NE neurons vs. all other neurons") + 
+  theme_bw() + 
+  theme(axis.title.x = element_blank())
+
+
 # -----------
 # Save object
 # -----------
