@@ -1,6 +1,6 @@
 ########################################################################
 # LC snRNA-seq analyses: cluster identification using known marker genes
-# Lukas Weber, Oct 2022
+# Lukas Weber, Apr 2023
 # including code from Matthew N Tran
 ########################################################################
 
@@ -403,17 +403,20 @@ ggsave(paste0(fn, ".png"), width = 6.5, height = 4.75)
 # Plot number of nuclei
 # ---------------------
 
-# plot number of nuclei per cluster
+# plot number of nuclei per cluster (with ambiguous nuclei)
 
 tbl <- table(colLabels(sce))
 
 df <- data.frame(
   cluster = factor(names(tbl), levels = cluster_pops_order), 
   n_nuclei = as.numeric(tbl), 
+  prop_nuclei = as.numeric(tbl) / sum(as.numeric(tbl)), 
   population = unname(cluster_pops_rev))
 
-ggplot(df, aes(x = cluster, y = n_nuclei, fill = population)) + 
+ggplot(df, aes(x = cluster, y = n_nuclei, fill = population, 
+               label = paste0(format(round(prop_nuclei * 100, 1), nsmall = 1), "%"))) + 
   geom_bar(stat = "identity") + 
+  geom_text(vjust = -0.25, size = 2, fontface = "bold") + 
   scale_fill_manual(values = colors_clusters$population, name = "population") + 
   labs(y = "number of nuclei") + 
   ggtitle("Number of nuclei per cluster") + 
