@@ -54,21 +54,21 @@ table(res_Visium_pseudobulk$significant)
 genes_sig_snRNAseq_NEvsOtherNeuronal <- 
   res_snRNAseq_NEvsOtherNeuronal |> 
   filter(significant) |> 
-  select(gene_name) |> 
+  select(gene_id) |> 
   unlist() |> 
   unname()
 
 genes_sig_snRNAseq_NEvsAllOther <- 
   res_snRNAseq_NEvsAllOther |> 
   filter(significant) |> 
-  select(gene_name) |> 
+  select(gene_id) |> 
   unlist() |> 
   unname()
 
 genes_sig_Visium_pseudobulk <- 
   res_Visium_pseudobulk |> 
   filter(significant) |> 
-  select(gene_name) |> 
+  select(gene_id) |> 
   unlist() |> 
   unname()
 
