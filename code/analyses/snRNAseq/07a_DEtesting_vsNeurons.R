@@ -1,7 +1,7 @@
-###################################
-# LC snRNA-seq analyses: DE testing
-# Lukas Weber, Oct 2022
-###################################
+################################################################
+# LC snRNA-seq analyses: DE testing (vs other neuronal clusters)
+# Lukas Weber, Apr 2023
+################################################################
 
 
 library(here)
