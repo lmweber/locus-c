@@ -1,6 +1,6 @@
 ########################################################################
 # LC snRNA-seq analyses: cluster identification using known marker genes
-# Lukas Weber, Apr 2023
+# Lukas Weber, May 2023
 # including code from Matthew N Tran
 ########################################################################
 
@@ -552,7 +552,7 @@ ggplot(df_metrics, aes(x = label_NE, y = value, fill = label_NE)) +
   geom_violin() + 
   scale_y_log10() + 
   scale_fill_manual(values = c("#D62728", "cornflowerblue"), name = "populations") + 
-  ggtitle("NE neurons vs. all other neurons") + 
+  ggtitle("NE neurons vs. other neurons") + 
   theme_bw() + 
   theme(axis.title = element_blank())
 
