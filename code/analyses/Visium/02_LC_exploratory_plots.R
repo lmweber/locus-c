@@ -1,6 +1,6 @@
 ################################
 # LC analyses: exploratory plots
-# Lukas Weber, Jan 2023
+# Lukas Weber, May 2023
 ################################
 
 # module load conda_R/4.2
@@ -47,7 +47,11 @@ sample_ids <- levels(colData(spe)$sample_id)
 
 genes_main <- c("DBH", "TH", "SLC6A2", "TPH2", "SLC6A4", "SLC5A7")
 
-genes_additional <- c("SST", "VIP", "PVALB", "MOBP", "MBP", "GAD1", "GAD2")
+genes_additional <- c("MOBP", "MBP")
+
+genes_inhibitory <- c("GAD1", "GAD2", 
+                      "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", 
+                      "CORT", "VIP", "NPY", "CRHBP", "CCK")
 
 genes_cholinergic <- c("CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1")
 
@@ -63,6 +67,7 @@ genes_dopaminergic <- c("SLC6A3")
 genes_all <- c(
   genes_main, 
   genes_additional, 
+  genes_inhibitory, 
   genes_cholinergic, 
   genes_nicotinic_acetylcholine, 
   genes_serotonin, 
@@ -76,7 +81,8 @@ genes_all <- c(
 df <- as.data.frame(cbind(colData(spe), spatialCoords(spe)))
 
 sapply(file.path(dir_plots, "genes", "multiple_panels", 
-                 c("main", "additional", "cholinergic", 
+                 c("main", "additional", 
+                   "inhibitory", "cholinergic", 
                    "nicotinic_acetylcholine", "serotonin", 
                    "dopaminergic")), 
        dir.create, recursive = TRUE)
@@ -106,6 +112,7 @@ for (g in seq_along(genes_all)) {
   # save in subdirectories
   if (genes_all[g] %in% genes_main) subdir <- "main"
   if (genes_all[g] %in% genes_additional) subdir <- "additional"
+  if (genes_all[g] %in% genes_inhibitory) subdir <- "inhibitory"
   if (genes_all[g] %in% genes_cholinergic) subdir <- "cholinergic"
   if (genes_all[g] %in% genes_nicotinic_acetylcholine) subdir <- "nicotinic_acetylcholine"
   if (genes_all[g] %in% genes_serotonin) subdir <- "serotonin"
