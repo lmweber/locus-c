@@ -53,6 +53,11 @@ genes_inhibitory <- c("GAD1", "GAD2",
                       "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", 
                       "CORT", "VIP", "NPY", "CRHBP", "CCK")
 
+# note some overlap with 'genes_inhibitory'; note TAC2 is not in dataset
+genes_gabaergic_luskin <- c("AGRP", "CALCA", "CCK", "GAL", "CARTPT", "NMB", 
+                            "ADCYAP1", "BDNF", "PCSK1", "PCSK2", "PCSK1N", 
+                            "PDYN", "PENK", "PNOC", "SST", "POMC", "TAC1")
+
 genes_cholinergic <- c("CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1")
 
 genes_nicotinic_acetylcholine <- c(
@@ -68,6 +73,7 @@ genes_all <- c(
   genes_main, 
   genes_additional, 
   genes_inhibitory, 
+  genes_gabaergic_luskin, 
   genes_cholinergic, 
   genes_nicotinic_acetylcholine, 
   genes_serotonin, 
@@ -82,9 +88,9 @@ df <- as.data.frame(cbind(colData(spe), spatialCoords(spe)))
 
 sapply(file.path(dir_plots, "genes", "multiple_panels", 
                  c("main", "additional", 
-                   "inhibitory", "cholinergic", 
-                   "nicotinic_acetylcholine", "serotonin", 
-                   "dopaminergic")), 
+                   "inhibitory", "gabaergic_luskin", 
+                   "cholinergic", "nicotinic_acetylcholine", 
+                   "serotonin", "dopaminergic")), 
        dir.create, recursive = TRUE)
 
 
@@ -113,6 +119,7 @@ for (g in seq_along(genes_all)) {
   if (genes_all[g] %in% genes_main) subdir <- "main"
   if (genes_all[g] %in% genes_additional) subdir <- "additional"
   if (genes_all[g] %in% genes_inhibitory) subdir <- "inhibitory"
+  if (genes_all[g] %in% genes_gabaergic_luskin) subdir <- "gabaergic_luskin"
   if (genes_all[g] %in% genes_cholinergic) subdir <- "cholinergic"
   if (genes_all[g] %in% genes_nicotinic_acetylcholine) subdir <- "nicotinic_acetylcholine"
   if (genes_all[g] %in% genes_serotonin) subdir <- "serotonin"
