@@ -66,7 +66,7 @@ genes_nicotinic_acetylcholine <- c(
 
 genes_serotonin <- c("HTR1A", "HTR2A")
 
-genes_dopaminergic <- c("SLC6A3")
+genes_dopaminergic <- c("SLC6A3", "ALDH1A1", "SLC26A7")
 
 
 genes_all <- c(
