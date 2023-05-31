@@ -68,6 +68,8 @@ genes_serotonin <- c("HTR1A", "HTR2A")
 
 genes_dopaminergic <- c("SLC6A3", "ALDH1A1", "SLC26A7")
 
+genes_adrenaline <- c("PNMT")
+
 
 genes_all <- c(
   genes_main, 
@@ -77,7 +79,8 @@ genes_all <- c(
   genes_cholinergic, 
   genes_nicotinic_acetylcholine, 
   genes_serotonin, 
-  genes_dopaminergic)
+  genes_dopaminergic, 
+  genes_adrenaline)
 
 
 # ---------------------------------------
@@ -90,7 +93,7 @@ sapply(file.path(dir_plots, "genes", "multiple_panels",
                  c("main", "additional", 
                    "inhibitory", "gabaergic_luskin", 
                    "cholinergic", "nicotinic_acetylcholine", 
-                   "serotonin", "dopaminergic")), 
+                   "serotonin", "dopaminergic", "adrenaline")), 
        dir.create, recursive = TRUE)
 
 
@@ -124,6 +127,7 @@ for (g in seq_along(genes_all)) {
   if (genes_all[g] %in% genes_nicotinic_acetylcholine) subdir <- "nicotinic_acetylcholine"
   if (genes_all[g] %in% genes_serotonin) subdir <- "serotonin"
   if (genes_all[g] %in% genes_dopaminergic) subdir <- "dopaminergic"
+  if (genes_all[g] %in% genes_adrenaline) subdir <- "adrenaline"
   
   fn <- file.path(dir_plots, "genes", "multiple_panels", subdir, 
                   paste0("counts_", genes_all[g]))
