@@ -19,6 +19,7 @@ library(ggplot2)
 library(ggnewscale)
 library(RColorBrewer)
 library(scater)
+library(ggspavis)
 
 
 # directory to save plots
@@ -39,6 +40,17 @@ dim(spe)
 table(colData(spe)$sample_id)
 
 sample_ids <- levels(colData(spe)$sample_id)
+
+
+# ---------------------
+# plot histology images
+# ---------------------
+
+plotVisium(spe, spots = FALSE) + facet_wrap(~sample_id, nrow = 2)
+
+fn <- file.path(dir_plots, "histology", "multiple_panels", "HE_histology")
+ggsave(paste0(fn, ".pdf"), width = 8.75, height = 4)
+ggsave(paste0(fn, ".png"), width = 8.75, height = 4)
 
 
 # ------------------------
