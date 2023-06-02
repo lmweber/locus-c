@@ -163,6 +163,14 @@ markers_inhib <- c(
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK" ## "HTR3A" (not present in data)
 )
 
+# second set of GABAergic neuron marker genes from Luskin and Li et al. (2022)
+# and GAD1, GAD2
+
+genes_gabaergic_luskin <- c("GAD1", "GAD2", 
+                            "AGRP", "CALCA", "CCK", "GAL", "CARTPT", "NMB", 
+                            "ADCYAP1", "BDNF", "PCSK1", "PCSK2", "PCSK1N", 
+                            "PDYN", "PENK", "PNOC", "SST", "POMC", "TAC1")
+
 
 # ----------------------------------------------
 # Marker expression heatmap: inhibitory subtypes
@@ -240,6 +248,78 @@ hm
 dev.off()
 
 png(paste0(fn, ".png"), width = 5.5 * 200, height = 4 * 200, res = 200)
+hm
+dev.off()
+
+
+# --------------------------------------------------------------
+# Marker expression heatmap:
+# GABAergic neuron marker genes from Luskin and Li et al. (2022)
+# --------------------------------------------------------------
+
+# marker labels
+marker_labels_luskin <- as.factor(rep("inhibitory", length(genes_gabaergic_luskin)))
+
+# colors
+colors_markers_luskin <- list(marker = c(inhibitory = "#AEC7E8"))
+
+# number of nuclei per cluster
+n <- table(colLabels(sce))
+
+
+# heatmap data
+
+# using 'splitit' function from rafalib package
+# code from Matthew N Tran
+splitit <- function(x) split(seq(along = x), x)
+
+cell_idx <- splitit(sce$label)
+dat <- as.matrix(logcounts(sce))
+rownames(dat) <- rowData(sce)$gene_name
+
+
+hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[genes_gabaergic_luskin, i]))))
+
+
+# row annotation
+row_ha <- rowAnnotation(
+  n = anno_barplot(as.numeric(n), gp = gpar(fill = "navy"), border = FALSE),
+  show_annotation_name = FALSE)
+
+# column annotation
+col_ha <- columnAnnotation(
+  marker = marker_labels_luskin, 
+  show_annotation_name = FALSE, 
+  show_legend = FALSE, 
+  col = colors_markers_luskin)
+
+
+hm <- Heatmap(
+  hm_mat, 
+  name = "mean\nlogcounts", 
+  column_title = "LC secondary clustering mean marker expression", 
+  column_title_gp = gpar(fontface = "bold"), 
+  col = brewer.pal(n = 7, "OrRd"), 
+  right_annotation = row_ha, 
+  bottom_annotation = col_ha, 
+  cluster_rows = TRUE, 
+  cluster_columns = FALSE, 
+  row_title = NULL, 
+  column_split = marker_labels_luskin, 
+  column_names_gp = gpar(fontface = "italic"), 
+  rect_gp = gpar(col = "gray50", lwd = 0.5))
+
+hm
+
+
+# save heatmap
+fn <- file.path(dir_plots, "clustering_inhibitory_subtypes_luskin_genes")
+
+pdf(paste0(fn, ".pdf"), width = 5.75, height = 4)
+hm
+dev.off()
+
+png(paste0(fn, ".png"), width = 5.75 * 200, height = 4 * 200, res = 200)
 hm
 dev.off()
 
