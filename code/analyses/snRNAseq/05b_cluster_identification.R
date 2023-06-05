@@ -1,6 +1,6 @@
 ########################################################################
 # LC snRNA-seq analyses: cluster identification using known marker genes
-# Lukas Weber, May 2023
+# Lukas Weber, Jun 2023
 # including code from Matthew N Tran
 ########################################################################
 
@@ -272,6 +272,7 @@ markers_extended <- c(
   "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK", 
   "CALCA", "CALCR", "CARTPT", "GAL", "PENK", "PNOC", "SLC6A5", 
   "SLC5A7", "CHAT", "ACHE", "BCHE", "SLC18A3", "PRIMA1", 
+  "SLC6A3", "ALDH1A1", "SLC26A7", 
   "DBH", "TH", "SLC6A2", "SLC18A2", 
   "TPH2", "SLC6A4", 
   "GFAP", "AQP4", 
@@ -290,6 +291,7 @@ marker_labels_extended <- c(
   rep("inhibitory_subtypes", 12), 
   rep("miscellaneous", 7), 
   rep("cholinergic", 6), 
+  rep("dopaminergic", 3), 
   rep("NE", 4), 
   rep("5HT", 2), 
   rep("astrocytes", 2), 
@@ -310,6 +312,7 @@ colors_markers_extended <- list(marker = c(
   inhibitory_subtypes = "lightskyblue", 
   miscellaneous = "darkslateblue", 
   cholinergic = "gold", 
+  dopaminergic = "deeppink", 
   NE = "#D62728", 
   `5HT` = "#9467BD", 
   astrocytes = "#FF7F0E", 
@@ -355,11 +358,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "clustering_heatmap_extended")
 
-pdf(paste0(fn, ".pdf"), width = 12.5, height = 6.5)
+pdf(paste0(fn, ".pdf"), width = 13, height = 6.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 12.5 * 200, height = 6.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 13 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 
