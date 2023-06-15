@@ -77,6 +77,8 @@ markers_all <- c(
   "DBH", "TH", "SLC6A2", "SLC18A2", ## "DDC", "GCH1"
   # 5-HT (serotonin) markers
   "TPH2", "SLC6A4", ## "TPH1"
+  # 5-HT autoreceptors
+  "HTR1A", "HTR2A", ## "HTR2C", "HTR1B", "HTR2B", "HTR4", 
   # astrocytes
   "GFAP", "AQP4", 
   # endothelial / mural (RBPMS)
@@ -275,6 +277,7 @@ markers_extended <- c(
   "SLC6A3", "ALDH1A1", "SLC26A7", 
   "DBH", "TH", "SLC6A2", "SLC18A2", 
   "TPH2", "SLC6A4", 
+  "HTR1A", "HTR2A", 
   "GFAP", "AQP4", 
   "CLDN5", "FLT1", "RBPMS", 
   "CD163", "C3", 
@@ -294,6 +297,7 @@ marker_labels_extended <- c(
   rep("dopaminergic", 3), 
   rep("NE", 4), 
   rep("5HT", 2), 
+  rep("5HT_autoreceptors", 2), 
   rep("astrocytes", 2), 
   rep("endothelial_mural", 3), 
   rep("macrophages_microglia", 2), 
@@ -315,6 +319,7 @@ colors_markers_extended <- list(marker = c(
   dopaminergic = "deeppink", 
   NE = "#D62728", 
   `5HT` = "#9467BD", 
+  `5HT_autoreceptors` = "purple4", 
   astrocytes = "#FF7F0E", 
   endothelial_mural = "#98DF8A", 
   macrophages_microglia = "#8C564B", 
@@ -358,11 +363,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "clustering_heatmap_extended")
 
-pdf(paste0(fn, ".pdf"), width = 13, height = 6.5)
+pdf(paste0(fn, ".pdf"), width = 13.5, height = 6.5)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 13 * 200, height = 6.5 * 200, res = 200)
+png(paste0(fn, ".png"), width = 13.5 * 200, height = 6.5 * 200, res = 200)
 hm
 dev.off()
 
