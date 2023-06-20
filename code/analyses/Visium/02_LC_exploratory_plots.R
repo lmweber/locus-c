@@ -1,6 +1,6 @@
 ################################
 # LC analyses: exploratory plots
-# Lukas Weber, May 2023
+# Lukas Weber, Jun 2023
 ################################
 
 # module load conda_R/4.2
@@ -76,7 +76,7 @@ genes_nicotinic_acetylcholine <- c(
   "CHRNA1", "CHRNA2", "CHRNA3", "CHRNA4", "CHRNA5", "CHRNA6", "CHRNA7", 
   "CHRNA9", "CHRNA10", "CHRNB1", "CHRNB2", "CHRNB3", "CHRNB4")
 
-genes_serotonin <- c("HTR1A", "HTR2A")
+genes_serotonin <- c("SLC6A18", "FEV", "HTR1A", "HTR2A", "HCRTR2")
 
 genes_dopaminergic <- c("SLC6A3", "ALDH1A1", "SLC26A7")
 
