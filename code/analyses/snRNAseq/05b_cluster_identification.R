@@ -78,7 +78,7 @@ markers_all <- c(
   # 5-HT (serotonin) markers
   "TPH2", "SLC6A4", ## "TPH1"
   # 5-HT other marker genes
-  "FEV", "HTR1A", "HCRTR2", 
+  "FEV", "HTR1A", "HTR1B", "HCRTR2", 
   # astrocytes
   "GFAP", "AQP4", 
   # endothelial / mural (RBPMS)
@@ -277,7 +277,7 @@ markers_extended <- c(
   "SLC6A3", "ALDH1A1", "SLC26A7", 
   "DBH", "TH", "SLC6A2", "SLC18A2", 
   "TPH2", "SLC6A4", 
-  "FEV", "HTR1A", "HCRTR2", 
+  "FEV", "HTR1A", "HTR1B", "HCRTR2", 
   "GFAP", "AQP4", 
   "CLDN5", "FLT1", "RBPMS", 
   "CD163", "C3", 
@@ -297,7 +297,7 @@ marker_labels_extended <- c(
   rep("dopaminergic", 3), 
   rep("NE", 4), 
   rep("5HT", 2), 
-  rep("5HT_other", 3), 
+  rep("5HT_other", 4), 
   rep("astrocytes", 2), 
   rep("endothelial_mural", 3), 
   rep("macrophages_microglia", 2), 
