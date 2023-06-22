@@ -543,19 +543,19 @@ ggsave(paste0(fn, ".pdf"), width = 8, height = 4)
 ggsave(paste0(fn, ".png"), width = 8, height = 4)
 
 
-# additional details for NE neuron cluster
+# additional details: NE neuron cluster vs. other neurons (excluding ambiguous)
 
-df_metrics <- df %>% 
+df_metrics_neur <- df %>% 
   filter(label_merged %in% c("excitatory", "inhibitory", "NE", "5HT")) %>% 
   mutate(label_NE = ifelse(label_merged == "NE", "NE", "other_neurons")) %>% 
   mutate(label_NE = factor(label_NE, levels = c("NE", "other_neurons"), 
-                           labels = c("NE neurons", "other neurons"))) %>% 
-  pivot_longer(cols = c("sum", "detected", "subsets_Mito_percent"), 
+                           labels = c("NE neurons", "other neurons\n(exc. ambiguous)"))) %>% 
+  pivot_longer(cols = c("sum", "detected"), 
                names_to = "metric", values_to = "value") %>% 
-  mutate(metric = factor(metric, levels = c("sum", "detected", "subsets_Mito_percent"), 
-                         labels = c("sum UMIs", "detected genes", "mito percent")))
+  mutate(metric = factor(metric, levels = c("sum", "detected"), 
+                         labels = c("sum UMIs", "detected genes")))
 
-ggplot(df_metrics, aes(x = label_NE, y = value, fill = label_NE)) + 
+ggplot(df_metrics_neur, aes(x = label_NE, y = value, fill = label_NE)) + 
   facet_wrap(~metric, nrow = 1) + 
   geom_violin() + 
   scale_y_log10() + 
@@ -565,8 +565,34 @@ ggplot(df_metrics, aes(x = label_NE, y = value, fill = label_NE)) +
   theme(axis.title = element_blank())
 
 fn <- here(dir_plots, paste0("QCmetrics_NEvsOtherNeuron"))
-ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4.25)
-ggsave(paste0(fn, ".png"), width = 7.5, height = 4.25)
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4.25)
+ggsave(paste0(fn, ".png"), width = 6, height = 4.25)
+
+
+# additional details: NE neuron cluster vs. all other (excluding ambiguous neurons)
+
+df_metrics_all <- df %>% 
+  filter(label_merged != "neurons_ambiguous") %>% 
+  mutate(label_NE = ifelse(label_merged == "NE", "NE", "other")) %>% 
+  mutate(label_NE = factor(label_NE, levels = c("NE", "other"), 
+                           labels = c("NE neurons", "all other\n(exc. ambiguous)"))) %>% 
+  pivot_longer(cols = c("sum", "detected"), 
+               names_to = "metric", values_to = "value") %>% 
+  mutate(metric = factor(metric, levels = c("sum", "detected"), 
+                         labels = c("sum UMIs", "detected genes")))
+
+ggplot(df_metrics_all, aes(x = label_NE, y = value, fill = label_NE)) + 
+  facet_wrap(~metric, nrow = 1) + 
+  geom_violin() + 
+  scale_y_log10() + 
+  scale_fill_manual(values = c("#D62728", "black"), name = "populations") + 
+  ggtitle("NE neurons vs. all other") + 
+  theme_bw() + 
+  theme(axis.title = element_blank())
+
+fn <- here(dir_plots, paste0("QCmetrics_NEvsAllOther"))
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4.25)
+ggsave(paste0(fn, ".png"), width = 6, height = 4.25)
 
 
 # -----------
