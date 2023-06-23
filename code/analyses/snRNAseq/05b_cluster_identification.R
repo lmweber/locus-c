@@ -595,6 +595,33 @@ ggsave(paste0(fn, ".pdf"), width = 6, height = 4.25)
 ggsave(paste0(fn, ".png"), width = 6, height = 4.25)
 
 
+# additional details: scatter plot with mitochondrial percentage
+
+df_scatter <- df
+df_scatter$label_sub <- "other"
+df_scatter$label_sub[df_scatter$label_merged == "NE"] <- "NE"
+df_scatter$label_sub[df_scatter$label_merged %in% c("excitatory", "inhibitory", "5HT")] <- "neurons_other"
+df_scatter$label_sub[df_scatter$label_merged == "neurons_ambiguous"] <- "neurons_ambiguous"
+
+df_scatter <- df_scatter %>% 
+  mutate(label_sub = factor(label_sub, levels = c("NE", "neurons_other", "neurons_ambiguous", "other")))
+
+ggplot(df_scatter, aes(x = sum, y = subsets_Mito_percent, color = label_sub)) + 
+  geom_point(size = 0.3) + 
+  scale_x_log10() + 
+  scale_color_manual(values = c("#D62728", "cornflowerblue", "gray60", "black"), 
+                     name = "populations") + 
+  labs(x = "sum UMIs", 
+       y = "mito percent") + 
+  ggtitle("QC metrics comparison") + 
+  guides(color = guide_legend(override.aes = list(size = 3))) + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("QCmetrics_mito_scatter"))
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
+ggsave(paste0(fn, ".png"), width = 6, height = 4)
+
+
 # -----------
 # Save object
 # -----------
