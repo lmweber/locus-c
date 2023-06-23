@@ -595,7 +595,7 @@ ggsave(paste0(fn, ".pdf"), width = 6, height = 4.25)
 ggsave(paste0(fn, ".png"), width = 6, height = 4.25)
 
 
-# additional details: scatter plot with mitochondrial percentage
+# additional details: scatter plots with mitochondrial percentage
 
 df_scatter <- df
 df_scatter$label_sub <- "other"
@@ -606,19 +606,37 @@ df_scatter$label_sub[df_scatter$label_merged == "neurons_ambiguous"] <- "neurons
 df_scatter <- df_scatter %>% 
   mutate(label_sub = factor(label_sub, levels = c("NE", "neurons_other", "neurons_ambiguous", "other")))
 
+# sum UMIs
 ggplot(df_scatter, aes(x = sum, y = subsets_Mito_percent, color = label_sub)) + 
   geom_point(size = 0.35) + 
   scale_x_log10() + 
   scale_color_manual(values = c("#D62728", "cornflowerblue", "gray60", "black"), 
                      name = "populations") + 
   ylim(c(0, 100)) + 
-  labs(x = "sum UMIs", 
+  labs(x = "sum UMIs (log10)", 
        y = "mito percent") + 
   ggtitle("QC metrics comparison") + 
   guides(color = guide_legend(override.aes = list(size = 3))) + 
   theme_bw()
 
-fn <- here(dir_plots, paste0("QCmetrics_mito_scatter"))
+fn <- here(dir_plots, paste0("QCmetrics_mitoSumUMIs_scatter"))
+ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
+ggsave(paste0(fn, ".png"), width = 6, height = 4)
+
+# detected genes
+ggplot(df_scatter, aes(x = detected, y = subsets_Mito_percent, color = label_sub)) + 
+  geom_point(size = 0.35) + 
+  scale_x_log10() + 
+  scale_color_manual(values = c("#D62728", "cornflowerblue", "gray60", "black"), 
+                     name = "populations") + 
+  ylim(c(0, 100)) + 
+  labs(x = "detected genes (log10)", 
+       y = "mito percent") + 
+  ggtitle("QC metrics comparison") + 
+  guides(color = guide_legend(override.aes = list(size = 3))) + 
+  theme_bw()
+
+fn <- here(dir_plots, paste0("QCmetrics_mitoDetected_scatter"))
 ggsave(paste0(fn, ".pdf"), width = 6, height = 4)
 ggsave(paste0(fn, ".png"), width = 6, height = 4)
 
