@@ -1,6 +1,6 @@
 ###################################################################
 # LC snRNA-seq analyses: secondary clustering of inhibitory neurons
-# Lukas Weber, Oct 2022
+# Lukas Weber, Jun 2023
 ###################################################################
 
 
@@ -12,6 +12,7 @@ library(bluster)
 library(ggplot2)
 library(ComplexHeatmap)
 library(RColorBrewer)
+library(circlize)
 
 
 dir_plots <- here("plots", "singleNucleus", "05c_clustering_inhibitory")
@@ -221,13 +222,15 @@ col_ha <- columnAnnotation(
   show_legend = FALSE, 
   col = colors_markers_inhib)
 
+# check range of values to select consistent range across plots
+range(hm_mat)
 
 hm <- Heatmap(
   hm_mat, 
   name = "mean\nlogcounts", 
   column_title = "LC secondary clustering mean marker expression", 
   column_title_gp = gpar(fontface = "bold"), 
-  col = brewer.pal(n = 7, "OrRd"), 
+  col = colorRamp2(seq(0, 6.4, length.out = 7), brewer.pal(n = 7, "OrRd")), 
   right_annotation = row_ha, 
   bottom_annotation = col_ha, 
   cluster_rows = TRUE, 
@@ -293,13 +296,15 @@ col_ha <- columnAnnotation(
   show_legend = FALSE, 
   col = colors_markers_luskin)
 
+# check range of values to select consistent range across plots
+range(hm_mat)
 
 hm <- Heatmap(
   hm_mat, 
   name = "mean\nlogcounts", 
   column_title = "LC secondary clustering mean marker expression", 
   column_title_gp = gpar(fontface = "bold"), 
-  col = brewer.pal(n = 7, "OrRd"), 
+  col = colorRamp2(seq(0, 6.4, length.out = 7), brewer.pal(n = 7, "OrRd")), 
   right_annotation = row_ha, 
   bottom_annotation = col_ha, 
   cluster_rows = TRUE, 
