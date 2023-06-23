@@ -607,10 +607,11 @@ df_scatter <- df_scatter %>%
   mutate(label_sub = factor(label_sub, levels = c("NE", "neurons_other", "neurons_ambiguous", "other")))
 
 ggplot(df_scatter, aes(x = sum, y = subsets_Mito_percent, color = label_sub)) + 
-  geom_point(size = 0.3) + 
+  geom_point(size = 0.35) + 
   scale_x_log10() + 
   scale_color_manual(values = c("#D62728", "cornflowerblue", "gray60", "black"), 
                      name = "populations") + 
+  ylim(c(0, 100)) + 
   labs(x = "sum UMIs", 
        y = "mito percent") + 
   ggtitle("QC metrics comparison") + 
