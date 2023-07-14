@@ -83,8 +83,8 @@ ggplot(df, aes(x = sample_id, y = n, color = sample_id)) +
   geom_boxplot() + 
   scale_y_sqrt() + 
   scale_color_brewer(palette = "Set2") + 
-  labs(y = "number of nuclei (sqrt scale)") + 
-  ggtitle("Number of nuclei per spot (in tissue)") + 
+  labs(y = "number of cells (sqrt scale)") + 
+  ggtitle("Number of cells per spot") + 
   theme_bw() + 
   theme(axis.title.x = element_blank(), 
         axis.text.x = element_text(angle = 15, vjust = 0.75, hjust = 0.75))
@@ -114,8 +114,8 @@ ggplot(df_trimmed, aes(x = n)) +
   facet_wrap(~ sample_id, scales = "free") + 
   geom_histogram(binwidth = 1, color = "black", fill = "navy") + 
   scale_x_continuous(breaks = seq(0, 60, by = 5)) + 
-  labs(x = "number of nuclei") + 
-  ggtitle("Number of nuclei per spot (in tissue, trimmed)") + 
+  labs(x = "number of cells") + 
+  ggtitle("Number of cells per spot (trimmed)") + 
   theme_bw() + 
   theme(panel.grid = element_blank())
 
