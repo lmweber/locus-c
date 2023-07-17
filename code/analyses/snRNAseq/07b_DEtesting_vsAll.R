@@ -1,6 +1,6 @@
 ###########################################################
 # LC snRNA-seq analyses: DE testing (vs all other clusters)
-# Lukas Weber, Apr 2023
+# Lukas Weber, Jul 2023
 ###########################################################
 
 
@@ -50,6 +50,18 @@ table(colLabels(sce), colData(sce)$Sample)
 
 # store total UMI counts per gene
 rowData(sce)$sum_gene <- rowSums(counts(sce))
+
+
+# select clusters (all except ambiguous neuronal) to test against
+clus_all <- setdiff(1:30, c(18, 19, 3, 22, 13, 1, 2))
+ix_all <- colData(sce)$label %in% clus_all
+table(ix_all)
+
+sce <- sce[, ix_all]
+dim(sce)
+
+# remove empty levels
+colData(sce)$label <- droplevels(colData(sce)$label)
 
 
 # calculate DE tests
