@@ -10,6 +10,7 @@ library(tidyr)
 library(readr)
 library(ggplot2)
 library(ggVennDiagram)
+library(ggrepel)
 
 
 dir_plots <- here("plots", "singleNucleus", "07_DEtesting")
@@ -199,14 +200,16 @@ df_Visium_pseudobulk <-
 
 df_plot <- 
   rbind(df_snRNAseq_NEvsAllOther, df_Visium_pseudobulk) |> 
-  select(-c("gene_name", "p_value")) |> 
+  select(-c("p_value")) |> 
   pivot_wider(names_from = "results", values_from = "logFC") |> 
   na.omit()
 
 
 # Visium (pseudobulk) vs. snRNA-seq (NE vs. all other)
-ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk)) + 
+ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk, 
+                    label = gene_name)) + 
   geom_point(pch = 1, color = "navy", size = 1.25, stroke = 0.7) + 
+  geom_text_repel(size = 2.5, max.overlaps = 20, color = "navy") + 
   coord_fixed() + 
   labs(x = "DE gene log2FC (snRNA-seq: NE vs. all other)", 
        y = "DE gene log2FC (Visium: pseudobulk)") + 
@@ -214,6 +217,6 @@ ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk)) +
   theme_bw()
 
 fn <- file.path(dir_plots, "correlations_logFC_DEgenes_Visium_vs_snRNAseq")
-ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4)
-ggsave(paste0(fn, ".png"), width = 5.5, height = 4)
+ggsave(paste0(fn, ".pdf"), width = 6.5, height = 5)
+ggsave(paste0(fn, ".png"), width = 6.5, height = 5)
 
