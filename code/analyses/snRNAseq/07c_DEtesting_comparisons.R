@@ -115,9 +115,9 @@ ggsave(paste0(fn, ".pdf"), width = 5.5, height = 3.5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 3.5)
 
 
-# -----------------
-# plot correlations
-# -----------------
+# -------------------------
+# plot correlations (ranks)
+# -------------------------
 
 # rank correlations for sets of significant DE genes
 
@@ -173,6 +173,47 @@ ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk)) +
   theme_bw()
 
 fn <- file.path(dir_plots, "correlations_DEgenes_Visium_vs_snRNAseq")
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5.5)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 5.5)
+
+
+# ----------------------
+# plot correlations (FC)
+# ----------------------
+
+# fold change (FC) correlations for sets of significant DE genes
+
+# extract FCs per gene
+res_sig_snRNAseq_NEvsAllOther <- res_snRNAseq_NEvsAllOther[res_snRNAseq_NEvsAllOther$significant, ]
+res_sig_Visium_pseudobulk <- res_Visium_pseudobulk[res_Visium_pseudobulk$significant, ]
+
+cols_keep_snRNAseq <- c("gene_id", "gene_name", "p_value", "summary_logFC")
+cols_keep_Visium <- c("gene_id", "gene_name", "p_value", "log2FC")
+
+df_snRNAseq_NEvsAllOther <- 
+  cbind(res_sig_snRNAseq_NEvsAllOther[, cols_keep_snRNAseq], results = "snRNAseq_NEvsAllOther") |> 
+  rename(logFC = summary_logFC)
+df_Visium_pseudobulk <- 
+  cbind(res_sig_Visium_pseudobulk[, cols_keep_Visium], results = "Visium_pseudobulk") |> 
+  rename(logFC = log2FC)
+
+df_plot <- 
+  rbind(df_snRNAseq_NEvsAllOther, df_Visium_pseudobulk) |> 
+  select(-c("gene_name", "p_value")) |> 
+  pivot_wider(names_from = "results", values_from = "logFC") |> 
+  na.omit()
+
+
+# Visium (pseudobulk) vs. snRNA-seq (NE vs. all other)
+ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk)) + 
+  geom_point(pch = 1, color = "navy", size = 1.25, stroke = 0.7) + 
+  coord_fixed() + 
+  labs(x = "DE gene log2FC (snRNA-seq: NE vs. all other)", 
+       y = "DE gene log2FC (Visium: pseudobulk)") + 
+  ggtitle("logFC of DE genes") + 
+  theme_bw()
+
+fn <- file.path(dir_plots, "correlations_logFC_DEgenes_Visium_vs_snRNAseq")
 ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5.5)
 ggsave(paste0(fn, ".png"), width = 5.5, height = 5.5)
 
