@@ -214,6 +214,6 @@ ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk)) +
   theme_bw()
 
 fn <- file.path(dir_plots, "correlations_logFC_DEgenes_Visium_vs_snRNAseq")
-ggsave(paste0(fn, ".pdf"), width = 5.5, height = 5.5)
-ggsave(paste0(fn, ".png"), width = 5.5, height = 5.5)
+ggsave(paste0(fn, ".pdf"), width = 5.5, height = 4)
+ggsave(paste0(fn, ".png"), width = 5.5, height = 4)
 
