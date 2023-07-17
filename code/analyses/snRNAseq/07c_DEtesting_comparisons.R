@@ -1,6 +1,6 @@
 ###############################################
 # LC snRNA-seq analyses: DE testing comparisons
-# Lukas Weber, Apr 2023
+# Lukas Weber, Jul 2023
 ###############################################
 
 
@@ -92,7 +92,7 @@ x_snRNAseq_vs_Visium <- list(
 
 
 # snRNA-seq (NE vs. other neurons) vs. snRNA-seq (NE vs. all other)
-ggVennDiagram(x_snRNAseq) + 
+ggVennDiagram(x_snRNAseq, set_size = 3) + 
   scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
   scale_color_manual(values = c("black", "black")) + 
   theme_void() + 
@@ -104,7 +104,7 @@ ggsave(paste0(fn, ".png"), width = 5.5, height = 3.5)
 
 
 # Visium (pseudobulk) vs. snRNA-seq (NE vs. all other)
-ggVennDiagram(x_snRNAseq_vs_Visium) + 
+ggVennDiagram(x_snRNAseq_vs_Visium, set_size = 3) + 
   scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
   scale_color_manual(values = c("black", "black")) + 
   theme_void() + 
