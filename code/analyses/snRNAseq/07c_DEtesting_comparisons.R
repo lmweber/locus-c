@@ -198,7 +198,7 @@ df_Visium_pseudobulk <-
   cbind(res_sig_Visium_pseudobulk[, cols_keep_Visium], results = "Visium_pseudobulk") |> 
   rename(logFC = log2FC)
 
-df_plot <- 
+df_overlap <- 
   rbind(df_snRNAseq_NEvsAllOther, df_Visium_pseudobulk) |> 
   select(-c("p_value")) |> 
   pivot_wider(names_from = "results", values_from = "logFC") |> 
@@ -206,7 +206,7 @@ df_plot <-
 
 
 # Visium (pseudobulk) vs. snRNA-seq (NE vs. all other)
-ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk, 
+ggplot(df_overlap, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk, 
                     label = gene_name)) + 
   geom_point(pch = 1, color = "navy", size = 1.25, stroke = 0.7) + 
   geom_text_repel(size = 2.5, max.overlaps = 20, color = "navy", 
@@ -220,4 +220,36 @@ ggplot(df_plot, aes(x = snRNAseq_NEvsAllOther, y = Visium_pseudobulk,
 fn <- file.path(dir_plots, "correlations_logFC_DEgenes_Visium_vs_snRNAseq")
 ggsave(paste0(fn, ".pdf"), width = 6.5, height = 4.75)
 ggsave(paste0(fn, ".png"), width = 6.5, height = 4.75)
+
+
+# ------------------------
+# spreadsheet: overlap set
+# ------------------------
+
+# gene IDs for overlap set (ordered by FC in Visium data)
+gene_ids_overlap <- df_overlap$gene_id[order(df_overlap$Visium_pseudobulk, decreasing = TRUE)]
+
+tbl_Visium_pseudobulk <- as.data.frame(res_sig_Visium_pseudobulk)
+tbl_snRNAseq_NEvsAllOther <- as.data.frame(res_sig_snRNAseq_NEvsAllOther)
+
+rownames(tbl_Visium_pseudobulk) <- tbl_Visium_pseudobulk$gene_id
+rownames(tbl_snRNAseq_NEvsAllOther) <- tbl_snRNAseq_NEvsAllOther$gene_id
+
+# select genes in overlap set
+tbl_Visium_pseudobulk <- tbl_Visium_pseudobulk[gene_ids_overlap, ]
+tbl_snRNAseq_NEvsAllOther <- tbl_snRNAseq_NEvsAllOther[gene_ids_overlap, ]
+
+colnames(tbl_Visium_pseudobulk)[-c(1:6)] <- 
+  paste0(colnames(tbl_Visium_pseudobulk)[-c(1:6)], ".Visium_pseudobulk")
+colnames(tbl_snRNAseq_NEvsAllOther)[-c(1:2)] <- 
+  paste0(colnames(tbl_snRNAseq_NEvsAllOther)[-c(1:2)], ".snRNAseq_NEvsAllOther")
+
+# combine data frames
+df_out <- full_join(tbl_Visium_pseudobulk, tbl_snRNAseq_NEvsAllOther, 
+                    by = c("gene_id", "gene_name"))
+
+# save .csv file
+fn <- file.path(dir_outputs_snRNAseq, 
+                "DEtesting_overlap_VisiumPseudobulk_snRNAseqNEvsAllOther.csv")
+write.csv(df_out, file = fn, row.names = FALSE)
 
