@@ -1,6 +1,6 @@
 ###################################################################
 # LC snRNA-seq analyses: secondary clustering of inhibitory neurons
-# Lukas Weber, Jun 2023
+# Lukas Weber, Jul 2023
 ###################################################################
 
 
@@ -161,16 +161,19 @@ markers_inhib <- c(
   # inhibitory (GABAergic) neuron markers
   "GAD1", "GAD2", 
   # inhibitory subpopulations (from Keri Martinowich 2022-07-22)
-  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", "CRHBP", "CCK" ## "HTR3A" (not present in data)
+  "SST", "KIT", "CALB1", "CALB2", "TAC1", "CNR1", "PVALB", "CORT", "VIP", "NPY", 
+  "CRHBP", "CCK" ## "HTR3A" (not present in data)
 )
 
 # second set of GABAergic neuron marker genes from Luskin and Li et al. (2022)
-# and GAD1, GAD2
+# and also including SNAP25, SYT1, GAD1, GAD2
 
-genes_gabaergic_luskin <- c("GAD1", "GAD2", 
-                            "AGRP", "CALCA", "CCK", "GAL", "CARTPT", "NMB", 
-                            "ADCYAP1", "BDNF", "PCSK1", "PCSK2", "PCSK1N", 
-                            "PDYN", "PENK", "PNOC", "SST", "POMC", "TAC1")
+genes_gabaergic_luskin <- c(
+  "SNAP25", "SYT1", 
+  "GAD1", "GAD2", 
+  "AGRP", "CALCA", "CCK", "GAL", "CARTPT", "NMB", "ADCYAP1", "BDNF", "PCSK1", 
+  "PCSK2", "PCSK1N", "PDYN", "PENK", "PNOC", "SST", "POMC", "TAC1"
+)
 
 
 # ----------------------------------------------
@@ -261,10 +264,19 @@ dev.off()
 # --------------------------------------------------------------
 
 # marker labels
-marker_labels_luskin <- as.factor(rep("inhibitory", length(genes_gabaergic_luskin)))
+marker_labels_luskin <- c(
+  rep("neuron", 2), 
+  rep("inhibitory", 19))
+
+marker_labels_luskin <- 
+  factor(marker_labels_luskin, levels = unique(marker_labels_luskin))
+
 
 # colors
-colors_markers_luskin <- list(marker = c(inhibitory = "#AEC7E8"))
+colors_markers_luskin <- list(marker = c(
+  neuron = "black", 
+  inhibitory = "#AEC7E8"))
+
 
 # number of nuclei per cluster
 n <- table(colLabels(sce))
@@ -320,11 +332,11 @@ hm
 # save heatmap
 fn <- file.path(dir_plots, "clustering_inhibitory_subtypes_luskin_genes")
 
-pdf(paste0(fn, ".pdf"), width = 5.75, height = 4)
+pdf(paste0(fn, ".pdf"), width = 6.25, height = 4)
 hm
 dev.off()
 
-png(paste0(fn, ".png"), width = 5.75 * 200, height = 4 * 200, res = 200)
+png(paste0(fn, ".png"), width = 6.25 * 200, height = 4 * 200, res = 200)
 hm
 dev.off()
 
