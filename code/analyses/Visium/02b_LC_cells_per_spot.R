@@ -97,7 +97,7 @@ ggplot(df, aes(x = sample_id, y = cell_count, color = sample_id)) +
   geom_boxplot() + 
   scale_color_brewer(palette = "Set2") + 
   labs(y = "number of cells") + 
-  ggtitle("Number of cells per spot within annotated LC regions") + 
+  ggtitle("Cells per spot within annotated LC regions") + 
   theme_bw() + 
   theme(axis.title.x = element_blank(), 
         axis.text.x = element_text(angle = 15, vjust = 0.75, hjust = 0.75))
@@ -112,7 +112,7 @@ ggplot(df, aes(x = cell_count)) +
   facet_wrap(~ sample_id, scales = "free") + 
   geom_histogram(binwidth = 1, color = "black", fill = "navy") + 
   labs(x = "number of cells") + 
-  ggtitle("Number of cells per spot within annotated LC regions") + 
+  ggtitle("Cells per spot within annotated LC regions") + 
   theme_bw() + 
   theme(panel.grid = element_blank())
 
