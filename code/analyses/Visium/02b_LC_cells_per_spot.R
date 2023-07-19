@@ -86,7 +86,7 @@ for (i in seq_along(samples_cellsPerSpot)) {
 
 
 df <- 
-  colData(spe) |> 
+  colData(spe_sub) |> 
   as.data.frame() |> 
   filter(sample_id %in% samples_cellsPerSpot) |> 
   select(c("sample_id", "cell_count"))
@@ -95,9 +95,8 @@ df <-
 # plot boxplots
 ggplot(df, aes(x = sample_id, y = cell_count, color = sample_id)) + 
   geom_boxplot() + 
-  scale_y_sqrt() + 
   scale_color_brewer(palette = "Set2") + 
-  labs(y = "number of cells (sqrt scale)") + 
+  labs(y = "number of cells") + 
   ggtitle("Number of cells per spot within annotated LC regions") + 
   theme_bw() + 
   theme(axis.title.x = element_blank(), 
