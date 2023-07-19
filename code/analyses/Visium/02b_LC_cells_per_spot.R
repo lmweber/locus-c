@@ -50,41 +50,55 @@ files_cellsPerSpot <- list.files(here("cells_per_spot"),
 files_cellsPerSpot <- files_cellsPerSpot[c(5:6, 1:4)]
 samples_cellsPerSpot <- sample_ids[c(1:2, 6:9)]
 
-# check 
+# check order
 files_cellsPerSpot
 samples_cellsPerSpot
 
-# number of cells per spot in tissue regions
-n_cellsPerSpot <- as.list(rep(NA, 6))
-names(n_cellsPerSpot) <- samples_cellsPerSpot
 
-for (i in seq_along(n_cellsPerSpot)) {
+# store number of cells per spot in SPE object
+
+colData(spe)$cell_count <- as.numeric(NA)
+
+for (i in seq_along(files_cellsPerSpot)) {
   dat <- read_csv(files_cellsPerSpot[[i]])
-  n <- dat %>% filter(tissue == 1) %>% select(starts_with("N")) %>% unlist() %>% unname()
-  n_cellsPerSpot[[i]] <- n
+  # keep spots over tissue
+  dat <- dat %>% filter(tissue == 1)
+  key_id <- paste0(samples_cellsPerSpot[i], "_", dat$barcode)
+  # store cell counts from selected column in SPE object
+  n <- dat %>% select(starts_with("N")) %>% unlist() %>% unname()
+  colData(spe)[key_id, "cell_count"] <- n
 }
 
+
+# select spots within annotated LC regions only
+
+spe_sub <- spe[, colData(spe)$annot_region]
+
+
 # calculate median and IQR per sample
-# medians: range 3-5
-# 1st quartiles: range 1-3
-# 3rd quartiles: range 5-8
-lapply(n_cellsPerSpot, summary)
+# medians: range 3-7
+# 1st quartiles: range 2-4
+# 3rd quartiles: range 5-11
+for (i in seq_along(samples_cellsPerSpot)) {
+  print(samples_cellsPerSpot[i])
+  print(summary(colData(spe_sub)[colData(spe_sub)$sample_id == samples_cellsPerSpot[i], "cell_count"]))
+}
+
 
 df <- 
-  data.frame(
-    sample_id = rep(names(n_cellsPerSpot), times = sapply(n_cellsPerSpot, length)), 
-    n = unname(unlist(n_cellsPerSpot))
-  ) %>% 
-  mutate(sample_id = factor(sample_id, levels = samples_cellsPerSpot))
+  colData(spe) |> 
+  as.data.frame() |> 
+  filter(sample_id %in% samples_cellsPerSpot) |> 
+  select(c("sample_id", "cell_count"))
 
 
 # plot boxplots
-ggplot(df, aes(x = sample_id, y = n, color = sample_id)) + 
+ggplot(df, aes(x = sample_id, y = cell_count, color = sample_id)) + 
   geom_boxplot() + 
   scale_y_sqrt() + 
   scale_color_brewer(palette = "Set2") + 
   labs(y = "number of cells (sqrt scale)") + 
-  ggtitle("Number of cells per spot") + 
+  ggtitle("Number of cells per spot within annotated LC regions") + 
   theme_bw() + 
   theme(axis.title.x = element_blank(), 
         axis.text.x = element_text(angle = 15, vjust = 0.75, hjust = 0.75))
@@ -94,28 +108,12 @@ ggsave(paste0(fn, ".pdf"), width = 7.5, height = 4.5)
 ggsave(paste0(fn, ".png"), width = 7.5, height = 4.5)
 
 
-# trim at 98th percentile for plotting histograms
-n_trimmed <- n_cellsPerSpot
-for (i in seq_along(n_cellsPerSpot)) {
-  n <- n_cellsPerSpot[[i]]
-  n <- n[n < quantile(n, probs = 0.98)]
-  n_trimmed[[i]] <- n
-}
-
-df_trimmed <- 
-  data.frame(
-    sample_id = rep(names(n_trimmed), times = sapply(n_trimmed, length)), 
-    n = unname(unlist(n_trimmed))
-  ) %>% 
-  mutate(sample_id = factor(sample_id, levels = samples_cellsPerSpot))
-
 # plot histograms
-ggplot(df_trimmed, aes(x = n)) + 
+ggplot(df, aes(x = cell_count)) + 
   facet_wrap(~ sample_id, scales = "free") + 
   geom_histogram(binwidth = 1, color = "black", fill = "navy") + 
-  scale_x_continuous(breaks = seq(0, 60, by = 5)) + 
   labs(x = "number of cells") + 
-  ggtitle("Number of cells per spot (trimmed)") + 
+  ggtitle("Number of cells per spot within annotated LC regions") + 
   theme_bw() + 
   theme(panel.grid = element_blank())
 
