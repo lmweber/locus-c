@@ -1,6 +1,6 @@
 #######################################
 # LC analyses: number of cells per spot
-# Lukas Weber, Jul 2023
+# Lukas Weber, Aug 2023
 #######################################
 
 # module load conda_R/4.2
@@ -76,9 +76,9 @@ spe_sub <- spe[, colData(spe)$annot_region]
 
 
 # calculate median and IQR per sample
-# medians: range 3-7
-# 1st quartiles: range 2-4
-# 3rd quartiles: range 5-11
+# medians: range 2-5
+# 1st quartiles: range 1-3
+# 3rd quartiles: range 4-8
 for (i in seq_along(samples_cellsPerSpot)) {
   print(samples_cellsPerSpot[i])
   print(summary(colData(spe_sub)[colData(spe_sub)$sample_id == samples_cellsPerSpot[i], "cell_count"]))
